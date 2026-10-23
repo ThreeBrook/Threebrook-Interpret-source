@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-// ThreeBrook Trans 产品图标（三溪外观规范 §8）：
+// 三溪通译（Threebrook Interpret）产品图标（三溪外观规范 §8）：
 // 圆角方形 + 产品色（暮紫 #7460C4）渐变 + 白色主图案"文A"；
 // 64 像素及以上左下角带月亮签名，48 像素简化签名（小圆月），32 像素及以下不带。
 //

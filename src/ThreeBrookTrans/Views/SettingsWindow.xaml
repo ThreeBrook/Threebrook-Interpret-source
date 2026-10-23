@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:v="clr-namespace:ThreeBrookTrans.Views"
-        Title="ThreeBrook Trans 设置" Width="904" Height="664"
+        Title="三溪通译 设置" Width="904" Height="664"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen" Icon="pack://application:,,,/ThreeBrookTrans;component/Assets/AppIcon.ico"
         FontFamily="{StaticResource F.Body}" FontSize="13" Foreground="{DynamicResource B.Text}"
@@ -327,7 +327,7 @@
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
-                                    <TextBlock x:Name="GlossaryEmpty" Text="还没有术语。例如：三溪 ⇄ ThreeBrook、周报 ⇄ weekly digest" Style="{StaticResource Text.Caption}" Margin="0,4,0,0"/>
+                                    <TextBlock x:Name="GlossaryEmpty" Text="还没有术语。例如：三溪 ⇄ Threebrook、周报 ⇄ weekly digest" Style="{StaticResource Text.Caption}" Margin="0,4,0,0"/>
                                     <Button Style="{StaticResource Btn.Outline}" HorizontalAlignment="Left" Margin="0,12,0,0" Click="AddTerm_Click">
                                         <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Add}" Margin="0,0,6,0"/><TextBlock Text="添加术语" VerticalAlignment="Center"/></StackPanel>
                                     </Button>
@@ -467,8 +467,11 @@
                                         <Image Source="pack://application:,,,/ThreeBrookTrans;component/Assets/AppIcon-128.png" Width="64" Height="64"
                                                RenderOptions.BitmapScalingMode="HighQuality"/>
                                         <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
-                                            <TextBlock Text="ThreeBrook Trans" FontFamily="{StaticResource F.DisplayEn}" FontSize="24" Foreground="{DynamicResource B.Text}"/>
-                                            <TextBlock x:Name="VersionText" Style="{StaticResource Text.Mono}" FontSize="12" Margin="0,4,0,0" HorizontalAlignment="Left"/>
+                                            <TextBlock Text="三溪通译" FontFamily="{StaticResource F.DisplayZh}" FontSize="28" Foreground="{DynamicResource B.Text}"/>
+                                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                <TextBlock Text="Threebrook Interpret" FontFamily="{StaticResource F.DisplayEn}" FontSize="15" Foreground="{DynamicResource B.TextSub}" VerticalAlignment="Center"/>
+                                                <TextBlock x:Name="VersionText" Style="{StaticResource Text.Mono}" FontSize="12" Margin="10,0,0,0"/>
+                                            </StackPanel>
                                         </StackPanel>
                                     </StackPanel>
                                     <TextBlock Text="轻巧的托盘翻译工具：划词翻译、截图翻译、输入翻译、截图钉图、剪贴板历史。" TextWrapping="Wrap"
@@ -477,7 +480,7 @@
                                     <TextBlock Text="字体与图标" Style="{StaticResource Text.CardTitle}" FontSize="13.5"/>
                                     <TextBlock Style="{StaticResource Text.Caption}" Margin="0,6,0,0"
                                                Text="站酷小薇、Bricolage Grotesque、JetBrains Mono（SIL OFL 1.1）；Material Symbols（Apache 2.0）。许可文本见程序目录下的 licenses 文件夹。"/>
-                                    <TextBlock Text="© 2026 三溪 Threebrook" Style="{StaticResource Text.Caption}" Margin="0,18,0,0"/>
+                                    <TextBlock Text="© 2026 三溪 Threebrook · 三溪通译 Threebrook Interpret" Style="{StaticResource Text.Caption}" Margin="0,18,0,0"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>

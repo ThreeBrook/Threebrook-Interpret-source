@@ -72,7 +72,7 @@ public sealed class HistorySettings
 }
 
 /// <summary>
-/// 一对术语，双向生效：原文里出现哪一边，就固定翻成另一边（如 "三溪" ⇄ "ThreeBrook"）。
+/// 一对术语，双向生效：原文里出现哪一边，就固定翻成另一边（如 "三溪" ⇄ "Threebrook"）。
 /// </summary>
 public sealed class GlossaryEntry
 {

@@ -157,7 +157,7 @@ public partial class HistoryWindow : Window
     private void Clear_Click(object sender, RoutedEventArgs e)
     {
         Topmost = false;
-        var confirm = MessageBox.Show(this, "确定清空全部剪贴板历史吗？图片文件也会一起删除。", "ThreeBrook Trans",
+        var confirm = MessageBox.Show(this, "确定清空全部剪贴板历史吗？图片文件也会一起删除。", AppInfo.Name,
             MessageBoxButton.OKCancel, MessageBoxImage.Question);
         Topmost = true;
         if (confirm == MessageBoxResult.OK)

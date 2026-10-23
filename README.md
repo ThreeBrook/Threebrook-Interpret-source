@@ -1,4 +1,4 @@
-﻿# ThreeBrook Trans
+﻿# 三溪通译 Threebrook Interpret
 
 轻巧的 Windows 托盘翻译工具：划词翻译、截图翻译、输入翻译、截图标注与钉图、剪贴板历史。程序本体约 750 KB（含内嵌字体和图标）。
 
@@ -8,7 +8,7 @@
 dotnet build -c Release
 ```
 
-运行 `src\ThreeBrookTrans\bin\Release\net8.0-windows\ThreeBrookTrans.exe`，或用发布脚本生成单文件：
+运行 `src\ThreeBrookTrans\bin\Release\net10.0-windows\ThreeBrookTrans.exe`，或用发布脚本生成单文件：
 
 ```bash
 powershell -ExecutionPolicy Bypass -File publish.ps1
@@ -59,7 +59,7 @@ powershell -ExecutionPolicy Bypass -File publish.ps1
 
 ## 术语表
 
-设置 → 术语表：填写成对的词（如 三溪 ⇄ ThreeBrook、周报 ⇄ weekly digest），双向生效，原文里出现哪一边就固定翻成另一边。
+设置 → 术语表：填写成对的词（如 三溪 ⇄ Threebrook、周报 ⇄ weekly digest），双向生效，原文里出现哪一边就固定翻成另一边。
 
 - 大模型：把用到的术语写进提示词
 - 必应、Yandex 等机器翻译：翻译前把术语换成占位符，翻完换回固定译法（实测两者都会原样保留占位符）

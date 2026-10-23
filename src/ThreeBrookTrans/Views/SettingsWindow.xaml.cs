@@ -351,7 +351,7 @@ public partial class SettingsWindow : Window
 
     private void ClearHistory_Click(object sender, RoutedEventArgs e)
     {
-        if (MessageBox.Show(this, "确定清空全部剪贴板历史吗？", "ThreeBrook Trans", MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
+        if (MessageBox.Show(this, "确定清空全部剪贴板历史吗？", AppInfo.Name, MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
             App.Instance.ClearHistory();
     }
 
@@ -383,7 +383,7 @@ public partial class SettingsWindow : Window
         {
             NavList.SelectedIndex = 1;
             MessageBox.Show(this, $"{string.Join("、", duplicate.Select(h => h.Name))} 用了同一个快捷键 {duplicate.First().Gesture}，请改成不同的组合。",
-                "ThreeBrook Trans", MessageBoxButton.OK, MessageBoxImage.Warning);
+                AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -400,7 +400,7 @@ public partial class SettingsWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, "设置开机自启失败：" + ex.Message, "ThreeBrook Trans", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, "设置开机自启失败：" + ex.Message, AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
         _saved = true;

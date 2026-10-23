@@ -123,7 +123,7 @@ public partial class App : Application
                 backupNote = "原文件备份失败：" + backupError.Message;
             }
             MessageBox.Show($"配置文件读取失败，已使用默认配置：\n{ex.Message}\n\n{backupNote}",
-                "ThreeBrook Trans", MessageBoxButton.OK, MessageBoxImage.Warning);
+                AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
@@ -131,7 +131,7 @@ public partial class App : Application
     {
         LoadSettings();
         OnSettingsChanged();
-        _tray?.ShowMessage("ThreeBrook Trans", "配置已重新加载");
+        _tray?.ShowMessage(AppInfo.Name, "配置已重新加载");
     }
 
     /// <summary>设置窗口点"保存"后调用。</summary>
@@ -144,7 +144,7 @@ public partial class App : Application
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            MessageBox.Show("保存配置失败（本次运行仍按新设置生效）：" + ex.Message, "ThreeBrook Trans",
+            MessageBox.Show("保存配置失败（本次运行仍按新设置生效）：" + ex.Message, AppInfo.Name,
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         OnSettingsChanged();
@@ -311,7 +311,7 @@ public partial class App : Application
         catch (IOException)
         {
         }
-        MessageBox.Show(e.Exception.Message, "ThreeBrook Trans 出错", MessageBoxButton.OK, MessageBoxImage.Error);
+        MessageBox.Show(e.Exception.Message, AppInfo.Name + " 出错", MessageBoxButton.OK, MessageBoxImage.Error);
         e.Handled = true;
     }
 

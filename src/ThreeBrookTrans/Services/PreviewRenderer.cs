@@ -21,7 +21,7 @@ internal static class PreviewRenderer
         foreach (var theme in new[] { "light", "dark" })
         {
             App.UsePreviewSettings(theme); // 设置窗口打开时会按配置重新应用外观，所以配置里也要写上
-            App.Settings.Glossary.Add(new GlossaryEntry { Source = "三溪", Target = "ThreeBrook" });
+            App.Settings.Glossary.Add(new GlossaryEntry { Source = "三溪", Target = "Threebrook" });
             App.Settings.Glossary.Add(new GlossaryEntry { Source = "周报", Target = "weekly digest" });
             ThemeManager.Apply(theme);
 

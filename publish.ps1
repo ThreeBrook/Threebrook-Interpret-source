@@ -1,5 +1,5 @@
-# 发布 ThreeBrook Trans 到 dist 目录
-#   .\publish.ps1            单文件 exe，需要目标电脑已安装 .NET 8 桌面运行时（体积最小）
+# 发布 三溪通译（Threebrook Interpret）到 dist 目录
+#   .\publish.ps1            单文件 exe，需要目标电脑已安装 .NET 10 桌面运行时（体积最小）
 #   .\publish.ps1 -Portable  自带运行时，任何 Windows 10/11 x64 都能直接运行（体积大）
 param([switch]$Portable)
 

@@ -70,7 +70,7 @@ public sealed class TrayIcon : IDisposable
         _icon = new NotifyIcon
         {
             Icon = LoadIcon(),
-            Text = "ThreeBrook Trans",
+            Text = AppInfo.Name,
             ContextMenuStrip = menu,
             Visible = true,
         };

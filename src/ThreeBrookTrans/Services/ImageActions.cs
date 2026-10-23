@@ -38,7 +38,7 @@ public static class ImageActions
         var settings = App.Settings.Screenshot;
         var extension = settings.ImageFormat.Equals("jpg", StringComparison.OrdinalIgnoreCase) ? ".jpg" : ".png";
         var directory = EnsureDirectory(settings.SaveDirectory);
-        var fileName = UniqueFileName(directory, $"ThreeBrook_{DateTime.Now:yyyyMMdd_HHmmss}", extension);
+        var fileName = UniqueFileName(directory, $"Threebrook_{DateTime.Now:yyyyMMdd_HHmmss}", extension);
 
         string path;
         if (settings.AskSavePath)
@@ -67,9 +67,9 @@ public static class ImageActions
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             if (owner != null)
-                MessageBox.Show(owner, "保存失败：" + ex.Message, "ThreeBrook Trans", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(owner, "保存失败：" + ex.Message, AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
             else
-                MessageBox.Show("保存失败：" + ex.Message, "ThreeBrook Trans", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("保存失败：" + ex.Message, AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
             return null;
         }
     }
