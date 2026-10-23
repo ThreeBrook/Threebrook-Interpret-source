@@ -75,6 +75,29 @@ public sealed class OpenAiCompatibleTranslator : ITranslator
             }
         });
 
+    /// <summary>读取接口提供的模型列表（GET {BaseUrl}/models），设置界面用来选择模型名。</summary>
+    public static Task<List<string>> ListModelsAsync(EngineConfig config, CancellationToken ct) =>
+        Http.WithTimeout(TimeSpan.FromSeconds(10), ct, async token =>
+        {
+            if (string.IsNullOrWhiteSpace(config.BaseUrl))
+                throw new TranslationException("请先填写接口地址");
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, config.BaseUrl.TrimEnd('/') + "/models");
+            if (!string.IsNullOrWhiteSpace(config.ApiKey))
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.ApiKey);
+            using var response = await Http.Client.SendAsync(request, token);
+            var json = await response.Content.ReadAsStringAsync(token);
+            if (!response.IsSuccessStatusCode)
+                throw new TranslationException($"获取模型列表失败 {(int)response.StatusCode}：{json}");
+
+            using var doc = JsonDocument.Parse(json);
+            var models = new List<string>();
+            foreach (var item in doc.RootElement.GetProperty("data").EnumerateArray())
+                if (item.GetProperty("id").GetString() is { Length: > 0 } id)
+                    models.Add(id);
+            return models;
+        });
+
     private static string StripThinking(string content)
     {
         content = ThinkBlock.Replace(content, "");

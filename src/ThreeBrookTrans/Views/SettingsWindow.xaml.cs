@@ -178,6 +178,52 @@ public partial class SettingsWindow : Window
 
     private void EngineName_LostFocus(object sender, RoutedEventArgs e) => EnginesList.Items.Refresh();
 
+    private async void FetchModels_Click(object sender, RoutedEventArgs e)
+    {
+        if (SelectedEngine is not { } engine)
+            return;
+
+        TestResultText.Foreground = System.Windows.Media.Brushes.Gray;
+        TestResultText.Text = "正在获取模型列表…";
+        try
+        {
+            var models = await OpenAiCompatibleTranslator.ListModelsAsync(engine, CancellationToken.None);
+            if (models.Count == 0)
+            {
+                TestResultText.Text = "接口没有返回任何模型";
+                return;
+            }
+            if (models.Count == 1)
+            {
+                SetModel(models[0]);
+                TestResultText.Text = $"已填入唯一的模型：{models[0]}";
+                return;
+            }
+
+            // 多个模型时弹出菜单选择
+            var menu = new ContextMenu { PlacementTarget = FetchModelsButton };
+            foreach (var model in models)
+            {
+                var item = new MenuItem { Header = model, IsChecked = model == engine.Model };
+                item.Click += (_, _) => SetModel(model);
+                menu.Items.Add(item);
+            }
+            menu.IsOpen = true;
+            TestResultText.Text = $"共 {models.Count} 个模型，请选择";
+        }
+        catch (Exception ex)
+        {
+            TestResultText.Foreground = System.Windows.Media.Brushes.Firebrick;
+            TestResultText.Text = "✗ " + ex.Message;
+        }
+    }
+
+    private void SetModel(string model)
+    {
+        ModelBox.Text = model;
+        ModelBox.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+    }
+
     private async void TestEngine_Click(object sender, RoutedEventArgs e)
     {
         if (SelectedEngine is not { } engine || TranslatorFactory.Create(engine) is not { } translator)

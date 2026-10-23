@@ -159,9 +159,11 @@
                                 <TextBox Grid.Column="1" Text="{Binding Region, UpdateSourceTrigger=PropertyChanged}" ToolTip="腾讯默认 ap-guangzhou；Azure 填资源所在区域，如 eastasia"/>
                             </Grid>
                             <Grid x:Name="ModelRow" Style="{StaticResource Row}">
-                                <Grid.ColumnDefinitions><ColumnDefinition Width="90"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="90"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                 <TextBlock Text="模型名" Style="{StaticResource Label}"/>
-                                <TextBox Grid.Column="1" Text="{Binding Model, UpdateSourceTrigger=PropertyChanged}" ToolTip="例如 qwen3:8b、deepseek-chat"/>
+                                <TextBox x:Name="ModelBox" Grid.Column="1" Text="{Binding Model, UpdateSourceTrigger=PropertyChanged}" ToolTip="例如 qwen3:8b、deepseek-chat"/>
+                                <Button x:Name="FetchModelsButton" Grid.Column="2" Content="获取" MinWidth="0" Padding="10,3" Margin="6,0,0,0"
+                                        ToolTip="从接口地址读取可用的模型" Click="FetchModels_Click"/>
                             </Grid>
                             <StackPanel x:Name="LlmRows">
                                 <CheckBox Content="关闭思考模式（Qwen3 等推理模型，翻译更快）" IsChecked="{Binding DisableThinking}"/>
