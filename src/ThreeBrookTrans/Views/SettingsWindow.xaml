@@ -111,9 +111,23 @@
                             <Button Content="↓" MinWidth="0" Padding="8,3" Margin="4,0,0,0" ToolTip="下移" Click="MoveDown_Click"/>
                         </StackPanel>
                         <ListBox x:Name="EnginesList" SelectionChanged="EnginesList_SelectionChanged" BorderBrush="#C8D1DA">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <!-- 点复选框时也选中这一行 -->
+                                    <Style.Triggers>
+                                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                            <Setter Property="IsSelected" Value="True"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <CheckBox IsChecked="{Binding Enabled}" Content="{Binding Name}" Margin="2" ToolTip="勾选表示启用"/>
+                                    <!-- 复选框只管启用；名字是普通文字，点击选中该行查看设置 -->
+                                    <StackPanel Orientation="Horizontal" Margin="2">
+                                        <CheckBox IsChecked="{Binding Enabled}" VerticalAlignment="Center" ToolTip="勾选表示启用"/>
+                                        <TextBlock Text="{Binding Name}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                    </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>

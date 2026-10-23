@@ -134,13 +134,21 @@ public partial class App : Application
     {
         if (_settingsWindow != null)
         {
-            _settingsWindow.Activate();
+            BringToFront(_settingsWindow);
             return;
         }
         _settingsWindow = new SettingsWindow();
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;
         _settingsWindow.Show();
-        _settingsWindow.Activate();
+        BringToFront(_settingsWindow);
+    }
+
+    /// <summary>从托盘或另一个进程触发时，Activate 可能被系统的前台锁拦住，临时置顶确保窗口出现在最前。</summary>
+    private static void BringToFront(Window window)
+    {
+        window.Topmost = true;
+        window.Activate();
+        window.Topmost = false;
     }
 
     private void RegisterHotkeys()
