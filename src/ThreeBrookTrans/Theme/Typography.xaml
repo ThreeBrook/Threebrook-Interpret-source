@@ -56,4 +56,8 @@
     <sys:String x:Key="I.Number">&#xF784;</sys:String>
     <sys:String x:Key="I.Undo">&#xE166;</sys:String>
     <sys:String x:Key="I.Redo">&#xE15A;</sys:String>
+
+    <!-- 术语表 -->
+    <sys:String x:Key="I.Glossary">&#xEA19;</sys:String>
+    <sys:String x:Key="I.Swap">&#xE8D4;</sys:String>
 </ResourceDictionary>

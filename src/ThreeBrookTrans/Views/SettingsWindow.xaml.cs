@@ -18,6 +18,7 @@ public partial class SettingsWindow : Window
 {
     private readonly AppSettings _settings;
     private readonly ObservableCollection<EngineConfig> _engines;
+    private readonly ObservableCollection<GlossaryEntry> _glossary;
 
     public SettingsWindow()
     {
@@ -43,6 +44,11 @@ public partial class SettingsWindow : Window
         }
         AddEngineButton.ContextMenu = addMenu;
 
+        _glossary = new ObservableCollection<GlossaryEntry>(_settings.Glossary);
+        _glossary.CollectionChanged += (_, _) => UpdateGlossaryEmpty();
+        GlossaryList.ItemsSource = _glossary;
+        UpdateGlossaryEmpty();
+
         EnginesList.ItemsSource = _engines;
         EnginesList.SelectedIndex = _engines.Count > 0 ? 0 : -1;
         UpdateEngineDetail();
@@ -56,7 +62,7 @@ public partial class SettingsWindow : Window
     {
         if (PageAbout == null)
             return; // InitializeComponent 期间，页面还没创建
-        var pages = new FrameworkElement[] { PageGeneral, PageHotkeys, PageEngines, PageScreenshot, PageHistory, PageAbout };
+        var pages = new FrameworkElement[] { PageGeneral, PageHotkeys, PageEngines, PageGlossary, PageScreenshot, PageHistory, PageAbout };
         for (var i = 0; i < pages.Length; i++)
             pages[i].Visibility = i == NavList.SelectedIndex ? Visibility.Visible : Visibility.Collapsed;
         PageScroller.ScrollToTop();
@@ -309,6 +315,19 @@ public partial class SettingsWindow : Window
         }
     }
 
+    // —— 术语表 ——
+
+    private void AddTerm_Click(object sender, RoutedEventArgs e) => _glossary.Add(new GlossaryEntry());
+
+    private void RemoveTerm_Click(object sender, RoutedEventArgs e)
+    {
+        if (((FrameworkElement)sender).DataContext is GlossaryEntry entry)
+            _glossary.Remove(entry);
+    }
+
+    private void UpdateGlossaryEmpty() =>
+        GlossaryEmpty.Visibility = _glossary.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
     // —— 其他 ——
 
     private void BrowseSaveDir_Click(object sender, RoutedEventArgs e)
@@ -346,6 +365,10 @@ public partial class SettingsWindow : Window
             focused.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
 
         _settings.Engines = _engines.ToList();
+        _settings.Glossary = _glossary
+            .Where(g => !string.IsNullOrWhiteSpace(g.Source) && !string.IsNullOrWhiteSpace(g.Target))
+            .Select(g => new GlossaryEntry { Source = g.Source.Trim(), Target = g.Target.Trim() })
+            .ToList();
 
         // 快捷键不能重复
         var hotkeys = new (string Name, string Gesture)[]

@@ -16,7 +16,7 @@ namespace ThreeBrookTrans.Views;
 /// </summary>
 public partial class ScreenshotOverlay : Window
 {
-    private enum State { Idle, Selecting, Moving, Selected, Drawing }
+    private enum State { Idle, Selecting, Moving, Resizing, Selected, Drawing }
 
     private const double MinSelection = 3;
 
@@ -40,6 +40,7 @@ public partial class ScreenshotOverlay : Window
             HintText.Text = "框选要翻译的区域 · 右键 / Esc 取消";
         ScreenImage.Source = screen;
         InitAnnotationTools();
+        InitSelectionHelpers();
         SourceInitialized += OnSourceInitialized;
         SizeChanged += (_, _) => UpdateMask();
         Loaded += (_, _) =>
@@ -50,6 +51,7 @@ public partial class ScreenshotOverlay : Window
             Focus();
             PlaceHint();
             UpdateMask();
+            UpdateHover(Mouse.GetPosition(Layer));
         };
     }
 
@@ -85,6 +87,11 @@ public partial class ScreenshotOverlay : Window
                 CommitText();
             return;
         }
+        if (_state == State.Selected && CanAdjustSelection && HitEdges(p) is var edges && edges != Edge.None)
+        {
+            BeginResize(p, edges);
+            return;
+        }
         if (_state == State.Selected && _selection.Contains(p))
         {
             if (e.ClickCount == 2)
@@ -104,9 +111,12 @@ public partial class ScreenshotOverlay : Window
         }
         else
         {
+            _hoverAtPress = _state == State.Idle ? _selection : Rect.Empty;
             _state = State.Selecting;
+            _dragStarted = false;
             _anchor = p;
-            _selection = new Rect(p, p);
+            if (_hoverAtPress.IsEmpty)
+                _selection = new Rect(p, p);
         }
 
         Toolbar.Visibility = Visibility.Collapsed;
@@ -122,9 +132,18 @@ public partial class ScreenshotOverlay : Window
 
         switch (_state)
         {
+            case State.Idle:
+                UpdateHover(p);
+                break;
             case State.Selecting:
+                if (!_dragStarted && (p - _anchor).Length < DragThreshold)
+                    break; // 还没拖动：可能是单击选中窗口
+                _dragStarted = true;
                 _selection = new Rect(Clamp(_anchor), Clamp(p));
                 UpdateSelection();
+                break;
+            case State.Resizing:
+                ResizeTo(p);
                 break;
             case State.Moving:
                 var x = Math.Clamp(_selectionBeforeMove.X + p.X - _anchor.X, 0, Layer.ActualWidth - _selection.Width);
@@ -134,6 +153,9 @@ public partial class ScreenshotOverlay : Window
                 break;
             case State.Drawing:
                 UpdateDraw(p, (Keyboard.Modifiers & ModifierKeys.Shift) != 0);
+                break;
+            case State.Selected when CanAdjustSelection && !Toolbar.IsMouseOver && HitEdges(p) is var hover && hover != Edge.None:
+                Cursor = EdgeCursor(hover);
                 break;
             case State.Selected:
                 var inside = _selection.Contains(p) && !Toolbar.IsMouseOver;
@@ -152,16 +174,19 @@ public partial class ScreenshotOverlay : Window
             EndDraw();
             return;
         }
-        if (_state is not (State.Selecting or State.Moving))
+        if (_state is not (State.Selecting or State.Moving or State.Resizing))
             return;
 
         ReleaseMouseCapture();
-        if (_selection.Width < MinSelection || _selection.Height < MinSelection)
+        if (_state == State.Selecting && !_dragStarted)
+            _selection = _hoverAtPress.IsEmpty ? Rect.Empty : _hoverAtPress; // 单击：选中悬停的窗口
+        if (_selection.IsEmpty || _selection.Width < MinSelection || _selection.Height < MinSelection)
         {
             Reset();
             return;
         }
         _state = State.Selected;
+        UpdateHandles();
         if (_translateMode)
             Recognize(translate: true);
         else
@@ -171,7 +196,7 @@ public partial class ScreenshotOverlay : Window
     protected override void OnMouseRightButtonUp(MouseButtonEventArgs e)
     {
         base.OnMouseRightButtonUp(e);
-        if (_state is State.Selecting or State.Moving or State.Drawing)
+        if (_state is State.Selecting or State.Moving or State.Resizing or State.Drawing)
             return;
         if (Annotating)
         {
@@ -232,7 +257,9 @@ public partial class ScreenshotOverlay : Window
         SelectionBorder.Visibility = Visibility.Collapsed;
         SizeLabel.Visibility = Visibility.Collapsed;
         Hint.Visibility = Visibility.Visible;
+        UpdateHandles();
         UpdateMask();
+        UpdateHover(Mouse.GetPosition(Layer));
     }
 
     // —— 绘制 ——
@@ -255,6 +282,7 @@ public partial class ScreenshotOverlay : Window
         var labelY = _selection.Y - SizeLabel.DesiredSize.Height - 4;
         Canvas.SetLeft(SizeLabel, _selection.X);
         Canvas.SetTop(SizeLabel, labelY >= 0 ? labelY : _selection.Y + 4);
+        UpdateHandles();
     }
 
     private void UpdateMask()

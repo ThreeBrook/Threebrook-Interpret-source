@@ -22,6 +22,11 @@ public sealed class AppSettings
 
     public HistorySettings History { get; set; } = new();
 
+    /// <summary>术语表：固定专业词的译法。</summary>
+    public bool GlossaryEnabled { get; set; } = true;
+
+    public List<GlossaryEntry> Glossary { get; set; } = new();
+
     /// <summary>划词和截图识别的文字自动合并句子中间的硬换行（PDF、OCR 常见）。</summary>
     public bool MergeLineBreaks { get; set; } = true;
 
@@ -64,6 +69,15 @@ public sealed class HistorySettings
 
     /// <summary>在历史窗口里回车 / 双击时，复制后自动粘贴到之前的窗口。</summary>
     public bool PasteOnSelect { get; set; } = true;
+}
+
+/// <summary>
+/// 一对术语，双向生效：原文里出现哪一边，就固定翻成另一边（如 "三溪" ⇄ "ThreeBrook"）。
+/// </summary>
+public sealed class GlossaryEntry
+{
+    public string Source { get; set; } = "";
+    public string Target { get; set; } = "";
 }
 
 public sealed class ScreenshotSettings
@@ -140,7 +154,13 @@ public static class SettingsStore
         }
 
         var json = File.ReadAllText(SettingsPath);
-        return Normalize(JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? AppSettings.CreateDefault());
+        var loaded = Normalize(JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? AppSettings.CreateDefault());
+        foreach (var engine in loaded.Engines)
+        {
+            engine.ApiKey = SecretProtector.Unprotect(engine.ApiKey);
+            engine.SecretKey = SecretProtector.Unprotect(engine.SecretKey);
+        }
+        return loaded;
     }
 
     /// <summary>
@@ -153,6 +173,8 @@ public static class SettingsStore
         settings.History ??= new HistorySettings();
         settings.Engines ??= AppSettings.CreateDefault().Engines;
         settings.Engines.RemoveAll(e => e == null || string.IsNullOrWhiteSpace(e.Type));
+        settings.Glossary ??= new List<GlossaryEntry>();
+        settings.Glossary.RemoveAll(g => g == null || string.IsNullOrWhiteSpace(g.Source) || string.IsNullOrWhiteSpace(g.Target));
         settings.Theme ??= "auto";
         settings.TargetLanguage ??= "auto";
         var h = settings.Hotkeys;
@@ -184,12 +206,21 @@ public static class SettingsStore
     public static AppSettings Clone(AppSettings settings) =>
         JsonSerializer.Deserialize<AppSettings>(JsonSerializer.Serialize(settings, JsonOptions), JsonOptions)!;
 
-    /// <summary>先写临时文件再替换，写到一半崩溃或断电也不会留下半截配置。</summary>
+    /// <summary>
+    /// 先写临时文件再替换，写到一半崩溃或断电也不会留下半截配置。
+    /// API Key、密钥加密后写入（内存里仍是明文），见 SecretProtector。
+    /// </summary>
     public static void Save(AppSettings settings)
     {
         Directory.CreateDirectory(DataDirectory);
+        var onDisk = Clone(settings);
+        foreach (var engine in onDisk.Engines)
+        {
+            engine.ApiKey = SecretProtector.Protect(engine.ApiKey);
+            engine.SecretKey = SecretProtector.Protect(engine.SecretKey);
+        }
         var temp = SettingsPath + ".tmp";
-        File.WriteAllText(temp, JsonSerializer.Serialize(settings, JsonOptions));
+        File.WriteAllText(temp, JsonSerializer.Serialize(onDisk, JsonOptions));
         File.Move(temp, SettingsPath, overwrite: true);
     }
 }

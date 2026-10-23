@@ -21,6 +21,8 @@ internal static class PreviewRenderer
         foreach (var theme in new[] { "light", "dark" })
         {
             App.UsePreviewSettings(theme); // 设置窗口打开时会按配置重新应用外观，所以配置里也要写上
+            App.Settings.Glossary.Add(new GlossaryEntry { Source = "三溪", Target = "ThreeBrook" });
+            App.Settings.Glossary.Add(new GlossaryEntry { Source = "周报", Target = "weekly digest" });
             ThemeManager.Apply(theme);
 
             var translate = new TranslateWindow();
@@ -38,7 +40,7 @@ internal static class PreviewRenderer
             Render(new HistoryWindow(history), outputDirectory, theme, "history");
 
             var settings = new SettingsWindow { WindowStartupLocation = WindowStartupLocation.Manual };
-            var pages = new[] { "general", "hotkeys", "engines", "screenshot", "history", "about" };
+            var pages = new[] { "general", "hotkeys", "engines", "glossary", "screenshot", "history", "about" };
             for (var i = 0; i < pages.Length; i++)
             {
                 settings.NavList.SelectedIndex = i;
@@ -49,6 +51,7 @@ internal static class PreviewRenderer
             RenderAnnotation(outputDirectory, theme);
             RenderSelection(outputDirectory, theme, "screenshot-narrow", new Rect(200, 60, 340, 200));
             RenderSelection(outputDirectory, theme, "screenshot-wide", new Rect(20, 40, 720, 300));
+            RenderSelection(outputDirectory, theme, "screenshot-hover", new Rect(60, 40, 580, 320), hover: true);
         }
     }
 
@@ -69,7 +72,7 @@ internal static class PreviewRenderer
         overlay.Close();
     }
 
-    private static void RenderSelection(string directory, string theme, string name, Rect selection)
+    private static void RenderSelection(string directory, string theme, string name, Rect selection, bool hover = false)
     {
         var overlay = new ScreenshotOverlay(SyntheticScreen(760, 470), new System.Drawing.Rectangle(-30000, -30000, 760, 470))
         {
@@ -78,7 +81,10 @@ internal static class PreviewRenderer
         };
         overlay.Show();
         DoEvents();
-        overlay.RenderSelectionPreview(selection);
+        if (hover)
+            overlay.PreviewHover(selection);
+        else
+            overlay.RenderSelectionPreview(selection);
         DoEvents();
         Save(overlay, directory, theme, name);
         overlay.Close();

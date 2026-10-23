@@ -85,6 +85,7 @@ public partial class ScreenshotOverlay
         foreach (ToggleButton button in ToolButtons.Children)
             button.IsChecked = (string)button.Tag == _tool.ToString();
         PropertyBar.Visibility = Annotating ? Visibility.Visible : Visibility.Collapsed;
+        UpdateHandles();
         ShowToolbar();
     }
 
@@ -149,6 +150,7 @@ public partial class ScreenshotOverlay
         }
 
         Annotations.Children.Add(_current!);
+        UpdateHandles();
         UpdateDraw(p, shift: false);
         _state = State.Drawing;
         if (!PreviewMode)
@@ -342,6 +344,7 @@ public partial class ScreenshotOverlay
         _redo.Push(last);
         if (last is FrameworkElement { Tag: "number" })
             _nextNumber--;
+        UpdateHandles();
     }
 
     private void Redo()

@@ -62,6 +62,7 @@
                     <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Tune}"/><TextBlock Text="常规" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
                     <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Keyboard}"/><TextBlock Text="快捷键" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
                     <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Translate}"/><TextBlock Text="翻译引擎" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
+                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Glossary}"/><TextBlock Text="术语表" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
                     <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Screenshot}"/><TextBlock Text="截图与识别" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
                     <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.History}"/><TextBlock Text="剪贴板历史" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
                     <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Info}"/><TextBlock Text="关于" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
@@ -289,6 +290,57 @@
                                 </StackPanel>
                             </Border>
                         </Grid>
+
+                        <!-- ===== 术语表 ===== -->
+                        <StackPanel x:Name="PageGlossary" Visibility="Collapsed">
+                            <TextBlock Text="术语表" Style="{StaticResource PageTitle}"/>
+                            <Border Style="{StaticResource Card}" Padding="20,4">
+                                <Grid Style="{StaticResource Row}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <StackPanel VerticalAlignment="Center" Margin="0,8,16,8">
+                                        <TextBlock Text="启用术语表" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock Text="每对术语双向生效：原文里出现哪一边，就固定翻成另一边" Style="{StaticResource Text.Caption}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                    <CheckBox Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding GlossaryEnabled}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+
+                            <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/><ColumnDefinition Width="36"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="术语" FontSize="12" Foreground="{DynamicResource B.TextSub}"/>
+                                        <TextBlock Grid.Column="2" Text="固定译法" FontSize="12" Foreground="{DynamicResource B.TextSub}"/>
+                                    </Grid>
+                                    <ItemsControl x:Name="GlossaryList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,4">
+                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/><ColumnDefinition Width="36"/></Grid.ColumnDefinitions>
+                                                    <TextBox Text="{Binding Source, UpdateSourceTrigger=PropertyChanged}"/>
+                                                    <TextBlock Grid.Column="1" Style="{StaticResource Text.Icon}" Text="{StaticResource I.Swap}" FontSize="18"
+                                                               Foreground="{DynamicResource B.TextMuted}" HorizontalAlignment="Center" ToolTip="双向生效"/>
+                                                    <TextBox Grid.Column="2" Text="{Binding Target, UpdateSourceTrigger=PropertyChanged}"/>
+                                                    <Button Grid.Column="3" Style="{StaticResource Btn.Icon}" Content="{StaticResource I.Delete}" HorizontalAlignment="Right"
+                                                            ToolTip="删除这条术语" Click="RemoveTerm_Click"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock x:Name="GlossaryEmpty" Text="还没有术语。例如：三溪 ⇄ ThreeBrook、周报 ⇄ weekly digest" Style="{StaticResource Text.Caption}" Margin="0,4,0,0"/>
+                                    <Button Style="{StaticResource Btn.Outline}" HorizontalAlignment="Left" Margin="0,12,0,0" Click="AddTerm_Click">
+                                        <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Add}" Margin="0,0,6,0"/><TextBlock Text="添加术语" VerticalAlignment="Center"/></StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+                            <Border Background="{DynamicResource B.AccentSoft}" CornerRadius="10" Padding="14,10" Margin="0,16,0,8">
+                                <DockPanel>
+                                    <TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Info}" FontSize="18" Foreground="{DynamicResource B.Accent}" Margin="0,0,10,0"/>
+                                    <TextBlock TextWrapping="Wrap" VerticalAlignment="Center"
+                                               Text="大模型会把用到的术语写进提示词；必应、Yandex 等机器翻译先把术语换成占位符，翻完再换回固定译法。英文术语按整词匹配，不区分大小写。"/>
+                                </DockPanel>
+                            </Border>
+                        </StackPanel>
 
                         <!-- ===== 截图与识别 ===== -->
                         <StackPanel x:Name="PageScreenshot" Visibility="Collapsed">

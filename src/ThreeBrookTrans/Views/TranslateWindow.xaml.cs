@@ -105,7 +105,7 @@ public partial class TranslateWindow : Window
 
         foreach (var engine in App.Settings.Engines.Where(e => e.Enabled))
         {
-            var translator = TranslatorFactory.Create(engine);
+            var translator = TranslatorFactory.Create(engine) is { } created ? Glossary.Wrap(created, App.Settings) : null;
             var item = new ResultItem(engine.Name);
             _results.Add(item);
             if (translator == null)

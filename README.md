@@ -29,6 +29,8 @@ powershell -ExecutionPolicy Bypass -File publish.ps1
 | Alt+W | 截图翻译：框选后直接识别并翻译 |
 | Alt+H | 剪贴板历史（文字 + 图片），Enter 粘贴 |
 
+截图时鼠标移到哪个窗口就高亮它，单击直接选中该窗口（桌面上单击选中整个屏幕），拖动则自由框选。框选后拖动边和角调整大小，方向键微调位置、Shift+方向键调整大小。
+
 截图界面：Enter / Ctrl+C 复制，Ctrl+S 保存，F3 钉图，O 识别文字，T 翻译，右键 / Esc 取消，选区可拖动。
 
 ### 截图标注
@@ -55,6 +57,14 @@ powershell -ExecutionPolicy Bypass -File publish.ps1
 
 **接本地大模型**：设置 → 翻译引擎 → 添加 → OpenAI 兼容接口，填写接口地址（Ollama 为 `http://localhost:11434/v1`）和模型名，点"测试翻译"。Qwen3 等推理模型建议保持"关闭思考模式"。
 
+## 术语表
+
+设置 → 术语表：填写成对的词（如 三溪 ⇄ ThreeBrook、周报 ⇄ weekly digest），双向生效，原文里出现哪一边就固定翻成另一边。
+
+- 大模型：把用到的术语写进提示词
+- 必应、Yandex 等机器翻译：翻译前把术语换成占位符，翻完换回固定译法（实测两者都会原样保留占位符）
+- 英文术语按整词匹配，不区分大小写；长的术语优先匹配
+
 ## 文字识别（OCR）
 
 使用 Windows 自带 OCR，离线、不增加体积。默认跟随系统语言（中文系统可识别中英文）。
@@ -68,7 +78,7 @@ powershell -ExecutionPolicy Bypass -File publish.ps1
 
 `%AppData%\ThreeBrookTrans\`
 
-- `settings.json`：配置
+- `settings.json`：配置（API Key、密钥用 Windows DPAPI 加密保存，只有本机同一账户能解开；换电脑或账户后需要重新填写）
 - `history\`：剪贴板历史（只存本机；密码管理器等标记为"不记录"的内容会跳过）
 - `error.log`：错误日志
 

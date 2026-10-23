@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -15,7 +16,7 @@ namespace ThreeBrookTrans.Translation;
 /// OpenAI 兼容的 /chat/completions 接口。
 /// 可接在线大模型（智谱、硅基流动、DeepSeek 等），也可接本地部署（Ollama、LM Studio、vLLM、llama.cpp server）。
 /// </summary>
-public sealed class OpenAiCompatibleTranslator : ITranslator
+public sealed class OpenAiCompatibleTranslator : ITranslator, IGlossaryPromptTranslator
 {
     private const string DefaultPrompt =
         "You are a professional translator. Translate the user's text into {target}. " +
@@ -29,6 +30,10 @@ public sealed class OpenAiCompatibleTranslator : ITranslator
     public OpenAiCompatibleTranslator(EngineConfig config) => _config = config;
 
     public Task<string> TranslateAsync(string text, string from, string to, CancellationToken ct) =>
+        TranslateAsync(text, from, to, Array.Empty<GlossaryTerm>(), ct);
+
+    /// <summary>术语表命中的词写进系统提示词，模型按指定译法翻译（不用占位符，译文更自然）。</summary>
+    public Task<string> TranslateAsync(string text, string from, string to, IReadOnlyList<GlossaryTerm> terms, CancellationToken ct) =>
         Http.WithTimeout(TimeSpan.FromSeconds(Math.Max(5, _config.TimeoutSeconds)), ct, async token =>
         {
             if (string.IsNullOrWhiteSpace(_config.BaseUrl) || string.IsNullOrWhiteSpace(_config.Model))
@@ -37,6 +42,9 @@ public sealed class OpenAiCompatibleTranslator : ITranslator
             var target = Languages.Get(to).EnglishName;
             var prompt = (string.IsNullOrWhiteSpace(_config.SystemPrompt) ? DefaultPrompt : _config.SystemPrompt)
                 .Replace("{target}", target);
+            if (terms.Count > 0)
+                prompt += "\nAlways translate these terms exactly as given (source → translation):\n" +
+                          string.Join("\n", terms.Select(t => $"- {t.Find} → {t.Replace}"));
 
             var body = new Dictionary<string, object>
             {

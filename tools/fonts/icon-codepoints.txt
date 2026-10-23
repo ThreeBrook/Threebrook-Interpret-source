@@ -45,3 +45,5 @@ blur_on                &#xE3A5;
 counter_1              &#xF784;
 undo                   &#xE166;
 redo                   &#xE15A;
+menu_book              &#xEA19;
+swap_horiz             &#xE8D4;
