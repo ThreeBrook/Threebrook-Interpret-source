@@ -11,7 +11,7 @@ using System.Windows.Media.Imaging;
 // 64 像素及以上左下角带月亮签名，48 像素简化签名（小圆月），32 像素及以下不带。
 //
 // 运行：dotnet run --project tools/IconGen
-// 输出：src/ThreeBrookTrans/Assets/AppIcon.ico、AppIcon-36.png（标题栏 18 DIP @2x）、AppIcon-128.png（关于页）
+// 输出：src/ThreebrookInterpret/Assets/AppIcon.ico、AppIcon-36.png（标题栏 18 DIP @2x）、AppIcon-128.png（关于页）
 internal static class Program
 {
     private static readonly Color GradientTop = Color.FromRgb(0x86, 0x74, 0xD4);
@@ -24,8 +24,8 @@ internal static class Program
     private static void Main()
     {
         var root = FindRepoRoot();
-        var assets = Path.Combine(root, "src", "ThreeBrookTrans", "Assets");
-        var fonts = Path.Combine(root, "src", "ThreeBrookTrans", "Fonts");
+        var assets = Path.Combine(root, "src", "ThreebrookInterpret", "Assets");
+        var fonts = Path.Combine(root, "src", "ThreebrookInterpret", "Fonts");
         Directory.CreateDirectory(assets);
         var latin = new FontFamily(new Uri(fonts + Path.DirectorySeparatorChar), "./#Bricolage Grotesque");
 
@@ -194,7 +194,7 @@ internal static class Program
     private static string FindRepoRoot()
     {
         var dir = AppContext.BaseDirectory;
-        while (dir != null && !File.Exists(Path.Combine(dir, "ThreeBrookTrans.sln")))
+        while (dir != null && !File.Exists(Path.Combine(dir, "ThreebrookInterpret.sln")))
             dir = Path.GetDirectoryName(dir);
         return dir ?? throw new InvalidOperationException("找不到仓库根目录");
     }

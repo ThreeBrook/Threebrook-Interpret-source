@@ -4,7 +4,7 @@
 param([switch]$Portable)
 
 $ErrorActionPreference = 'Stop'
-$project = Join-Path $PSScriptRoot 'src\ThreeBrookTrans\ThreeBrookTrans.csproj'
+$project = Join-Path $PSScriptRoot 'src\ThreebrookInterpret\ThreebrookInterpret.csproj'
 $output = Join-Path $PSScriptRoot ($(if ($Portable) { 'dist\portable' } else { 'dist' }))
 
 $selfContained = if ($Portable) { 'true' } else { 'false' }

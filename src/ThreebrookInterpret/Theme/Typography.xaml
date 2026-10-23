@@ -1,0 +1,63 @@
+<!-- 字体与图标（三溪外观规范 §3、§5）。图标码点见 tools/fonts/icon-codepoints.txt，新增图标需先在 build_fonts.py 里登记再裁剪 -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <FontFamily x:Key="F.Body">Microsoft YaHei UI</FontFamily>
+    <FontFamily x:Key="F.DisplayZh">pack://application:,,,/ThreebrookInterpret;component/Fonts/#ZCOOL XiaoWei, Microsoft YaHei UI</FontFamily>
+    <FontFamily x:Key="F.DisplayEn">pack://application:,,,/ThreebrookInterpret;component/Fonts/#Bricolage Grotesque, Microsoft YaHei UI</FontFamily>
+    <FontFamily x:Key="F.Mono">pack://application:,,,/ThreebrookInterpret;component/Fonts/#JetBrains Mono, Cascadia Mono, Consolas</FontFamily>
+    <FontFamily x:Key="F.Icon">pack://application:,,,/ThreebrookInterpret;component/Fonts/#Material Symbols Outlined</FontFamily>
+
+    <sys:String x:Key="I.Close">&#xE5CD;</sys:String>
+    <sys:String x:Key="I.Minimize">&#xE15B;</sys:String>
+    <sys:String x:Key="I.Pin">&#xF10D;</sys:String>
+    <sys:String x:Key="I.Copy">&#xE14D;</sys:String>
+    <sys:String x:Key="I.Save">&#xE161;</sys:String>
+    <sys:String x:Key="I.Translate">&#xE8E2;</sys:String>
+    <sys:String x:Key="I.Paste">&#xE14F;</sys:String>
+    <sys:String x:Key="I.History">&#xE8B3;</sys:String>
+    <sys:String x:Key="I.Settings">&#xE8B8;</sys:String>
+    <sys:String x:Key="I.Search">&#xEF7A;</sys:String>
+    <sys:String x:Key="I.Delete">&#xE92E;</sys:String>
+    <sys:String x:Key="I.Screenshot">&#xF7D2;</sys:String>
+    <sys:String x:Key="I.Ocr">&#xE5FA;</sys:String>
+    <sys:String x:Key="I.Keyboard">&#xE312;</sys:String>
+    <sys:String x:Key="I.Tune">&#xE429;</sys:String>
+    <sys:String x:Key="I.Info">&#xE88E;</sys:String>
+    <sys:String x:Key="I.Image">&#xE3F4;</sys:String>
+    <sys:String x:Key="I.Notes">&#xE26C;</sys:String>
+    <sys:String x:Key="I.Check">&#xE668;</sys:String>
+    <sys:String x:Key="I.Add">&#xE145;</sys:String>
+    <sys:String x:Key="I.Up">&#xE5D8;</sys:String>
+    <sys:String x:Key="I.Down">&#xE5DB;</sys:String>
+    <sys:String x:Key="I.Folder">&#xE2C8;</sys:String>
+    <sys:String x:Key="I.Refresh">&#xE5D5;</sys:String>
+    <sys:String x:Key="I.ExpandMore">&#xE5CF;</sys:String>
+    <sys:String x:Key="I.Error">&#xF8B6;</sys:String>
+    <sys:String x:Key="I.CheckCircle">&#xF0BE;</sys:String>
+    <sys:String x:Key="I.ZoomIn">&#xE8FF;</sys:String>
+    <sys:String x:Key="I.Opacity">&#xE91C;</sys:String>
+    <sys:String x:Key="I.Exit">&#xE9BA;</sys:String>
+    <sys:String x:Key="I.Dark">&#xE51C;</sys:String>
+    <sys:String x:Key="I.Light">&#xE518;</sys:String>
+    <sys:String x:Key="I.Contrast">&#xEB37;</sys:String>
+    <sys:String x:Key="I.OpenNew">&#xE89E;</sys:String>
+    <sys:String x:Key="I.Sparkle">&#xE65F;</sys:String>
+    <sys:String x:Key="I.Enter">&#xE31B;</sys:String>
+
+    <!-- 截图标注工具 -->
+    <sys:String x:Key="I.Rect">&#xEB54;</sys:String>
+    <sys:String x:Key="I.Ellipse">&#xEF4A;</sys:String>
+    <sys:String x:Key="I.Arrow">&#xF8CE;</sys:String>
+    <sys:String x:Key="I.Pen">&#xE746;</sys:String>
+    <sys:String x:Key="I.Highlighter">&#xE6D1;</sys:String>
+    <sys:String x:Key="I.Text">&#xE264;</sys:String>
+    <sys:String x:Key="I.Mosaic">&#xE3A5;</sys:String>
+    <sys:String x:Key="I.Number">&#xF784;</sys:String>
+    <sys:String x:Key="I.Undo">&#xE166;</sys:String>
+    <sys:String x:Key="I.Redo">&#xE15A;</sys:String>
+
+    <!-- 术语表 -->
+    <sys:String x:Key="I.Glossary">&#xEA19;</sys:String>
+    <sys:String x:Key="I.Swap">&#xE8D4;</sys:String>
+</ResourceDictionary>

@@ -8,13 +8,13 @@
 dotnet build -c Release
 ```
 
-运行 `src\ThreeBrookTrans\bin\Release\net10.0-windows\ThreeBrookTrans.exe`，或用发布脚本生成单文件：
+运行 `src\ThreebrookInterpret\bin\Release\net10.0-windows\ThreebrookInterpret.exe`，或用发布脚本生成单文件：
 
 ```bash
 powershell -ExecutionPolicy Bypass -File publish.ps1
 ```
 
-- `dist\ThreeBrookTrans.exe`：约 750 KB，需要已安装 [.NET 10 桌面运行时](https://dotnet.microsoft.com/download/dotnet/10.0)
+- `dist\ThreebrookInterpret.exe`：约 750 KB，需要已安装 [.NET 10 桌面运行时](https://dotnet.microsoft.com/download/dotnet/10.0)
 - `publish.ps1 -Portable`：自带运行时，放到任何 Windows 10/11 x64 电脑都能直接运行，体积较大
 
 程序已在运行时再次打开 exe，会弹出设置窗口。
@@ -76,13 +76,15 @@ powershell -ExecutionPolicy Bypass -File publish.ps1
 
 ## 数据位置
 
-`%AppData%\ThreeBrookTrans\`
+`%AppData%\ThreebrookInterpret\`
 
 - `settings.json`：配置（API Key、密钥用 Windows DPAPI 加密保存，只有本机同一账户能解开；换电脑或账户后需要重新填写）
 - `history\`：剪贴板历史（只存本机；密码管理器等标记为"不记录"的内容会跳过）
 - `error.log`：错误日志
 
-截图默认保存到 `图片\ThreeBrookTrans`。
+截图默认保存到 `图片\三溪通译`。
+
+从旧版（ThreeBrookTrans.exe）升级：新版第一次启动时会把 `%AppData%\ThreeBrookTrans` 整体迁移到 `%AppData%\ThreebrookInterpret`，开着的开机自启也会改为指向新程序；旧版保存在 `图片\ThreeBrookTrans` 的截图保持原处。
 
 ## 开发工具
 
@@ -90,12 +92,12 @@ powershell -ExecutionPolicy Bypass -File publish.ps1
 |---|---|
 | `python tools/fonts/build_fonts.py <下载目录>` | 裁剪界面字体与图标字体（新增标题字、图标后运行，说明见脚本开头） |
 | `dotnet run --project tools/IconGen` | 生成产品图标 `Assets/AppIcon.ico` 等，预览图 `tools/IconGen/preview.png` |
-| `ThreeBrookTrans.exe --render-previews <目录>` | 把各窗口按浅色 / 深色渲染成 PNG（屏幕外渲染，不需要桌面、不读写用户数据） |
+| `ThreebrookInterpret.exe --render-previews <目录>` | 把各窗口按浅色 / 深色渲染成 PNG（屏幕外渲染，不需要桌面、不读写用户数据） |
 
 ## 代码结构
 
 ```
-src/ThreeBrookTrans/
+src/ThreebrookInterpret/
   App.xaml.cs            托盘、快捷键、各功能入口
   Translation/           翻译引擎（实现 ITranslator，在 TranslatorFactory 注册）
   Services/              快捷键、划词、截屏、OCR、剪贴板历史、配置、开机自启

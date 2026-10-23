@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <!-- WindowsOcr 直接按 vtable 调用 WinRT 接口 -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>ThreebrookInterpret</AssemblyName>
+    <RootNamespace>ThreebrookInterpret</RootNamespace>
+    <Product>Threebrook Interpret</Product>
+    <AssemblyTitle>三溪通译 Threebrook Interpret</AssemblyTitle>
+    <Company>三溪 Threebrook</Company>
+    <Copyright>© 2026 三溪 Threebrook</Copyright>
+    <Version>0.7.0</Version>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- WPF 应用通过 manifest 声明 PerMonitorV2，WinForms 的 DPI 建议不适用 -->
+    <NoWarn>$(NoWarn);WFAC010;WFO0003</NoWarn>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 裁剪后的界面字体（tools/fonts/build_fonts.py 生成）与产品图标（tools/IconGen 生成） -->
+    <Resource Include="Fonts\*.ttf" />
+    <Resource Include="Assets\AppIcon-36.png" />
+    <Resource Include="Assets\AppIcon-128.png" />
+    <Resource Include="Assets\AppIcon.ico" />
+    <!-- 字体许可（OFL 1.1 / Apache 2.0）随程序发布 -->
+    <None Include="Fonts\licenses\*.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="licenses\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

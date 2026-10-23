@@ -22,7 +22,7 @@ from fontTools.ttLib import TTFont
 from fontTools.varLib import instancer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.normpath(os.path.join(HERE, "..", "..", "src", "ThreeBrookTrans", "Fonts"))
+OUT = os.path.normpath(os.path.join(HERE, "..", "..", "src", "ThreebrookInterpret", "Fonts"))
 
 ASCII = "".join(chr(c) for c in range(0x20, 0x7F))
 
