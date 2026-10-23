@@ -100,6 +100,10 @@ public partial class SettingsWindow : Window
 
     private EngineConfig? SelectedEngine => EnginesList.SelectedItem as EngineConfig;
 
+    /// <summary>点复选框时也选中这一行（直接设置选中项，焦点移到右侧输入框后不会被撤销）。</summary>
+    private void EngineCheckBox_Click(object sender, RoutedEventArgs e) =>
+        EnginesList.SelectedItem = ((FrameworkElement)sender).DataContext;
+
     private void EnginesList_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateEngineDetail();
 
     private void UpdateEngineDetail()
@@ -220,6 +224,9 @@ public partial class SettingsWindow : Window
         if (MessageBox.Show(this, "确定清空全部剪贴板历史吗？", "ThreeBrook Trans", MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
             App.Instance.ClearHistory();
     }
+
+    /// <summary>设置窗口是非模态的，IsCancel 不会自动关闭，需要手动关闭（编辑的是副本，直接丢弃）。</summary>
+    private void Cancel_Click(object sender, RoutedEventArgs e) => Close();
 
     private void Save_Click(object sender, RoutedEventArgs e)
     {
