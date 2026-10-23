@@ -23,6 +23,7 @@ public partial class SettingsWindow : Window
     {
         InitializeComponent();
         _settings = SettingsStore.Clone(App.Settings);
+        _originalTargetLanguage = _settings.TargetLanguage;
         _engines = new ObservableCollection<EngineConfig>(_settings.Engines);
         DataContext = _settings;
 
@@ -70,9 +71,42 @@ public partial class SettingsWindow : Window
 
     private bool _saved;
 
+    private readonly string _originalTargetLanguage;
+    private bool _hotkeysSuspended;
+
+    // —— 快捷键录入期间暂停全局快捷键，否则按下已占用的组合会被截走 ——
+
+    private void Hotkey_GotFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        if (_hotkeysSuspended)
+            return;
+        _hotkeysSuspended = true;
+        App.Instance.SuspendHotkeys();
+    }
+
+    private void Hotkey_LostFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        // 焦点移到另一个快捷键框时保持暂停
+        if (e.NewFocus is TextBox box && IsHotkeyBox(box))
+            return;
+        ResumeHotkeys();
+    }
+
+    private static bool IsHotkeyBox(TextBox box) => box.GetBindingExpression(TextBox.TextProperty)?.ParentBinding.Path.Path
+        is "InputTranslate" or "SelectionTranslate" or "Screenshot" or "ScreenshotTranslate" or "History";
+
+    private void ResumeHotkeys()
+    {
+        if (!_hotkeysSuspended)
+            return;
+        _hotkeysSuspended = false;
+        App.Instance.ResumeHotkeys();
+    }
+
     protected override void OnClosed(EventArgs e)
     {
         base.OnClosed(e);
+        ResumeHotkeys();
         if (!_saved)
             ThemeManager.Apply();
     }
@@ -312,6 +346,27 @@ public partial class SettingsWindow : Window
             focused.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
 
         _settings.Engines = _engines.ToList();
+
+        // 快捷键不能重复
+        var hotkeys = new (string Name, string Gesture)[]
+        {
+            ("输入翻译", _settings.Hotkeys.InputTranslate), ("划词翻译", _settings.Hotkeys.SelectionTranslate),
+            ("截图", _settings.Hotkeys.Screenshot), ("截图翻译", _settings.Hotkeys.ScreenshotTranslate),
+            ("剪贴板历史", _settings.Hotkeys.History),
+        };
+        var duplicate = hotkeys.Where(h => !string.IsNullOrWhiteSpace(h.Gesture))
+            .GroupBy(h => HotkeyManager.Normalize(h.Gesture)).FirstOrDefault(g => g.Count() > 1);
+        if (duplicate != null)
+        {
+            NavList.SelectedIndex = 1;
+            MessageBox.Show(this, $"{string.Join("、", duplicate.Select(h => h.Name))} 用了同一个快捷键 {duplicate.First().Gesture}，请改成不同的组合。",
+                "ThreeBrook Trans", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        // 设置窗口打开期间在翻译窗口换过目标语言、而这里没改时，保留翻译窗口的选择
+        if (_settings.TargetLanguage == _originalTargetLanguage)
+            _settings.TargetLanguage = App.Settings.TargetLanguage;
         _settings.History.MaxItems = Math.Max(10, _settings.History.MaxItems);
         _settings.History.MaxDays = Math.Max(1, _settings.History.MaxDays);
 

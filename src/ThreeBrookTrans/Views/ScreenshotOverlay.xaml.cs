@@ -335,9 +335,10 @@ public partial class ScreenshotOverlay : Window
     private BitmapSource Crop(out Int32Rect pixels)
     {
         pixels = ToPixels(_selection);
-        var cropped = new CroppedBitmap(_screen, pixels);
-        cropped.Freeze();
-        return cropped;
+        // 复制成独立位图：CroppedBitmap 会一直引用整张虚拟屏幕截图，钉图、历史拿着它就会占用整屏内存
+        var copy = new WriteableBitmap(new CroppedBitmap(_screen, pixels));
+        copy.Freeze();
+        return copy;
     }
 
     // —— 操作 ——

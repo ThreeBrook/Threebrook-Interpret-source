@@ -2,7 +2,7 @@
   <!-- 生成产品图标：在仓库根目录运行 dotnet run（参数 project 指向 tools/IconGen） -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>

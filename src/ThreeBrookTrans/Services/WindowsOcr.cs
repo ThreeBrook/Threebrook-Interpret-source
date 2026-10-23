@@ -73,20 +73,47 @@ public static unsafe class WindowsOcr
     }
 
     /// <param name="languageTag">"auto" 使用系统用户语言；否则如 "zh-Hans-CN"、"ja"、"en-US"。</param>
+    /// <param name="image">必须已冻结（缩放、转换在后台线程进行）。</param>
     public static Task<string> RecognizeAsync(BitmapSource image, string languageTag, CancellationToken ct = default)
     {
-        var pixels = PreparePixels(image, out var width, out var height);
-        return Task.Run(() => Recognize(pixels, width, height, languageTag, ct), ct);
+        if (!image.IsFrozen)
+        {
+            image = image.Clone();
+            image.Freeze();
+        }
+        return Task.Run(() =>
+        {
+            var pixels = PreparePixels(image, out var width, out var height);
+            return Recognize(pixels, width, height, languageTag, ct);
+        }, ct);
     }
+
+    /// <summary>OCR 引擎能接受的最大边长（通常 10000），超过会报参数错误。</summary>
+    private static readonly Lazy<uint> MaxImageDimension = new(() =>
+    {
+        var statics = GetFactory("Windows.Media.Ocr.OcrEngine", IID_IOcrEngineStatics);
+        try
+        {
+            uint max;
+            return CallOut(statics, 6, &max) >= 0 && max > 0 ? max : 4000u; // get_MaxImageDimension
+        }
+        finally
+        {
+            Marshal.Release(statics);
+        }
+    });
 
     private static byte[] PreparePixels(BitmapSource image, out int width, out int height)
     {
+        // 小图放大 2 倍识别率更高；超过引擎上限的大图（多屏宽截图）按比例缩小
+        var longest = Math.Max(image.PixelWidth, image.PixelHeight);
+        var scale = longest < UpscaleBelow ? 2.0 : 1.0;
+        if (longest * scale > MaxImageDimension.Value)
+            scale = (double)MaxImageDimension.Value / longest;
+
         BitmapSource source = image;
-        if (Math.Max(image.PixelWidth, image.PixelHeight) < UpscaleBelow)
-        {
-            var scaled = new TransformedBitmap(image, new ScaleTransform(2, 2));
-            source = scaled;
-        }
+        if (Math.Abs(scale - 1) > 0.001)
+            source = new TransformedBitmap(image, new ScaleTransform(scale, scale));
         var bgra = new FormatConvertedBitmap(source, PixelFormats.Bgra32, null, 0);
         width = bgra.PixelWidth;
         height = bgra.PixelHeight;
@@ -244,6 +271,15 @@ public static unsafe class WindowsOcr
                 if (ct.IsCancellationRequested)
                 {
                     ((delegate* unmanaged[Stdcall]<IntPtr, int>)(*(void***)info)[9])(info); // Cancel
+                    // 等操作真正结束再 Close，释放它占用的资源
+                    for (var i = 0; i < 50; i++)
+                    {
+                        CallOut(info, 7, &status);
+                        if (status != AsyncStarted)
+                            break;
+                        Thread.Sleep(10);
+                    }
+                    ((delegate* unmanaged[Stdcall]<IntPtr, int>)(*(void***)info)[10])(info); // Close
                     ct.ThrowIfCancellationRequested();
                 }
                 Thread.Sleep(10);
@@ -259,69 +295,60 @@ public static unsafe class WindowsOcr
     private static string BuildText(IntPtr ocrResult)
     {
         var text = new StringBuilder();
-        IntPtr lines;
-        Check(CallOut(ocrResult, 6, &lines)); // get_Lines
+        IntPtr linesVector;
+        Check(CallOut(ocrResult, 6, &linesVector)); // get_Lines
+        var lines = new List<IntPtr>();
         try
         {
-            foreach (var line in VectorItems(lines))
+            lines = VectorItems(linesVector);
+            foreach (var line in lines)
             {
+                IntPtr wordsVector;
+                Check(CallOut(line, 6, &wordsVector)); // get_Words
+                var words = new List<IntPtr>();
                 try
                 {
-                    IntPtr words;
-                    Check(CallOut(line, 6, &words)); // get_Words
-                    try
+                    words = VectorItems(wordsVector);
+                    var items = new List<(string Text, OcrRect Box)>();
+                    foreach (var word in words)
                     {
-                        var items = new List<(string Text, OcrRect Box)>();
-                        foreach (var word in VectorItems(words))
-                        {
-                            try
-                            {
-                                OcrRect box;
-                                ((delegate* unmanaged[Stdcall]<IntPtr, OcrRect*, int>)(*(void***)word)[6])(word, &box); // get_BoundingRect
-                                items.Add((GetString(word, 7), box)); // get_Text
-                            }
-                            finally
-                            {
-                                Marshal.Release(word);
-                            }
-                        }
+                        OcrRect box;
+                        ((delegate* unmanaged[Stdcall]<IntPtr, OcrRect*, int>)(*(void***)word)[6])(word, &box); // get_BoundingRect
+                        items.Add((GetString(word, 7), box)); // get_Text
+                    }
 
-                        // OCR 有时把一个英文单词切成几段（等宽字体常见），按实际间距决定是否加空格
-                        var lineHeight = items.Count > 0 ? items.Max(i => i.Box.Height) : 0;
-                        var lineText = new StringBuilder();
-                        for (var i = 0; i < items.Count; i++)
-                        {
-                            var w = items[i].Text;
-                            if (i > 0 && w.Length > 0 && lineText.Length > 0 && !TextUtil.IsCjk(lineText[^1]) && !TextUtil.IsCjk(w[0]))
-                            {
-                                var gap = items[i].Box.X - (items[i - 1].Box.X + items[i - 1].Box.Width);
-                                if (gap > lineHeight * WordGapRatio)
-                                    lineText.Append(' ');
-                            }
-                            lineText.Append(w);
-                        }
-                        if (text.Length > 0)
-                            text.Append('\n');
-                        text.Append(lineText);
-                    }
-                    finally
+                    // OCR 有时把一个英文单词切成几段（等宽字体常见），按实际间距决定是否加空格
+                    var lineHeight = items.Count > 0 ? items.Max(i => i.Box.Height) : 0;
+                    var lineText = new StringBuilder();
+                    for (var i = 0; i < items.Count; i++)
                     {
-                        Marshal.Release(words);
+                        var w = items[i].Text;
+                        if (i > 0 && w.Length > 0 && lineText.Length > 0 && !TextUtil.IsCjk(lineText[^1]) && !TextUtil.IsCjk(w[0]))
+                        {
+                            var gap = items[i].Box.X - (items[i - 1].Box.X + items[i - 1].Box.Width);
+                            if (gap > lineHeight * WordGapRatio)
+                                lineText.Append(' ');
+                        }
+                        lineText.Append(w);
                     }
+                    if (text.Length > 0)
+                        text.Append('\n');
+                    text.Append(lineText);
                 }
                 finally
                 {
-                    Marshal.Release(line);
+                    words.ForEach(Release);
+                    Marshal.Release(wordsVector);
                 }
             }
         }
         finally
         {
-            Marshal.Release(lines);
+            lines.ForEach(Release);
+            Marshal.Release(linesVector);
         }
         return text.ToString();
     }
-
 
     // —— WinRT 基础设施 ——
 
@@ -331,11 +358,19 @@ public static unsafe class WindowsOcr
         uint size;
         Check(CallOut(vector, 7, &size));
         var items = new List<IntPtr>((int)size);
-        for (uint i = 0; i < size; i++)
+        try
         {
-            IntPtr item;
-            Check(((delegate* unmanaged[Stdcall]<IntPtr, uint, IntPtr*, int>)(*(void***)vector)[6])(vector, i, &item));
-            items.Add(item);
+            for (uint i = 0; i < size; i++)
+            {
+                IntPtr item;
+                Check(((delegate* unmanaged[Stdcall]<IntPtr, uint, IntPtr*, int>)(*(void***)vector)[6])(vector, i, &item));
+                items.Add(item);
+            }
+        }
+        catch
+        {
+            items.ForEach(Release); // 取到一半失败时，已取出的也要释放
+            throw;
         }
         return items;
     }
@@ -390,14 +425,14 @@ public static unsafe class WindowsOcr
 
     private static IntPtr QueryInterface(IntPtr obj, Guid iid)
     {
-        Check(Marshal.QueryInterface(obj, ref iid, out var result));
+        Check(Marshal.QueryInterface(obj, in iid, out var result));
         return result;
     }
 
     private static void Close(IntPtr obj)
     {
         var iid = IID_IClosable;
-        if (obj == IntPtr.Zero || Marshal.QueryInterface(obj, ref iid, out var closable) < 0)
+        if (obj == IntPtr.Zero || Marshal.QueryInterface(obj, in iid, out var closable) < 0)
             return;
         ((delegate* unmanaged[Stdcall]<IntPtr, int>)(*(void***)closable)[6])(closable);
         Marshal.Release(closable);

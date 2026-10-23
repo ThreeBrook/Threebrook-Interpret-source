@@ -370,15 +370,18 @@ public partial class ScreenshotOverlay
         if (!HasAnnotations)
             return cropped;
 
-        // 刚加入的标注（如按 Enter 时才结束输入的文字）还没布局，渲染出来是空的
-        Annotations.UpdateLayout();
+        // 刚加入的标注（如按 Enter 时才结束输入的文字）还没布局，渲染出来是空的（下方渲染前会 UpdateLayout）
 
-        // 标注层与画布同尺寸：按屏幕物理像素整层渲染（高 DPI 下线条清晰），再裁出选区叠到截图上
+        // 只渲染选区大小：把标注层平移到选区左上角再渲染，按屏幕物理像素的 DPI（高 DPI 下线条清晰）。
+        // 不再整层渲染后裁剪——多台 4K 显示器时那样每次要分配上百 MB。
         var dpiX = 96.0 * _screen.PixelWidth / Layer.ActualWidth;
         var dpiY = 96.0 * _screen.PixelHeight / Layer.ActualHeight;
-        var layer = new RenderTargetBitmap(_screen.PixelWidth, _screen.PixelHeight, dpiX, dpiY, PixelFormats.Pbgra32);
-        layer.Render(Annotations);
-        var marks = new CroppedBitmap(layer, pixels);
+        var originalTransform = Annotations.RenderTransform;
+        Annotations.RenderTransform = new TranslateTransform(-_selection.X, -_selection.Y);
+        Annotations.UpdateLayout();
+        var marks = new RenderTargetBitmap(pixels.Width, pixels.Height, dpiX, dpiY, PixelFormats.Pbgra32);
+        marks.Render(Annotations);
+        Annotations.RenderTransform = originalTransform;
 
         var rect = new Rect(0, 0, pixels.Width * 96.0 / dpiX, pixels.Height * 96.0 / dpiY);
         var visual = new DrawingVisual();

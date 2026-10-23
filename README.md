@@ -14,7 +14,7 @@ dotnet build -c Release
 powershell -ExecutionPolicy Bypass -File publish.ps1
 ```
 
-- `dist\ThreeBrookTrans.exe`：约 300 KB，需要已安装 [.NET 8 桌面运行时](https://dotnet.microsoft.com/download/dotnet/8.0)
+- `dist\ThreeBrookTrans.exe`：约 750 KB，需要已安装 [.NET 10 桌面运行时](https://dotnet.microsoft.com/download/dotnet/10.0)
 - `publish.ps1 -Portable`：自带运行时，放到任何 Windows 10/11 x64 电脑都能直接运行，体积较大
 
 程序已在运行时再次打开 exe，会弹出设置窗口。

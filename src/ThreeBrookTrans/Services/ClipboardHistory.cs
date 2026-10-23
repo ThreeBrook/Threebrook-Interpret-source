@@ -47,7 +47,8 @@ public sealed class HistoryEntry
 public sealed class ClipboardHistory : IDisposable
 {
     private const int WM_CLIPBOARDUPDATE = 0x031D;
-    private const int MaxTextLength = 100_000;
+    /// <summary>单条文字最多保存的字数；更长的只截取开头，避免索引过大拖慢启动和保存。</summary>
+    private const int MaxTextLength = 20_000;
 
     public static string Directory => Path.Combine(SettingsStore.DataDirectory, "history");
     public static string ImageDirectory => Path.Combine(Directory, "images");
@@ -361,8 +362,9 @@ public sealed class ClipboardHistory : IDisposable
             if (entry.ImagePath is { } path && File.Exists(path))
                 File.Delete(path);
         }
-        catch (IOException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
+            // 文件被占用或无权删除，留到下次清理
         }
     }
 
@@ -377,9 +379,10 @@ public sealed class ClipboardHistory : IDisposable
                 Entries.Add(entry);
             Trim();
         }
-        catch (Exception ex) when (ex is IOException or JsonException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
         {
-            // 索引损坏时从空历史开始，不影响主功能
+            // 索引损坏或无权读取时从空历史开始，不影响主功能
+            Log("load failed: " + ex.Message);
         }
     }
 
@@ -389,17 +392,27 @@ public sealed class ClipboardHistory : IDisposable
         _saveTimer.Start();
     }
 
+    private Task _saving = Task.CompletedTask;
+
+    /// <summary>界面线程只取快照，序列化和写盘放到后台依次进行（条目多、文字长时不卡界面）。</summary>
     private void Save()
+    {
+        var snapshot = Entries.ToList();
+        _saving = _saving.ContinueWith(_ => WriteIndex(snapshot), TaskScheduler.Default);
+    }
+
+    private static void WriteIndex(List<HistoryEntry> snapshot)
     {
         try
         {
             System.IO.Directory.CreateDirectory(Directory);
             var temp = IndexPath + ".tmp";
-            File.WriteAllText(temp, JsonSerializer.Serialize(Entries.ToList(), JsonOptions));
+            File.WriteAllText(temp, JsonSerializer.Serialize(snapshot, JsonOptions));
             File.Move(temp, IndexPath, overwrite: true);
         }
-        catch (IOException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
+            Log("save failed: " + ex.Message);
         }
     }
 
@@ -412,6 +425,7 @@ public sealed class ClipboardHistory : IDisposable
         _source.Dispose();
         if (_saveTimer.IsEnabled)
             Save();
+        _saving.Wait(TimeSpan.FromSeconds(3)); // 退出前等最后一次保存写完
     }
 
     [DllImport("user32.dll", SetLastError = true)]

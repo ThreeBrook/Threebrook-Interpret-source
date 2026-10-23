@@ -39,7 +39,12 @@ public partial class PinWindow : Window
             _labelTimer.Stop();
             ZoomLabel.Visibility = Visibility.Collapsed;
         };
-        SourceInitialized += (_, _) => ApplySize();
+        SourceInitialized += (_, _) =>
+        {
+            // 尺寸按物理像素管理，忽略 DPI 变化，否则在缩放比例不同的显示器上会被系统缩放、不再 1:1
+            HwndSource.FromHwnd(Handle)!.AddHook(IgnoreDpiChange);
+            ApplySize();
+        };
         Loaded += (_, _) => Activate();
     }
 
@@ -123,6 +128,14 @@ public partial class PinWindow : Window
 
     private void Opacity_Click(object sender, RoutedEventArgs e) =>
         SetPinOpacity(double.Parse((string)((MenuItem)sender).Tag, CultureInfo.InvariantCulture));
+
+    private static IntPtr IgnoreDpiChange(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        const int WM_DPICHANGED = 0x02E0;
+        if (msg == WM_DPICHANGED)
+            handled = true;
+        return IntPtr.Zero;
+    }
 
     [DllImport("user32.dll")]
     private static extern bool SetWindowPos(IntPtr hwnd, IntPtr after, int x, int y, int cx, int cy, uint flags);

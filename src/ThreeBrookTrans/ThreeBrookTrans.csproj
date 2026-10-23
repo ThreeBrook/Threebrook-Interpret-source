@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
@@ -15,7 +15,7 @@
     <Version>0.7.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- WPF 应用通过 manifest 声明 PerMonitorV2，WinForms 的 DPI 建议不适用 -->
-    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+    <NoWarn>$(NoWarn);WFAC010;WFO0003</NoWarn>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
 

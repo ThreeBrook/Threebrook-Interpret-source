@@ -60,6 +60,10 @@ public sealed class HotkeyManager : IDisposable
         return IntPtr.Zero;
     }
 
+    /// <summary>统一写法后的比较键，"alt+q" 与 "Alt+Q" 视为同一个快捷键。</summary>
+    public static string Normalize(string gesture) =>
+        TryParse(gesture, out var modifiers, out var vk) ? $"{modifiers}:{vk}" : gesture.Trim().ToUpperInvariant();
+
     private static bool TryParse(string gesture, out uint modifiers, out uint vk)
     {
         modifiers = 0;

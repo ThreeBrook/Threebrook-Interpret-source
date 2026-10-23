@@ -30,14 +30,14 @@ public sealed class BingTranslator : ITranslator
 
     private sealed record Session(string Ig, string Iid, string Key, string Token, DateTime ExpiresAt);
 
-    public Task<string> TranslateAsync(string text, string from, string to, CancellationToken ct) =>
-        Http.WithTimeout(Timeout, ct, async token =>
-        {
-            var parts = new List<string>();
-            foreach (var chunk in Split(text))
-                parts.Add(await TranslateChunkAsync(chunk, from, to, token));
-            return string.Join("\n", parts);
-        });
+    /// <summary>长文按段依次请求，每段单独计时（整篇共用一个超时时，上万字的文章必定超时）。</summary>
+    public async Task<string> TranslateAsync(string text, string from, string to, CancellationToken ct)
+    {
+        var parts = new List<string>();
+        foreach (var chunk in Split(text))
+            parts.Add(await Http.WithTimeout(Timeout, ct, token => TranslateChunkAsync(chunk, from, to, token)));
+        return string.Join("\n", parts);
+    }
 
     private static async Task<string> TranslateChunkAsync(string text, string from, string to, CancellationToken ct)
     {

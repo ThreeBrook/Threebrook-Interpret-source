@@ -32,16 +32,18 @@ public static class ScreenCapture
             }
         }
 
-        var handle = bitmap.GetHbitmap();
+        // 直接从像素缓冲区建 BitmapSource，只复制一次（原先经 HBITMAP 中转，峰值是三份整屏图）
+        var data = bitmap.LockBits(new Rectangle(0, 0, bounds.Width, bounds.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
         try
         {
-            var source = Imaging.CreateBitmapSourceFromHBitmap(handle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+            var source = BitmapSource.Create(bounds.Width, bounds.Height, 96, 96, System.Windows.Media.PixelFormats.Bgr32, null,
+                data.Scan0, data.Stride * bounds.Height, data.Stride);
             source.Freeze();
             return (source, bounds);
         }
         finally
         {
-            DeleteObject(handle);
+            bitmap.UnlockBits(data);
         }
     }
 

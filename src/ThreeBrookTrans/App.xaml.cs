@@ -94,8 +94,8 @@ public partial class App : Application
         _hotkeys = new HotkeyManager();
         RegisterHotkeys();
 
-        // 启动完成后释放初始化时的临时内存，托盘常驻时占用更小
-        _ = Task.Delay(3000).ContinueWith(_ => Dispatcher.Invoke(TrimMemory));
+        // 启动完成后回收初始化时的临时对象
+        _ = Task.Delay(3000).ContinueWith(_ => Dispatcher.Invoke(CollectGarbage));
     }
 
     // —— 配置 ——
@@ -109,11 +109,20 @@ public partial class App : Application
         {
             Settings = SettingsStore.Load();
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
         {
-            // 配置文件写错时不覆盖它，使用默认配置运行
+            // 配置文件写错时先备份原文件，再用默认配置运行；之后任何保存都不会让原内容（如 API Key）丢失
             Settings = AppSettings.CreateDefault();
-            MessageBox.Show($"配置文件读取失败，已使用默认配置：\n{ex.Message}\n\n{SettingsStore.SettingsPath}",
+            string backupNote;
+            try
+            {
+                backupNote = SettingsStore.BackupBrokenFile() is { } backup ? $"原文件已备份为：\n{backup}" : "";
+            }
+            catch (Exception backupError) when (backupError is IOException or UnauthorizedAccessException)
+            {
+                backupNote = "原文件备份失败：" + backupError.Message;
+            }
+            MessageBox.Show($"配置文件读取失败，已使用默认配置：\n{ex.Message}\n\n{backupNote}",
                 "ThreeBrook Trans", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
@@ -133,12 +142,18 @@ public partial class App : Application
         {
             SettingsStore.Save(settings);
         }
-        catch (IOException ex)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            MessageBox.Show("保存配置失败：" + ex.Message, "ThreeBrook Trans", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show("保存配置失败（本次运行仍按新设置生效）：" + ex.Message, "ThreeBrook Trans",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         OnSettingsChanged();
     }
+
+    /// <summary>设置窗口录入快捷键时暂停全局快捷键，否则按下已占用的组合会被截走（无法对调两个快捷键）。</summary>
+    public void SuspendHotkeys() => _hotkeys?.UnregisterAll();
+
+    public void ResumeHotkeys() => RegisterHotkeys();
 
     private void OnSettingsChanged()
     {
@@ -179,10 +194,17 @@ public partial class App : Application
         _tray.SetHotkeys(hotkeys);
 
         var failed = new List<string>();
+        var used = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         void Register(string name, string gesture, Action handler)
         {
-            if (!string.IsNullOrWhiteSpace(gesture) && !_hotkeys.Register(gesture, handler))
-                failed.Add($"{name} {gesture}");
+            if (string.IsNullOrWhiteSpace(gesture))
+                return;
+            var key = HotkeyManager.Normalize(gesture);
+            if (used.TryGetValue(key, out var other))
+                failed.Add($"{name} {gesture}（与{other}重复）");
+            else if (!_hotkeys.Register(gesture, handler))
+                failed.Add($"{name} {gesture}（可能被其他程序占用）");
+            used[key] = name;
         }
         Register("输入翻译", hotkeys.InputTranslate, _translateWindow.Toggle);
         Register("划词翻译", hotkeys.SelectionTranslate, TranslateSelection);
@@ -191,8 +213,7 @@ public partial class App : Application
         Register("剪贴板历史", hotkeys.History, ToggleHistory);
 
         if (failed.Count > 0)
-            _tray.ShowMessage("快捷键注册失败",
-                string.Join("、", failed) + " 可能已被其他程序占用，请在设置 → 快捷键中修改。", warning: true);
+            _tray.ShowMessage("快捷键注册失败", string.Join("；", failed) + "。请在设置 → 快捷键中修改。", warning: true);
     }
 
     // —— 功能入口 ——
@@ -227,7 +248,7 @@ public partial class App : Application
         {
             _screenshotOverlay = null;
             // 整屏截图位图较大，关闭后及时回收
-            Dispatcher.BeginInvoke(TrimMemory, DispatcherPriority.ApplicationIdle);
+            Dispatcher.BeginInvoke(CollectGarbage, DispatcherPriority.ApplicationIdle);
         };
         _screenshotOverlay.Show();
     }
@@ -240,8 +261,9 @@ public partial class App : Application
             var text = await WindowsOcr.RecognizeAsync(image, Settings.Screenshot.OcrLanguage);
             _translateWindow?.ShowAtCursor(PrepareText(text), translate, emptyHint: "没有识别到文字");
         }
-        catch (Exception ex) when (ex is InvalidOperationException or COMException)
+        catch (Exception ex)
         {
+            // OCR 走 WinRT，HRESULT 会被映射成各种异常类型；都用托盘提示，不弹程序出错对话框
             _tray?.ShowMessage("文字识别失败", ex.Message, warning: true);
         }
     }
@@ -270,15 +292,14 @@ public partial class App : Application
         Shutdown();
     }
 
-    private static void TrimMemory()
+    /// <summary>
+    /// 只做垃圾回收，不再强制裁剪工作集：那样会把 WPF 代码和资源换出内存，下次按快捷键时首帧明显变慢。
+    /// </summary>
+    private static void CollectGarbage()
     {
         GC.Collect();
         GC.WaitForPendingFinalizers();
-        SetProcessWorkingSetSize(Process.GetCurrentProcess().Handle, -1, -1);
     }
-
-    [DllImport("kernel32.dll")]
-    private static extern bool SetProcessWorkingSetSize(IntPtr process, nint min, nint max);
 
     private static void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {

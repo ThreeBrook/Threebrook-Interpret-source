@@ -89,13 +89,25 @@ public static class SelectionReader
         return null;
     }
 
+    private const int CLIPBRD_E_CANT_OPEN = unchecked((int)0x800401D0);
+
+    /// <summary>超时后再观察这么久：响应很慢的程序迟到的复制也要恢复、且不记入历史。</summary>
+    private static readonly TimeSpan LateCopyGrace = TimeSpan.FromMilliseconds(1500);
+
+    /// <summary>剪贴板备份。Data 为空表示原来就是空的（恢复时清空）；备份失败时整个对象为 null。</summary>
+    private sealed record ClipboardBackup(DataObject? Data);
+
     private static async Task<(string? Text, string Note)> CopyViaClipboardAsync()
     {
         // 临时复制和恢复都不应记入剪贴板历史
         ClipboardHistory.BeginSuppress();
+        var handedOff = false;
         try
         {
-            var backup = BackupClipboard();
+            // 剪贴板被其他程序占着读不出来时不发 Ctrl+C，否则无法恢复，会把用户原来的内容弄丢
+            var backup = await BackupClipboardAsync();
+            if (backup == null)
+                return (null, "clipboard busy, Ctrl+C skipped to keep its contents");
             var sequence = GetClipboardSequenceNumber();
 
             await KeyboardInput.ReleaseModifiersAsync();
@@ -105,21 +117,42 @@ public static class SelectionReader
             while (GetClipboardSequenceNumber() == sequence && sw.Elapsed < CopyTimeout)
                 await Task.Delay(20);
             if (GetClipboardSequenceNumber() == sequence)
-                return (null, $"clipboard unchanged after {sw.ElapsedMilliseconds}ms"); // 没有选中内容
+            {
+                // 没有选中内容，或程序响应太慢：继续观察一会儿，迟到的复制由 WatchLateCopyAsync 恢复并结束屏蔽
+                handedOff = true;
+                _ = WatchLateCopyAsync(sequence, backup);
+                return (null, $"clipboard unchanged after {sw.ElapsedMilliseconds}ms");
+            }
 
             var changedAfter = sw.ElapsedMilliseconds;
             await Task.Delay(30); // 等源程序写完所有格式
             var text = await RetryClipboard(() => Clipboard.ContainsText() ? Clipboard.GetText() : null);
             var note = text == null ? $"clipboard changed after {changedAfter}ms but has no text" : $"ok {text.Length} chars after {changedAfter}ms";
-            await RetryClipboard(() =>
-            {
-                if (backup != null)
-                    Clipboard.SetDataObject(backup, copy: true);
-                else
-                    Clipboard.Clear();
-                return true;
-            });
+            await RestoreAsync(backup);
             return (text, note);
+        }
+        finally
+        {
+            if (!handedOff)
+                ClipboardHistory.EndSuppress();
+        }
+    }
+
+    private static async Task WatchLateCopyAsync(uint sequence, ClipboardBackup backup)
+    {
+        try
+        {
+            var sw = Stopwatch.StartNew();
+            while (sw.Elapsed < LateCopyGrace)
+            {
+                await Task.Delay(50);
+                if (GetClipboardSequenceNumber() == sequence)
+                    continue;
+                await Task.Delay(30);
+                await RestoreAsync(backup);
+                DiagnosticLog.Write($"late copy after timeout restored ({sw.ElapsedMilliseconds}ms into grace period)");
+                return;
+            }
         }
         finally
         {
@@ -127,35 +160,57 @@ public static class SelectionReader
         }
     }
 
-    /// <summary>复制剪贴板里所有能读出的格式，用于之后恢复。</summary>
-    private static DataObject? BackupClipboard()
+    private static Task RestoreAsync(ClipboardBackup backup) => RetryClipboard(() =>
     {
-        try
-        {
-            var source = Clipboard.GetDataObject();
-            if (source == null)
-                return null;
+        if (backup.Data != null)
+            Clipboard.SetDataObject(backup.Data, copy: true);
+        else
+            Clipboard.Clear();
+        return true;
+    });
 
-            var copy = new DataObject();
-            foreach (var format in source.GetFormats(autoConvert: false))
-            {
-                try
-                {
-                    var data = source.GetData(format, autoConvert: false);
-                    if (data != null)
-                        copy.SetData(format, data, autoConvert: false);
-                }
-                catch (Exception)
-                {
-                    // 个别延迟渲染的格式读不出来，跳过
-                }
-            }
-            return copy.GetFormats().Length > 0 ? copy : null;
-        }
-        catch (COMException)
+    /// <summary>复制剪贴板里所有能读出的格式，用于之后恢复；剪贴板一直被占用时返回 null。</summary>
+    private static async Task<ClipboardBackup?> BackupClipboardAsync()
+    {
+        for (var attempt = 0; attempt < 5; attempt++)
         {
-            return null;
+            try
+            {
+                var source = Clipboard.GetDataObject();
+                if (source == null)
+                    return new ClipboardBackup(null);
+
+                var formats = source.GetFormats(autoConvert: false);
+                var copy = new DataObject();
+                foreach (var format in formats)
+                {
+                    try
+                    {
+                        var data = source.GetData(format, autoConvert: false);
+                        if (data != null)
+                            copy.SetData(format, data, autoConvert: false);
+                    }
+                    catch (COMException ex) when (ex.HResult == CLIPBRD_E_CANT_OPEN)
+                    {
+                        // 列格式不需要打开剪贴板，读数据需要：被其他程序占着时在这里才失败，整体当作"忙"
+                        throw;
+                    }
+                    catch (Exception)
+                    {
+                        // 个别延迟渲染的格式读不出来，跳过
+                    }
+                }
+                // 剪贴板里有东西却一样都没读出来，同样当作"忙"，不能当成空剪贴板去清空
+                if (formats.Length > 0 && copy.GetFormats().Length == 0)
+                    throw new COMException("clipboard content unreadable", CLIPBRD_E_CANT_OPEN);
+                return new ClipboardBackup(copy.GetFormats().Length > 0 ? copy : null);
+            }
+            catch (COMException)
+            {
+                await Task.Delay(30);
+            }
         }
+        return null;
     }
 
     /// <summary>剪贴板可能正被其他程序占用，重试几次。</summary>

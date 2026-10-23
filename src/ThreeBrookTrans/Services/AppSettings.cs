@@ -140,16 +140,56 @@ public static class SettingsStore
         }
 
         var json = File.ReadAllText(SettingsPath);
-        return JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? AppSettings.CreateDefault();
+        return Normalize(JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? AppSettings.CreateDefault());
+    }
+
+    /// <summary>
+    /// 手改配置时可能写出 "Hotkeys": null 之类，补回默认值，避免启动时空引用导致快捷键全部失效。
+    /// </summary>
+    private static AppSettings Normalize(AppSettings settings)
+    {
+        settings.Hotkeys ??= new HotkeySettings();
+        settings.Screenshot ??= new ScreenshotSettings();
+        settings.History ??= new HistorySettings();
+        settings.Engines ??= AppSettings.CreateDefault().Engines;
+        settings.Engines.RemoveAll(e => e == null || string.IsNullOrWhiteSpace(e.Type));
+        settings.Theme ??= "auto";
+        settings.TargetLanguage ??= "auto";
+        var h = settings.Hotkeys;
+        h.InputTranslate ??= "";
+        h.SelectionTranslate ??= "";
+        h.Screenshot ??= "";
+        h.ScreenshotTranslate ??= "";
+        h.History ??= "";
+        settings.Screenshot.SaveDirectory ??= "";
+        settings.Screenshot.ImageFormat ??= "png";
+        settings.Screenshot.OcrLanguage ??= "auto";
+        return settings;
+    }
+
+    /// <summary>
+    /// 配置读取失败时，先把原文件改名备份（settings.broken-时间.json），
+    /// 之后用默认配置运行、正常保存也不会让原来的 API Key 等内容丢失。返回备份路径。
+    /// </summary>
+    public static string? BackupBrokenFile()
+    {
+        if (!File.Exists(SettingsPath))
+            return null;
+        var backup = Path.Combine(DataDirectory, $"settings.broken-{DateTime.Now:yyyyMMdd-HHmmss}.json");
+        File.Copy(SettingsPath, backup, overwrite: true);
+        return backup;
     }
 
     /// <summary>深拷贝，设置窗口在副本上编辑，点"保存"才生效。</summary>
     public static AppSettings Clone(AppSettings settings) =>
         JsonSerializer.Deserialize<AppSettings>(JsonSerializer.Serialize(settings, JsonOptions), JsonOptions)!;
 
+    /// <summary>先写临时文件再替换，写到一半崩溃或断电也不会留下半截配置。</summary>
     public static void Save(AppSettings settings)
     {
         Directory.CreateDirectory(DataDirectory);
-        File.WriteAllText(SettingsPath, JsonSerializer.Serialize(settings, JsonOptions));
+        var temp = SettingsPath + ".tmp";
+        File.WriteAllText(temp, JsonSerializer.Serialize(settings, JsonOptions));
+        File.Move(temp, SettingsPath, overwrite: true);
     }
 }

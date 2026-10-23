@@ -35,7 +35,7 @@ public partial class HistoryWindow : Window
             return;
         }
 
-        _previousWindow = GetForegroundWindow();
+        _previousWindow = PasteTarget();
         _view.Refresh(); // 刷新相对时间
         Show();
         WindowPlacement.MoveNearCursor(this);
@@ -236,8 +236,33 @@ public partial class HistoryWindow : Window
         }
     }
 
+    /// <summary>
+    /// 之前的前台窗口作为粘贴目标；从托盘打开时前台是任务栏 / 桌面，或者是本程序自己的窗口，
+    /// 这些都不能粘贴，返回空（只复制不粘贴）。
+    /// </summary>
+    private static IntPtr PasteTarget()
+    {
+        var hwnd = GetForegroundWindow();
+        if (hwnd == IntPtr.Zero)
+            return IntPtr.Zero;
+        GetWindowThreadProcessId(hwnd, out var pid);
+        if (pid == (uint)Environment.ProcessId)
+            return IntPtr.Zero;
+        var className = new System.Text.StringBuilder(64);
+        GetClassName(hwnd, className, className.Capacity);
+        return className.ToString() is "Shell_TrayWnd" or "Shell_SecondaryTrayWnd" or "NotifyIconOverflowWindow" or "Progman" or "WorkerW"
+            ? IntPtr.Zero
+            : hwnd;
+    }
+
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetClassName(IntPtr hwnd, System.Text.StringBuilder name, int max);
 
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(IntPtr hwnd);
