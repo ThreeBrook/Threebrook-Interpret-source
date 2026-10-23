@@ -10,7 +10,19 @@ public static class KeyboardInput
 {
     public const ushort VK_C = 0x43, VK_V = 0x56;
     private const ushort VK_SHIFT = 0x10, VK_CONTROL = 0x11, VK_MENU = 0x12, VK_LWIN = 0x5B, VK_RWIN = 0x5C;
+    private const ushort VK_MASK = 0xE8; // 未分配的虚拟键，不会触发任何操作
     private static readonly ushort[] Modifiers = { VK_MENU, VK_SHIFT, VK_CONTROL, VK_LWIN, VK_RWIN };
+
+    /// <summary>
+    /// 快捷键的主键（如 Alt+D 的 D）被 RegisterHotKey 吃掉了，目标程序只看到 Alt 按下又松开，
+    /// 会当成"单按 Alt"去激活菜单栏（Electron 程序、带菜单的传统程序），之后的 Ctrl+C 就发给了菜单。
+    /// 趁 Alt / Win 还按着，补发一个未分配的虚拟键打断"单按"判定。必须在热键回调里立即调用。
+    /// </summary>
+    public static void MaskModifierTap()
+    {
+        if (IsDown(VK_MENU) || IsDown(VK_LWIN) || IsDown(VK_RWIN))
+            Send(new[] { KeyInput(VK_MASK, up: false), KeyInput(VK_MASK, up: true) });
+    }
 
     /// <summary>
     /// 用户还按着快捷键的修饰键（如 Alt）时直接发 Ctrl+C，目标程序收到的会是 Ctrl+Alt+C。

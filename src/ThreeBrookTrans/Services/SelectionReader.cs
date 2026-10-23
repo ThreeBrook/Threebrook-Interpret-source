@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -15,37 +16,80 @@ namespace ThreeBrookTrans.Services;
 /// </summary>
 public static class SelectionReader
 {
-    private static readonly TimeSpan UiaTimeout = TimeSpan.FromMilliseconds(300);
-    private static readonly TimeSpan CopyTimeout = TimeSpan.FromMilliseconds(500);
+    /// <summary>含遍历网页文档的时间；超时后改用 Ctrl+C。</summary>
+    private static readonly TimeSpan UiaTimeout = TimeSpan.FromMilliseconds(600);
+
+    /// <summary>大页面的 Chromium / Electron 程序响应 Ctrl+C 可能较慢。</summary>
+    private static readonly TimeSpan CopyTimeout = TimeSpan.FromMilliseconds(1200);
 
     public static async Task<string?> GetSelectedTextAsync()
     {
-        var uia = Task.Run(TryUiAutomation);
-        if (await Task.WhenAny(uia, Task.Delay(UiaTimeout)) == uia && !string.IsNullOrWhiteSpace(uia.Result))
-            return uia.Result.Trim();
+        KeyboardInput.MaskModifierTap(); // 必须在第一个 await 之前，趁快捷键的 Alt 还按着
+        var window = DiagnosticLog.DescribeForegroundWindow();
+        var sw = Stopwatch.StartNew();
 
-        return (await CopyViaClipboardAsync())?.Trim();
+        var uia = Task.Run(TryUiAutomation);
+        var uiaFinished = await Task.WhenAny(uia, Task.Delay(UiaTimeout)) == uia;
+        var uiaResult = uiaFinished ? uia.Result : (null, "timeout");
+        if (!string.IsNullOrWhiteSpace(uiaResult.Text))
+        {
+            DiagnosticLog.Write($"[{window}] UIA ok {uiaResult.Text.Length} chars, {uiaResult.Note}, {sw.ElapsedMilliseconds}ms");
+            return uiaResult.Text.Trim();
+        }
+
+        var (text, copyNote) = await CopyViaClipboardAsync();
+        DiagnosticLog.Write($"[{window}] UIA {uiaResult.Note}; Ctrl+C {copyNote}; total {sw.ElapsedMilliseconds}ms");
+        return text?.Trim();
     }
 
-    private static string? TryUiAutomation()
+    private static (string? Text, string Note) TryUiAutomation()
     {
         try
         {
             var element = AutomationElement.FocusedElement;
-            if (element == null || !element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern))
-                return null;
+            var focused = element?.Current.ControlType.ProgrammaticName ?? "nothing";
+            var text = GetSelection(element);
+            if (!string.IsNullOrWhiteSpace(text))
+                return (text, $"selection on focused {focused}");
 
-            var ranges = ((TextPattern)pattern).GetSelection();
-            return string.Concat(ranges.Select(r => r.GetText(-1)));
+            // 聊天类程序（如 Claude）把键盘焦点固定在输入框上，
+            // 用户在对话区选中的文字不在焦点控件里，而在窗口的网页文档里
+            text = GetDocumentSelection(GetForegroundWindow());
+            if (!string.IsNullOrWhiteSpace(text))
+                return (text, $"selection in document (focused {focused} was empty)");
+
+            return (null, $"empty selection (focused {focused}, documents empty)");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             // 目标程序不支持或已关闭，交给剪贴板方式
-            return null;
+            return (null, ex.GetType().Name);
         }
     }
 
-    private static async Task<string?> CopyViaClipboardAsync()
+    private static string? GetSelection(AutomationElement? element)
+    {
+        if (element == null || !element.TryGetCurrentPattern(TextPattern.Pattern, out var pattern))
+            return null;
+        return string.Concat(((TextPattern)pattern).GetSelection().Select(r => r.GetText(-1)));
+    }
+
+    private static string? GetDocumentSelection(IntPtr hwnd)
+    {
+        if (hwnd == IntPtr.Zero)
+            return null;
+        var documents = AutomationElement.FromHandle(hwnd).FindAll(TreeScope.Descendants,
+            new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Document));
+        foreach (AutomationElement document in documents)
+        {
+            var text = GetSelection(document);
+            if (!string.IsNullOrWhiteSpace(text))
+                return text;
+        }
+        return null;
+    }
+
+    private static async Task<(string? Text, string Note)> CopyViaClipboardAsync()
     {
         // 临时复制和恢复都不应记入剪贴板历史
         ClipboardHistory.BeginSuppress();
@@ -57,17 +101,16 @@ public static class SelectionReader
             await KeyboardInput.ReleaseModifiersAsync();
             KeyboardInput.SendCtrl(KeyboardInput.VK_C);
 
-            var waited = TimeSpan.Zero;
-            while (GetClipboardSequenceNumber() == sequence && waited < CopyTimeout)
-            {
+            var sw = Stopwatch.StartNew();
+            while (GetClipboardSequenceNumber() == sequence && sw.Elapsed < CopyTimeout)
                 await Task.Delay(20);
-                waited += TimeSpan.FromMilliseconds(20);
-            }
             if (GetClipboardSequenceNumber() == sequence)
-                return null; // 没有选中内容，剪贴板未变化
+                return (null, $"clipboard unchanged after {sw.ElapsedMilliseconds}ms"); // 没有选中内容
 
+            var changedAfter = sw.ElapsedMilliseconds;
             await Task.Delay(30); // 等源程序写完所有格式
             var text = await RetryClipboard(() => Clipboard.ContainsText() ? Clipboard.GetText() : null);
+            var note = text == null ? $"clipboard changed after {changedAfter}ms but has no text" : $"ok {text.Length} chars after {changedAfter}ms";
             await RetryClipboard(() =>
             {
                 if (backup != null)
@@ -76,7 +119,7 @@ public static class SelectionReader
                     Clipboard.Clear();
                 return true;
             });
-            return text;
+            return (text, note);
         }
         finally
         {
@@ -137,4 +180,7 @@ public static class SelectionReader
 
     [DllImport("user32.dll")]
     private static extern uint GetClipboardSequenceNumber();
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
 }
