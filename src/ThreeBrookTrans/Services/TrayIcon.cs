@@ -1,8 +1,5 @@
 using System;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Text;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace ThreeBrookTrans.Services;
@@ -10,6 +7,8 @@ namespace ThreeBrookTrans.Services;
 public sealed class TrayIcon : IDisposable
 {
     private readonly NotifyIcon _icon;
+    private readonly ContextMenuStrip _menu;
+    private readonly TrayMenuRenderer _renderer = new();
     private readonly ToolStripMenuItem _inputItem;
     private readonly ToolStripMenuItem _selectionItem;
     private readonly ToolStripMenuItem _screenshotItem;
@@ -28,7 +27,14 @@ public sealed class TrayIcon : IDisposable
 
     public TrayIcon()
     {
-        var menu = new ContextMenuStrip();
+        _menu = new ContextMenuStrip
+        {
+            Renderer = _renderer,
+            ShowImageMargin = false,
+            Font = new Font("Microsoft YaHei UI", 9.5f),
+            Padding = new Padding(0, 4, 0, 4),
+        };
+        var menu = _menu;
         _inputItem = new ToolStripMenuItem("输入翻译", null, (_, _) => InputTranslateRequested?.Invoke());
         // 划词需要先在其他程序里选中文字，从菜单触发没有意义，这里只做快捷键提示
         _selectionItem = new ToolStripMenuItem("划词翻译（选中文字后按快捷键）") { Enabled = false };
@@ -51,9 +57,19 @@ public sealed class TrayIcon : IDisposable
             new ToolStripMenuItem("退出", null, (_, _) => ExitRequested?.Invoke()),
         });
 
+        foreach (ToolStripItem item in menu.Items)
+            StyleItem(item);
+        foreach (ToolStripItem item in advanced.DropDownItems)
+            StyleItem(item);
+        advanced.DropDown.BackColor = SystemColors.Window;
+        ((ToolStripDropDownMenu)advanced.DropDown).ShowImageMargin = false;
+        advanced.DropDown.Renderer = _renderer;
+        ApplyTheme();
+        ThemeManager.Changed += ApplyTheme;
+
         _icon = new NotifyIcon
         {
-            Icon = CreateIcon(),
+            Icon = LoadIcon(),
             Text = "ThreeBrook Trans",
             ContextMenuStrip = menu,
             Visible = true,
@@ -77,46 +93,30 @@ public sealed class TrayIcon : IDisposable
     public void ShowMessage(string title, string text, bool warning = false) =>
         _icon.ShowBalloonTip(5000, title, text, warning ? ToolTipIcon.Warning : ToolTipIcon.Info);
 
-    [DllImport("user32.dll")]
-    private static extern bool DestroyIcon(IntPtr handle);
-
-    /// <summary>运行时绘制托盘图标，免去单独的 .ico 资源文件。</summary>
-    private static Icon CreateIcon()
+    private static void StyleItem(ToolStripItem item)
     {
-        using var bmp = new Bitmap(32, 32);
-        using (var g = Graphics.FromImage(bmp))
-        {
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+        if (item is ToolStripMenuItem)
+            item.Padding = new Padding(6, 5, 6, 5);
+    }
 
-            using var path = new GraphicsPath();
-            const int r = 8;
-            path.AddArc(0, 0, r * 2, r * 2, 180, 90);
-            path.AddArc(31 - r * 2, 0, r * 2, r * 2, 270, 90);
-            path.AddArc(31 - r * 2, 31 - r * 2, r * 2, r * 2, 0, 90);
-            path.AddArc(0, 31 - r * 2, r * 2, r * 2, 90, 90);
-            path.CloseFigure();
-            using var background = new SolidBrush(Color.FromArgb(0x1F, 0x6F, 0xEB));
-            g.FillPath(background, path);
+    private void ApplyTheme()
+    {
+        _renderer.LoadColors();
+        _menu.Invalidate();
+    }
 
-            using var font = new Font("Segoe UI", 17, System.Drawing.FontStyle.Bold, GraphicsUnit.Pixel);
-            using var format = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-            g.DrawString("T", font, Brushes.White, new RectangleF(0, 1, 32, 32), format);
-        }
-
-        var handle = bmp.GetHicon();
-        try
-        {
-            return (Icon)Icon.FromHandle(handle).Clone();
-        }
-        finally
-        {
-            DestroyIcon(handle);
-        }
+    /// <summary>产品图标（tools/IconGen 生成），按系统小图标尺寸取最合适的一帧。</summary>
+    private static Icon LoadIcon()
+    {
+        var resource = System.Windows.Application.GetResourceStream(
+            new Uri("pack://application:,,,/ThreeBrookTrans;component/Assets/AppIcon.ico"));
+        using var stream = resource!.Stream;
+        return new Icon(stream, SystemInformation.SmallIconSize);
     }
 
     public void Dispose()
     {
+        ThemeManager.Changed -= ApplyTheme;
         _icon.Visible = false;
         _icon.Dispose();
     }

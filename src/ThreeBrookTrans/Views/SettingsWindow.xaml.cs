@@ -29,7 +29,7 @@ public partial class SettingsWindow : Window
         TargetBox.ItemsSource = new[] { new Language(Languages.Auto, "自动（中⇄英）", "") }.Concat(Languages.All).ToList();
         AutoStartBox.IsChecked = AutoStart.IsEnabled;
         DataDirBox.Text = SettingsStore.DataDirectory;
-        VersionText.Text = $"ThreeBrook Trans {Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)}";
+        VersionText.Text = $"版本 {Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)}";
 
         LoadOcrLanguages();
 
@@ -45,6 +45,42 @@ public partial class SettingsWindow : Window
         EnginesList.ItemsSource = _engines;
         EnginesList.SelectedIndex = _engines.Count > 0 ? 0 : -1;
         UpdateEngineDetail();
+
+        (_settings.Theme switch { "light" => ThemeLight, "dark" => ThemeDark, _ => ThemeAuto }).IsChecked = true;
+    }
+
+    // —— 导航与外观 ——
+
+    private void NavList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (PageAbout == null)
+            return; // InitializeComponent 期间，页面还没创建
+        var pages = new FrameworkElement[] { PageGeneral, PageHotkeys, PageEngines, PageScreenshot, PageHistory, PageAbout };
+        for (var i = 0; i < pages.Length; i++)
+            pages[i].Visibility = i == NavList.SelectedIndex ? Visibility.Visible : Visibility.Collapsed;
+        PageScroller.ScrollToTop();
+    }
+
+    /// <summary>切换外观立即预览；点"取消"或直接关闭窗口时恢复为已保存的外观。</summary>
+    private void Theme_Checked(object sender, RoutedEventArgs e)
+    {
+        _settings.Theme = (string)((FrameworkElement)sender).Tag;
+        ThemeManager.Apply(_settings.Theme);
+    }
+
+    private bool _saved;
+
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+        if (!_saved)
+            ThemeManager.Apply();
+    }
+
+    private void SetTestResult(string text, string brushKey)
+    {
+        TestResultText.Text = text;
+        TestResultText.SetResourceReference(TextBlock.ForegroundProperty, brushKey);
     }
 
     private void LoadOcrLanguages()
@@ -183,20 +219,19 @@ public partial class SettingsWindow : Window
         if (SelectedEngine is not { } engine)
             return;
 
-        TestResultText.Foreground = System.Windows.Media.Brushes.Gray;
-        TestResultText.Text = "正在获取模型列表…";
+        SetTestResult("正在获取模型列表…", "B.TextMuted");
         try
         {
             var models = await OpenAiCompatibleTranslator.ListModelsAsync(engine, CancellationToken.None);
             if (models.Count == 0)
             {
-                TestResultText.Text = "接口没有返回任何模型";
+                SetTestResult("接口没有返回任何模型", "B.TextMuted");
                 return;
             }
             if (models.Count == 1)
             {
                 SetModel(models[0]);
-                TestResultText.Text = $"已填入唯一的模型：{models[0]}";
+                SetTestResult($"已填入唯一的模型：{models[0]}", "B.Success");
                 return;
             }
 
@@ -209,12 +244,11 @@ public partial class SettingsWindow : Window
                 menu.Items.Add(item);
             }
             menu.IsOpen = true;
-            TestResultText.Text = $"共 {models.Count} 个模型，请选择";
+            SetTestResult($"共 {models.Count} 个模型，请选择", "B.TextSub");
         }
         catch (Exception ex)
         {
-            TestResultText.Foreground = System.Windows.Media.Brushes.Firebrick;
-            TestResultText.Text = "✗ " + ex.Message;
+            SetTestResult("✗ " + ex.Message, "B.Danger");
         }
     }
 
@@ -229,18 +263,15 @@ public partial class SettingsWindow : Window
         if (SelectedEngine is not { } engine || TranslatorFactory.Create(engine) is not { } translator)
             return;
 
-        TestResultText.Foreground = System.Windows.Media.Brushes.Gray;
-        TestResultText.Text = "翻译中…";
+        SetTestResult("翻译中…", "B.TextMuted");
         try
         {
             var result = await translator.TranslateAsync("Hello, this is a translation test.", Languages.Auto, "zh", CancellationToken.None);
-            TestResultText.Foreground = System.Windows.Media.Brushes.SeaGreen;
-            TestResultText.Text = "✓ " + result;
+            SetTestResult("✓ " + result, "B.Success");
         }
         catch (Exception ex)
         {
-            TestResultText.Foreground = System.Windows.Media.Brushes.Firebrick;
-            TestResultText.Text = "✗ " + ex.Message;
+            SetTestResult("✗ " + ex.Message, "B.Danger");
         }
     }
 
@@ -294,6 +325,7 @@ public partial class SettingsWindow : Window
             MessageBox.Show(this, "设置开机自启失败：" + ex.Message, "ThreeBrook Trans", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
+        _saved = true;
         App.Instance.ApplySettings(_settings);
         Close();
     }

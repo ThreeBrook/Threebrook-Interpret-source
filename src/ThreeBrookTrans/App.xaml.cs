@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using ThreeBrookTrans.Services;
@@ -34,6 +35,16 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        // 开发用：把各窗口按浅色 / 深色渲染成 PNG 后退出，不占用单实例、不读写用户数据
+        if (e.Args.Length == 2 && e.Args[0] == "--render-previews")
+        {
+            base.OnStartup(e);
+            PreviewRenderer.Run(e.Args[1]);
+            IsExiting = true;
+            Shutdown();
+            return;
+        }
+
         _singleInstance = new Mutex(true, @"Local\ThreeBrookTrans.SingleInstance", out var isFirst);
         if (!isFirst)
         {
@@ -54,6 +65,9 @@ public partial class App : Application
         DispatcherUnhandledException += OnUnhandledException;
 
         LoadSettings();
+        ThemeManager.Initialize();
+        // 规范 §5：提示气泡悬停 0.4 秒后出现
+        ToolTipService.InitialShowDelayProperty.OverrideMetadata(typeof(FrameworkElement), new FrameworkPropertyMetadata(400));
         _translateWindow = new TranslateWindow();
         _history = new ClipboardHistory();
 
@@ -85,6 +99,9 @@ public partial class App : Application
     }
 
     // —— 配置 ——
+
+    /// <summary>界面预览用默认配置，不读用户的 settings.json。</summary>
+    internal static void UsePreviewSettings(string theme) => Settings = new AppSettings { Theme = theme, Engines = AppSettings.CreateDefault().Engines };
 
     private void LoadSettings()
     {
@@ -125,6 +142,7 @@ public partial class App : Application
 
     private void OnSettingsChanged()
     {
+        ThemeManager.Apply();
         _translateWindow?.LoadTargets();
         _history?.Trim();
         RegisterHotkeys();

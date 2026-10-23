@@ -1,6 +1,6 @@
-# ThreeBrook Trans
+﻿# ThreeBrook Trans
 
-轻巧的 Windows 托盘翻译工具：划词翻译、截图翻译、输入翻译、截图钉图、剪贴板历史。程序本体约 300 KB。
+轻巧的 Windows 托盘翻译工具：划词翻译、截图翻译、输入翻译、截图标注与钉图、剪贴板历史。程序本体约 750 KB（含内嵌字体和图标）。
 
 ## 运行
 
@@ -30,6 +30,16 @@ powershell -ExecutionPolicy Bypass -File publish.ps1
 | Alt+H | 剪贴板历史（文字 + 图片），Enter 粘贴 |
 
 截图界面：Enter / Ctrl+C 复制，Ctrl+S 保存，F3 钉图，O 识别文字，T 翻译，右键 / Esc 取消，选区可拖动。
+
+### 截图标注
+
+框选后工具栏左侧是标注工具（数字键 1–8）：矩形、椭圆、箭头、画笔、荧光笔、文字、马赛克、序号。选中工具后下方出现粗细和颜色。
+
+- 矩形、椭圆按住 Shift 画正方形、圆；文字点击放置，Esc 或 Ctrl+Enter 完成输入
+- Ctrl+Z 撤销、Ctrl+Y 重做；再点一次当前工具或右键退出工具
+- 复制、保存、钉图都会带上标注；识别文字仍用原图，不受标注影响
+- 画了标注后选区锁定，不会误拖丢失；右键（未选工具时）清除选区和标注
+
 钉图窗口：拖动移动，滚轮缩放，Ctrl+滚轮调透明度，双击 / Esc 关闭，右键更多操作。
 
 ## 翻译引擎
@@ -50,6 +60,10 @@ powershell -ExecutionPolicy Bypass -File publish.ps1
 使用 Windows 自带 OCR，离线、不增加体积。默认跟随系统语言（中文系统可识别中英文）。
 识别日语、韩语、泰语等：Windows 设置 → 时间和语言 → 语言 → 添加该语言（勾选"光学字符识别"），然后在设置 → 截图与识别 中选择。
 
+## 外观
+
+按[三溪外观规范](doc/01-ui/三溪外观规范.md)：溪青强调色、米白 / 墨绿浅深两套主题（默认跟随系统，设置 → 常规 → 外观 可固定），标题用站酷小薇 / Bricolage Grotesque，等宽用 JetBrains Mono，图标用 Material Symbols 线框款。产品色暮紫 `#7460C4`。
+
 ## 数据位置
 
 `%AppData%\ThreeBrookTrans\`
@@ -60,6 +74,14 @@ powershell -ExecutionPolicy Bypass -File publish.ps1
 
 截图默认保存到 `图片\ThreeBrookTrans`。
 
+## 开发工具
+
+| 命令 | 作用 |
+|---|---|
+| `python tools/fonts/build_fonts.py <下载目录>` | 裁剪界面字体与图标字体（新增标题字、图标后运行，说明见脚本开头） |
+| `dotnet run --project tools/IconGen` | 生成产品图标 `Assets/AppIcon.ico` 等，预览图 `tools/IconGen/preview.png` |
+| `ThreeBrookTrans.exe --render-previews <目录>` | 把各窗口按浅色 / 深色渲染成 PNG（屏幕外渲染，不需要桌面、不读写用户数据） |
+
 ## 代码结构
 
 ```
@@ -67,5 +89,7 @@ src/ThreeBrookTrans/
   App.xaml.cs            托盘、快捷键、各功能入口
   Translation/           翻译引擎（实现 ITranslator，在 TranslatorFactory 注册）
   Services/              快捷键、划词、截屏、OCR、剪贴板历史、配置、开机自启
-  Views/                 翻译窗口、截图遮罩、钉图、剪贴板历史、设置
+  Views/                 翻译窗口、截图遮罩与标注、钉图、剪贴板历史、设置、自绘标题栏
+  Theme/                 浅色 / 深色颜色（由 doc/01-ui 的设计变量生成）、字体与图标、控件样式
+  Fonts/ Assets/         裁剪后的字体（含许可）、产品图标
 ```

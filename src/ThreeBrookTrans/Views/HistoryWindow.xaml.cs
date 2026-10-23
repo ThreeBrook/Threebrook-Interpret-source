@@ -48,7 +48,7 @@ public partial class HistoryWindow : Window
     private bool Filter(object item)
     {
         var entry = (HistoryEntry)item;
-        if (KindBox.SelectedIndex == 1 && entry.IsImage || KindBox.SelectedIndex == 2 && !entry.IsImage)
+        if (KindText?.IsChecked == true && entry.IsImage || KindImage?.IsChecked == true && !entry.IsImage)
             return false;
         var keyword = SearchBox.Text.Trim();
         return keyword.Length == 0 || !entry.IsImage && entry.Text!.Contains(keyword, StringComparison.OrdinalIgnoreCase);
@@ -56,7 +56,7 @@ public partial class HistoryWindow : Window
 
     private void UpdateCount()
     {
-        CountText.Text = $"{_history.Entries.Count} 条";
+        CountText.Text = _history.Entries.Count.ToString();
         EmptyText.Visibility = List.Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -209,7 +209,7 @@ public partial class HistoryWindow : Window
         SelectFirst();
     }
 
-    private void KindBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void Kind_Checked(object sender, RoutedEventArgs e)
     {
         if (_view == null)
             return; // InitializeComponent 期间
@@ -217,13 +217,7 @@ public partial class HistoryWindow : Window
         SelectFirst();
     }
 
-    private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        if (e.ButtonState == MouseButtonState.Pressed)
-            DragMove();
-    }
 
-    private void Hide_Click(object sender, RoutedEventArgs e) => Hide();
 
     protected override void OnDeactivated(EventArgs e)
     {

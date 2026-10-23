@@ -75,7 +75,7 @@ public partial class TranslateWindow : Window
         if (string.IsNullOrWhiteSpace(text))
         {
             InputBox.Clear();
-            DirectionText.Text = emptyHint ?? "未获取到选中的文字，可直接输入";
+            SetDirection(emptyHint ?? "未获取到选中的文字，可直接输入");
         }
         else
         {
@@ -83,7 +83,7 @@ public partial class TranslateWindow : Window
             if (translate)
                 StartTranslate();
             else
-                DirectionText.Text = "已识别文字，按 Enter 翻译";
+                SetDirection("已识别文字，按 Enter 翻译");
         }
         InputBox.Focus();
         InputBox.SelectAll();
@@ -100,7 +100,7 @@ public partial class TranslateWindow : Window
         var ct = _cts.Token;
 
         var to = Languages.ResolveTarget(text, App.Settings.TargetLanguage);
-        DirectionText.Text = "→ " + Languages.Get(to).Name;
+        SetDirection("→ " + Languages.Get(to).Name);
         _results.Clear();
 
         foreach (var engine in App.Settings.Engines.Where(e => e.Enabled))
@@ -120,6 +120,22 @@ public partial class TranslateWindow : Window
             item.Fail("没有启用的翻译引擎，请在设置中启用。");
             _results.Add(item);
         }
+    }
+
+    /// <summary>界面预览用：填入示例原文和结果，不发起翻译。</summary>
+    internal void LoadPreview(string input, string direction, params ResultItem[] results)
+    {
+        InputBox.Text = input;
+        SetDirection(direction);
+        _results.Clear();
+        foreach (var item in results)
+            _results.Add(item);
+    }
+
+    private void SetDirection(string text)
+    {
+        DirectionText.Text = text;
+        DirectionChip.Visibility = text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private static async Task RunAsync(ResultItem item, ITranslator translator, string text, string to, CancellationToken ct)
@@ -184,13 +200,7 @@ public partial class TranslateWindow : Window
         }
     }
 
-    private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        if (e.ButtonState == MouseButtonState.Pressed)
-            DragMove();
-    }
 
-    private void Hide_Click(object sender, RoutedEventArgs e) => Hide();
 
     protected override void OnKeyDown(KeyEventArgs e)
     {

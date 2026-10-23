@@ -1,0 +1,63 @@
+<!-- 由 doc/01-ui/threebrook-design-tokens.json 生成（三溪外观规范 §2），不要手改色值 -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="C.Bg">#F6FAF6</Color>
+    <SolidColorBrush x:Key="B.Bg" Color="#F6FAF6"/>
+    <Color x:Key="C.Sidebar">#EAF3EC</Color>
+    <SolidColorBrush x:Key="B.Sidebar" Color="#EAF3EC"/>
+    <Color x:Key="C.Card">#FFFFFF</Color>
+    <SolidColorBrush x:Key="B.Card" Color="#FFFFFF"/>
+    <Color x:Key="C.Border">#D6E4DB</Color>
+    <SolidColorBrush x:Key="B.Border" Color="#D6E4DB"/>
+    <Color x:Key="C.BorderStrong">#C5D7CC</Color>
+    <SolidColorBrush x:Key="B.BorderStrong" Color="#C5D7CC"/>
+    <Color x:Key="C.Text">#1D3331</Color>
+    <SolidColorBrush x:Key="B.Text" Color="#1D3331"/>
+    <Color x:Key="C.TextSub">#4E6461</Color>
+    <SolidColorBrush x:Key="B.TextSub" Color="#4E6461"/>
+    <Color x:Key="C.TextMuted">#627874</Color>
+    <SolidColorBrush x:Key="B.TextMuted" Color="#627874"/>
+    <Color x:Key="C.Accent">#1C8780</Color>
+    <SolidColorBrush x:Key="B.Accent" Color="#1C8780"/>
+    <Color x:Key="C.OnAccent">#FFFFFF</Color>
+    <SolidColorBrush x:Key="B.OnAccent" Color="#FFFFFF"/>
+    <Color x:Key="C.AccentSoft">#E0F2EE</Color>
+    <SolidColorBrush x:Key="B.AccentSoft" Color="#E0F2EE"/>
+    <Color x:Key="C.NavActive">#D4EEE9</Color>
+    <SolidColorBrush x:Key="B.NavActive" Color="#D4EEE9"/>
+    <Color x:Key="C.Track">#E3EEE7</Color>
+    <SolidColorBrush x:Key="B.Track" Color="#E3EEE7"/>
+    <Color x:Key="C.Offline">#B3C2BC</Color>
+    <SolidColorBrush x:Key="B.Offline" Color="#B3C2BC"/>
+    <Color x:Key="C.InputBorder">#BFDCD6</Color>
+    <SolidColorBrush x:Key="B.InputBorder" Color="#BFDCD6"/>
+    <Color x:Key="C.ChipBorder">#B5D9D2</Color>
+    <SolidColorBrush x:Key="B.ChipBorder" Color="#B5D9D2"/>
+    <Color x:Key="C.Success">#2F7D4F</Color>
+    <SolidColorBrush x:Key="B.Success" Color="#2F7D4F"/>
+    <Color x:Key="C.SuccessBg">#E6F4EC</Color>
+    <SolidColorBrush x:Key="B.SuccessBg" Color="#E6F4EC"/>
+    <Color x:Key="C.SuccessText">#1F5C3A</Color>
+    <SolidColorBrush x:Key="B.SuccessText" Color="#1F5C3A"/>
+    <Color x:Key="C.Danger">#B0334C</Color>
+    <SolidColorBrush x:Key="B.Danger" Color="#B0334C"/>
+    <Color x:Key="C.DangerBg">#FDEFF2</Color>
+    <SolidColorBrush x:Key="B.DangerBg" Color="#FDEFF2"/>
+    <Color x:Key="C.DangerBorder">#F2B8C4</Color>
+    <SolidColorBrush x:Key="B.DangerBorder" Color="#F2B8C4"/>
+    <Color x:Key="C.Highlight">#FFF0C9</Color>
+    <SolidColorBrush x:Key="B.Highlight" Color="#FFF0C9"/>
+    <Color x:Key="C.HighlightBorder">#F2B33D</Color>
+    <SolidColorBrush x:Key="B.HighlightBorder" Color="#F2B33D"/>
+    <Color x:Key="C.SunInk">#6B4A06</Color>
+    <SolidColorBrush x:Key="B.SunInk" Color="#6B4A06"/>
+    <!-- 标题栏关闭按钮悬停（规范 §5，与 Windows 一致） -->
+    <SolidColorBrush x:Key="B.CloseHover" Color="#C42B1C"/>
+    <!-- 截图尺寸标签、钉图缩放提示：品牌墨绿半透明底 -->
+    <SolidColorBrush x:Key="B.Overlay" Color="#E00F1A19"/>
+    <SolidColorBrush x:Key="B.Brook" Color="#4CC0B6"/>
+    <SolidColorBrush x:Key="B.Hover" Color="#0F1D3331"/>
+    <!-- 规范：浅色卡片阴影 0 8px 24px rgba(29,51,49,.08)；窗口浮在桌面上，用同色系稍重一些 -->
+    <DropShadowEffect x:Key="CardShadow" Color="#1D3331" BlurRadius="24" ShadowDepth="4" Direction="270" Opacity="0.08"/>
+    <DropShadowEffect x:Key="WindowShadow" Color="#1D3331" BlurRadius="24" ShadowDepth="6" Direction="270" Opacity="0.18"/>
+</ResourceDictionary>

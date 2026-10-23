@@ -12,10 +12,21 @@
     <AssemblyName>ThreeBrookTrans</AssemblyName>
     <RootNamespace>ThreeBrookTrans</RootNamespace>
     <Product>ThreeBrook Trans</Product>
-    <Version>0.1.0</Version>
+    <Version>0.7.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- WPF 应用通过 manifest 声明 PerMonitorV2，WinForms 的 DPI 建议不适用 -->
     <NoWarn>$(NoWarn);WFAC010</NoWarn>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 裁剪后的界面字体（tools/fonts/build_fonts.py 生成）与产品图标（tools/IconGen 生成） -->
+    <Resource Include="Fonts\*.ttf" />
+    <Resource Include="Assets\AppIcon-36.png" />
+    <Resource Include="Assets\AppIcon-128.png" />
+    <Resource Include="Assets\AppIcon.ico" />
+    <!-- 字体许可（OFL 1.1 / Apache 2.0）随程序发布 -->
+    <None Include="Fonts\licenses\*.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="licenses\%(Filename)%(Extension)" />
+  </ItemGroup>
 
 </Project>

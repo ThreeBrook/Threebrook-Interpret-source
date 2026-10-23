@@ -67,8 +67,20 @@ public sealed class ClipboardHistory : IDisposable
 
     public ObservableCollection<HistoryEntry> Entries { get; } = new();
 
-    public ClipboardHistory()
+    public ClipboardHistory() : this(listen: true)
     {
+    }
+
+    /// <summary>界面预览用：不读本机历史、不监听剪贴板。</summary>
+    internal static ClipboardHistory CreatePreview() => new(listen: false);
+
+    private ClipboardHistory(bool listen)
+    {
+        if (!listen)
+        {
+            _source = null!;
+            return;
+        }
         Load();
         _readTimer.Tick += (_, _) =>
         {
@@ -393,6 +405,8 @@ public sealed class ClipboardHistory : IDisposable
 
     public void Dispose()
     {
+        if (_source == null)
+            return;
         RemoveClipboardFormatListener(_source.Handle);
         _source.RemoveHook(WndProc);
         _source.Dispose();

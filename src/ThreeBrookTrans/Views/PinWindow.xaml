@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="ThreeBrook Trans 钉图" WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True" WindowStartupLocation="Manual"
-        FontFamily="Microsoft YaHei UI" UseLayoutRounding="True">
+        FontFamily="{StaticResource F.Body}" UseLayoutRounding="True">
     <Window.ContextMenu>
         <ContextMenu>
             <MenuItem Header="识别文字" Click="Ocr_Click"/>
@@ -19,15 +19,16 @@
                 <MenuItem Header="40%" Tag="0.4" Click="Opacity_Click"/>
             </MenuItem>
             <Separator/>
-            <MenuItem Header="关闭" InputGestureText="Esc / 双击" Click="Close_Click"/>
+            <MenuItem Header="关闭" InputGestureText="Esc" Click="Close_Click"/>
         </ContextMenu>
     </Window.ContextMenu>
     <Grid>
         <Image x:Name="PinImage" Stretch="Fill" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
-        <Border BorderBrush="#B01F6FEB" BorderThickness="1" IsHitTestVisible="False"/>
-        <Border x:Name="ZoomLabel" Background="#CC1F2328" CornerRadius="3" Padding="6,2" Margin="6"
+        <!-- 溪青细边：和桌面内容区分开，表明这是钉住的截图 -->
+        <Border BorderBrush="{DynamicResource B.Brook}" BorderThickness="1" Opacity="0.85" IsHitTestVisible="False"/>
+        <Border x:Name="ZoomLabel" Background="{DynamicResource B.Overlay}" CornerRadius="6" Padding="7,2" Margin="6"
                 HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed" IsHitTestVisible="False">
-            <TextBlock x:Name="ZoomText" Foreground="White" FontSize="12"/>
+            <TextBlock x:Name="ZoomText" Foreground="White" FontFamily="{StaticResource F.Mono}" FontSize="12"/>
         </Border>
     </Grid>
 </Window>

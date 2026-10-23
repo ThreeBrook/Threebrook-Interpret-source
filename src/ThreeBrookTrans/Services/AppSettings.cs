@@ -10,6 +10,9 @@ public sealed class AppSettings
 {
     public HotkeySettings Hotkeys { get; set; } = new();
 
+    /// <summary>外观：auto 跟随系统 / light 浅色 / dark 深色。</summary>
+    public string Theme { get; set; } = "auto";
+
     /// <summary>"auto" = 中文→英文，其他语言→中文；否则为固定目标语言代码。</summary>
     public string TargetLanguage { get; set; } = "auto";
 

@@ -11,12 +11,12 @@ using ThreeBrookTrans.Services;
 namespace ThreeBrookTrans.Views;
 
 /// <summary>
-/// 全屏截图遮罩：显示冻结的屏幕画面，拖动框选，选区可拖动移动，然后钉图 / 复制 / 保存。
+/// 全屏截图遮罩：显示冻结的屏幕画面，拖动框选，选区可拖动移动，可标注（见 ScreenshotOverlay.Annotate.cs），然后钉图 / 复制 / 保存。
 /// 窗口用物理像素铺满整个虚拟屏幕，并忽略 DPI 变化消息，保证画面与屏幕像素一一对应。
 /// </summary>
 public partial class ScreenshotOverlay : Window
 {
-    private enum State { Idle, Selecting, Moving, Selected }
+    private enum State { Idle, Selecting, Moving, Selected, Drawing }
 
     private const double MinSelection = 3;
 
@@ -39,10 +39,13 @@ public partial class ScreenshotOverlay : Window
         if (translateMode)
             HintText.Text = "框选要翻译的区域 · 右键 / Esc 取消";
         ScreenImage.Source = screen;
+        InitAnnotationTools();
         SourceInitialized += OnSourceInitialized;
         SizeChanged += (_, _) => UpdateMask();
         Loaded += (_, _) =>
         {
+            if (PreviewMode)
+                return;
             Activate();
             Focus();
             PlaceHint();
@@ -74,6 +77,14 @@ public partial class ScreenshotOverlay : Window
             return;
         var p = e.GetPosition(Layer);
 
+        if (_state == State.Selected && Annotating)
+        {
+            if (_selection.Contains(p))
+                BeginDraw(p);
+            else
+                CommitText();
+            return;
+        }
         if (_state == State.Selected && _selection.Contains(p))
         {
             if (e.ClickCount == 2)
@@ -81,9 +92,15 @@ public partial class ScreenshotOverlay : Window
                 Copy();
                 return;
             }
+            if (HasAnnotations)
+                return; // 已有标注时不能移动选区
             _state = State.Moving;
             _anchor = p;
             _selectionBeforeMove = _selection;
+        }
+        else if (_state == State.Selected && HasAnnotations)
+        {
+            return; // 已有标注时不能重新框选，右键可清除
         }
         else
         {
@@ -115,8 +132,14 @@ public partial class ScreenshotOverlay : Window
                 _selection = new Rect(x, y, _selection.Width, _selection.Height);
                 UpdateSelection();
                 break;
+            case State.Drawing:
+                UpdateDraw(p, (Keyboard.Modifiers & ModifierKeys.Shift) != 0);
+                break;
             case State.Selected:
-                Cursor = _selection.Contains(p) ? Cursors.SizeAll : Cursors.Cross;
+                var inside = _selection.Contains(p) && !Toolbar.IsMouseOver;
+                Cursor = Annotating ? (inside ? ToolCursor : Cursors.Arrow)
+                    : inside ? (HasAnnotations ? Cursors.Arrow : Cursors.SizeAll)
+                    : HasAnnotations ? Cursors.Arrow : Cursors.Cross;
                 break;
         }
     }
@@ -124,6 +147,11 @@ public partial class ScreenshotOverlay : Window
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonUp(e);
+        if (_state == State.Drawing)
+        {
+            EndDraw();
+            return;
+        }
         if (_state is not (State.Selecting or State.Moving))
             return;
 
@@ -143,8 +171,13 @@ public partial class ScreenshotOverlay : Window
     protected override void OnMouseRightButtonUp(MouseButtonEventArgs e)
     {
         base.OnMouseRightButtonUp(e);
-        if (_state is State.Selecting or State.Moving)
+        if (_state is State.Selecting or State.Moving or State.Drawing)
             return;
+        if (Annotating)
+        {
+            SetTool(_tool);
+            return;
+        }
         if (_state == State.Idle)
             Close();
         else
@@ -156,10 +189,27 @@ public partial class ScreenshotOverlay : Window
         base.OnKeyDown(e);
         var ctrl = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
 
+        // 正在输入标注文字时，按键都给输入框；Esc / Ctrl+Enter 结束输入
+        if (_editingText != null)
+        {
+            if (e.Key == Key.Escape || (ctrl && e.Key == Key.Enter))
+            {
+                CommitText();
+                e.Handled = true;
+            }
+            return;
+        }
+
         if (e.Key == Key.Escape)
             Close();
         else if (_state != State.Selected)
             return;
+        else if (ctrl && e.Key == Key.Z)
+            Undo();
+        else if (ctrl && e.Key == Key.Y)
+            Redo();
+        else if (!ctrl && ToolForKey(e.Key) is { } tool)
+            SetTool(tool);
         else if (e.Key == Key.Enter || (ctrl && e.Key == Key.C))
             Copy();
         else if (ctrl && e.Key == Key.S)
@@ -176,6 +226,7 @@ public partial class ScreenshotOverlay : Window
     {
         _state = State.Idle;
         _selection = Rect.Empty;
+        ClearAnnotations();
         Cursor = Cursors.Cross;
         Toolbar.Visibility = Visibility.Collapsed;
         SelectionBorder.Visibility = Visibility.Collapsed;
@@ -191,6 +242,7 @@ public partial class ScreenshotOverlay : Window
         UpdateMask();
 
         SelectionBorder.Visibility = Visibility.Visible;
+        Annotations.Clip = new RectangleGeometry(_selection);
         Canvas.SetLeft(SelectionBorder, _selection.X - 1);
         Canvas.SetTop(SelectionBorder, _selection.Y - 1);
         SelectionBorder.Width = _selection.Width + 2;
@@ -217,8 +269,8 @@ public partial class ScreenshotOverlay : Window
     private void ShowToolbar()
     {
         Toolbar.Visibility = Visibility.Visible;
-        Toolbar.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        var size = Toolbar.DesiredSize;
+        LayoutToolbarRows();
+        var size = MeasureToolbar();
 
         var x = Math.Max(0, _selection.Right - size.Width);
         var y = _selection.Bottom + 6;
@@ -228,6 +280,32 @@ public partial class ScreenshotOverlay : Window
             y = _selection.Bottom - size.Height - 6; // 上下都放不下放选区内
         Canvas.SetLeft(Toolbar, x);
         Canvas.SetTop(Toolbar, y);
+    }
+
+    /// <summary>一排比选区宽时分成两排：上排标注工具，下排识别 / 钉图 / 复制等操作（靠右，与选区右边对齐）。</summary>
+    private void LayoutToolbarRows()
+    {
+        ToolbarRows.Orientation = Orientation.Horizontal;
+        GroupSeparator.Visibility = Visibility.Visible;
+        ActionGroup.Margin = new Thickness(0);
+        if (MeasureToolbar().Width <= _selection.Width)
+            return;
+
+        ToolbarRows.Orientation = Orientation.Vertical;
+        GroupSeparator.Visibility = Visibility.Collapsed;
+        ActionGroup.Margin = new Thickness(0, 2, 0, 0);
+    }
+
+    /// <summary>
+    /// 切换排布后必须重新测量：直接调用 Measure 时，中间各层容器没有标记失效就会返回上次的尺寸，
+    /// 工具栏会按一排的宽度定位到错误位置。所以从 ToolbarRows 到 Toolbar 逐层标记失效。
+    /// </summary>
+    private Size MeasureToolbar()
+    {
+        for (DependencyObject? element = ToolbarRows; element != null && element != Layer; element = VisualTreeHelper.GetParent(element))
+            (element as UIElement)?.InvalidateMeasure();
+        Toolbar.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        return Toolbar.DesiredSize;
     }
 
     private void PlaceHint()
@@ -266,13 +344,13 @@ public partial class ScreenshotOverlay : Window
 
     private void Copy()
     {
-        ImageActions.Copy(Crop(out _));
+        ImageActions.Copy(Compose(out _));
         Close();
     }
 
     private void Save()
     {
-        var image = Crop(out _);
+        var image = Compose(out _);
         Topmost = false; // 让"另存为"对话框显示在最前
         var path = ImageActions.Save(image, this);
         if (path != null)
@@ -283,14 +361,14 @@ public partial class ScreenshotOverlay : Window
 
     private void Pin()
     {
-        var image = Crop(out var pixels);
+        var image = Compose(out var pixels);
         new PinWindow(image, _bounds.Left + pixels.X, _bounds.Top + pixels.Y).Show();
         Close();
     }
 
     private void Recognize(bool translate)
     {
-        var image = Crop(out _);
+        var image = Crop(out _); // 用原图识别，标注会干扰文字识别
         Close();
         App.Instance.RecognizeImage(image, translate);
     }
