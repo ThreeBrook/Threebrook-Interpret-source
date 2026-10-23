@@ -1,0 +1,67 @@
+<Window x:Class="ThreeBrookTrans.Views.ScreenshotOverlay"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ThreeBrook Trans 截图" WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False"
+        Topmost="True" WindowStartupLocation="Manual" Background="Black" Cursor="Cross"
+        FontFamily="Microsoft YaHei UI" UseLayoutRounding="True">
+    <Grid>
+        <Image x:Name="ScreenImage" Stretch="Fill" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+        <Canvas x:Name="Layer" Background="Transparent">
+            <Path x:Name="Mask" Fill="#80000000"/>
+            <Rectangle x:Name="SelectionBorder" Stroke="#1F6FEB" StrokeThickness="2" Visibility="Collapsed" IsHitTestVisible="False"/>
+
+            <Border x:Name="SizeLabel" Background="#CC1F2328" CornerRadius="3" Padding="6,2" Visibility="Collapsed" IsHitTestVisible="False">
+                <TextBlock x:Name="SizeText" Foreground="White" FontSize="12"/>
+            </Border>
+
+            <Border x:Name="Hint" Background="#CC1F2328" CornerRadius="4" Padding="10,6" IsHitTestVisible="False">
+                <TextBlock x:Name="HintText" Foreground="White" FontSize="13" Text="拖动鼠标框选区域 · 右键 / Esc 取消"/>
+            </Border>
+
+            <Border x:Name="Toolbar" Background="White" CornerRadius="4" Padding="3" Visibility="Collapsed" Cursor="Arrow">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.35"/>
+                </Border.Effect>
+                <StackPanel Orientation="Horizontal">
+                    <Button Style="{StaticResource FlatButton}" Padding="8,4" Click="Ocr_Click" ToolTip="识别文字（O）">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8D2;" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                            <TextBlock Text="文字" FontSize="13"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource FlatButton}" Padding="8,4" Click="Translate_Click" ToolTip="识别并翻译（T）">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xF2B7;" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                            <TextBlock Text="翻译" FontSize="13"/>
+                        </StackPanel>
+                    </Button>
+                    <Rectangle Width="1" Margin="3,4" Fill="#D0D7DE"/>
+                    <Button Style="{StaticResource FlatButton}" Padding="8,4" Click="Pin_Click" ToolTip="钉在桌面（F3）">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE718;" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                            <TextBlock Text="钉图" FontSize="13"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource FlatButton}" Padding="8,4" Click="Copy_Click" ToolTip="复制到剪贴板（Enter / Ctrl+C / 双击选区）">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8C8;" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                            <TextBlock Text="复制" FontSize="13"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource FlatButton}" Padding="8,4" Click="Save_Click" ToolTip="保存为图片（Ctrl+S）">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE74E;" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                            <TextBlock Text="保存" FontSize="13"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource FlatButton}" Padding="8,4" Click="Cancel_Click" ToolTip="取消（Esc）">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE711;" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                            <TextBlock Text="取消" FontSize="13"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
+        </Canvas>
+    </Grid>
+</Window>
