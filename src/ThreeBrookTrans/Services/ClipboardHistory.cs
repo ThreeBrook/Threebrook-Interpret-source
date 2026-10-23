@@ -110,7 +110,9 @@ public sealed class ClipboardHistory : IDisposable
 
     private void ReadClipboard()
     {
-        if (!Settings.Enabled || _suppressDepth > 0 || GetClipboardSequenceNumber() <= _ignoreUpToSequence)
+        if (!Settings.Enabled)
+            return;
+        if (_suppressDepth > 0 || GetClipboardSequenceNumber() <= _ignoreUpToSequence)
             return;
 
         try
@@ -128,15 +130,23 @@ public sealed class ClipboardHistory : IDisposable
             }
             else if (data.GetDataPresent(DataFormats.Bitmap) || data.GetDataPresent("PNG"))
             {
-                if (Settings.RecordImages && ReadImage(data) is { } image)
+                if (!Settings.RecordImages)
+                    return;
+                var image = ReadImage(data);
+                if (image == null)
+                    Log("image formats present but could not be read: " + string.Join(", ", data.GetFormats(false)));
+                else
                     _ = AddImageAsync(image);
             }
         }
         catch (Exception ex) when (ex is ExternalException or InvalidOperationException or ArgumentException)
         {
             // 剪贴板被占用或格式异常，放弃这一次
+            Log($"read failed: {ex.GetType().Name}: {ex.Message}");
         }
     }
+
+    private static void Log(string message) => DiagnosticLog.Write(message, "history.log");
 
     /// <summary>遵守 Windows 约定的"不要记录"标记（密码管理器等会设置）。</summary>
     private static bool ShouldSkip(IDataObject data)
@@ -161,11 +171,15 @@ public sealed class ClipboardHistory : IDisposable
             try
             {
                 var frame = BitmapFrame.Create(png, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
-                frame.Freeze();
-                return frame;
+                // 解码得到的 BitmapFrameDecode 即使冻结，内部仍引用界面线程的解码器，
+                // 后台线程编码保存时会报"另一个线程拥有该对象"，所以复制成独立位图
+                var copy = new WriteableBitmap(frame);
+                copy.Freeze();
+                return copy;
             }
-            catch (Exception ex) when (ex is NotSupportedException or FileFormatException or ArgumentException)
+            catch (Exception ex)
             {
+                Log($"PNG decode failed (stream length {png.Length}, position {png.Position}): {ex.GetType().Name}: {ex.Message}");
             }
         }
 
@@ -200,6 +214,19 @@ public sealed class ClipboardHistory : IDisposable
     }
 
     private async Task AddImageAsync(BitmapSource image)
+    {
+        try
+        {
+            await AddImageCoreAsync(image);
+        }
+        catch (Exception ex)
+        {
+            // 调用方不等待这个任务，异常必须在这里记录，否则会被静默丢弃
+            Log($"add image failed ({image.PixelWidth}x{image.PixelHeight} {image.Format}, {image.GetType().Name}, frozen={image.IsFrozen}): {ex}");
+        }
+    }
+
+    private async Task AddImageCoreAsync(BitmapSource image)
     {
         var entry = new HistoryEntry { Kind = "image", Width = image.PixelWidth, Height = image.PixelHeight };
         entry.ImageFile = entry.Id + ".png";

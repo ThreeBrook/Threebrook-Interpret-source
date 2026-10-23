@@ -14,17 +14,16 @@ public static class DiagnosticLog
 {
     private const long MaxSize = 64 * 1024;
 
-    private static string LogPath => Path.Combine(SettingsStore.DataDirectory, "selection.log");
-
-    public static void Write(string message)
+    public static void Write(string message, string fileName = "selection.log")
     {
         try
         {
             Directory.CreateDirectory(SettingsStore.DataDirectory);
-            var info = new FileInfo(LogPath);
+            var path = Path.Combine(SettingsStore.DataDirectory, fileName);
+            var info = new FileInfo(path);
             if (info.Exists && info.Length > MaxSize)
                 info.Delete();
-            File.AppendAllText(LogPath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} {message}\n");
+            File.AppendAllText(path, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} {message}\n");
         }
         catch (IOException)
         {
