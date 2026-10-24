@@ -265,7 +265,7 @@
     <sys:String x:Key="S.Setup.InstallingTitle" xml:space="preserve">正在安装</sys:String>
     <sys:String x:Key="S.Setup.LaunchFailed" xml:space="preserve">打开三溪通译失败：{0}</sys:String>
     <sys:String x:Key="S.Setup.LaunchNow" xml:space="preserve">现在打开三溪通译</sys:String>
-    <sys:String x:Key="S.Setup.LicenseDesc" xml:space="preserve">一分钟就能看完。</sys:String>
+    <sys:String x:Key="S.Setup.LicenseDesc" xml:space="preserve">两分钟就能看完。</sys:String>
     <sys:String x:Key="S.Setup.LicenseLink" xml:space="preserve">《许可协议》</sys:String>
     <sys:String x:Key="S.Setup.LicenseTitle" xml:space="preserve">许可协议</sys:String>
     <sys:String x:Key="S.Setup.Location" xml:space="preserve">安装位置</sys:String>

@@ -265,7 +265,7 @@
     <sys:String x:Key="S.Setup.InstallingTitle" xml:space="preserve">Installing</sys:String>
     <sys:String x:Key="S.Setup.LaunchFailed" xml:space="preserve">Couldn't open Threebrook Interpret: {0}</sys:String>
     <sys:String x:Key="S.Setup.LaunchNow" xml:space="preserve">Open Threebrook Interpret now</sys:String>
-    <sys:String x:Key="S.Setup.LicenseDesc" xml:space="preserve">It takes about a minute to read.</sys:String>
+    <sys:String x:Key="S.Setup.LicenseDesc" xml:space="preserve">It takes about two minutes to read.</sys:String>
     <sys:String x:Key="S.Setup.LicenseLink" xml:space="preserve">License Agreement</sys:String>
     <sys:String x:Key="S.Setup.LicenseTitle" xml:space="preserve">License Agreement</sys:String>
     <sys:String x:Key="S.Setup.Location" xml:space="preserve">Location</sys:String>
