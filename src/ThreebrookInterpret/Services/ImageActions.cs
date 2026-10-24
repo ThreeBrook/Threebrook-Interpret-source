@@ -47,7 +47,7 @@ public static class ImageActions
             {
                 InitialDirectory = directory,
                 FileName = fileName,
-                Filter = "PNG 图片|*.png|JPG 图片|*.jpg",
+                Filter = Loc.T("Image.Filter"),
                 FilterIndex = extension == ".jpg" ? 2 : 1,
             };
             if (dialog.ShowDialog(owner) != true)
@@ -67,9 +67,9 @@ public static class ImageActions
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             if (owner != null)
-                MessageBox.Show(owner, "保存失败：" + ex.Message, AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(owner, Loc.F("Image.SaveFailed", ex.Message), AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
             else
-                MessageBox.Show("保存失败：" + ex.Message, AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(Loc.F("Image.SaveFailed", ex.Message), AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
             return null;
         }
     }

@@ -43,11 +43,11 @@ internal static class Http
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
-            throw new TranslationException($"请求超时（{timeout.TotalSeconds:0} 秒）");
+            throw new TranslationException(Services.Loc.F("Engine.Timeout", timeout.TotalSeconds.ToString("0")));
         }
         catch (HttpRequestException ex)
         {
-            throw new TranslationException("网络错误：" + ex.Message, ex);
+            throw new TranslationException(Services.Loc.F("Engine.NetworkError", ex.Message), ex);
         }
     }
 }

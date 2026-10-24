@@ -44,7 +44,7 @@ public sealed class BingTranslator : ITranslator
         var result = await TrySendAsync(await GetSessionAsync(forceRefresh: false, ct), text, from, to, ct);
         // 会话过期时 Bing 返回空内容或错误对象，刷新一次再试
         result ??= await TrySendAsync(await GetSessionAsync(forceRefresh: true, ct), text, from, to, ct);
-        return result ?? throw new TranslationException("Bing 翻译未返回结果（接口可能已变更）");
+        return result ?? throw new TranslationException(Services.Loc.T("Engine.BingNoResult"));
     }
 
     private static async Task<string?> TrySendAsync(Session session, string text, string from, string to, CancellationToken ct)
@@ -82,7 +82,7 @@ public sealed class BingTranslator : ITranslator
             var iid = IidRegex.Match(html);
             var param = ParamsRegex.Match(html);
             if (!ig.Success || !param.Success)
-                throw new TranslationException("无法解析 Bing 翻译页面（接口可能已变更）");
+                throw new TranslationException(Services.Loc.T("Engine.BingParse"));
 
             _session = new Session(
                 ig.Groups[1].Value,

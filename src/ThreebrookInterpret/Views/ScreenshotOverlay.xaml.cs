@@ -37,7 +37,7 @@ public partial class ScreenshotOverlay : Window
         _bounds = bounds;
         _translateMode = translateMode;
         if (translateMode)
-            HintText.Text = "框选要翻译的区域 · 右键 / Esc 取消";
+            HintText.Text = Loc.T("Shot.TranslateHint");
         ScreenImage.Source = screen;
         InitAnnotationTools();
         InitSelectionHelpers();

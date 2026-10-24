@@ -20,11 +20,22 @@ public static class AutoStart
         }
     }
 
-    public static void Set(bool enabled)
+    /// <summary>自启项登记的程序路径；没有自启时为 null。</summary>
+    public static string? RegisteredPath
+    {
+        get
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(RunKey);
+            return (key?.GetValue(ValueName) as string)?.Trim().Trim('"');
+        }
+    }
+
+    /// <param name="exePath">安装程序给装好的程序登记时传入；不传时用当前程序。</param>
+    public static void Set(bool enabled, string? exePath = null)
     {
         using var key = Registry.CurrentUser.CreateSubKey(RunKey);
         if (enabled)
-            key.SetValue(ValueName, Command);
+            key.SetValue(ValueName, exePath == null ? Command : $"\"{exePath}\"");
         else
             key.DeleteValue(ValueName, throwOnMissingValue: false);
     }

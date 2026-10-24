@@ -31,7 +31,7 @@ public partial class TranslateWindow : Window
     public void LoadTargets()
     {
         _loadingTargets = true;
-        TargetBox.ItemsSource = new[] { new Language(Languages.Auto, "自动（中⇄英）", "") }.Concat(Languages.All).ToList();
+        TargetBox.ItemsSource = new[] { Languages.AutoOption }.Concat(Languages.All).ToList();
         TargetBox.SelectedValue = App.Settings.TargetLanguage;
         if (TargetBox.SelectedIndex < 0)
             TargetBox.SelectedIndex = 0;
@@ -75,7 +75,7 @@ public partial class TranslateWindow : Window
         if (string.IsNullOrWhiteSpace(text))
         {
             InputBox.Clear();
-            SetDirection(emptyHint ?? "未获取到选中的文字，可直接输入");
+            SetDirection(emptyHint ?? Loc.T("Translate.NoSelection"));
         }
         else
         {
@@ -83,7 +83,7 @@ public partial class TranslateWindow : Window
             if (translate)
                 StartTranslate();
             else
-                SetDirection("已识别文字，按 Enter 翻译");
+                SetDirection(Loc.T("Translate.Recognized"));
         }
         InputBox.Focus();
         InputBox.SelectAll();
@@ -100,7 +100,7 @@ public partial class TranslateWindow : Window
         var ct = _cts.Token;
 
         var to = Languages.ResolveTarget(text, App.Settings.TargetLanguage);
-        SetDirection("→ " + Languages.Get(to).Name);
+        SetDirection("→ " + Languages.Get(to).DisplayName);
         _results.Clear();
 
         foreach (var engine in App.Settings.Engines.Where(e => e.Enabled))
@@ -109,15 +109,15 @@ public partial class TranslateWindow : Window
             var item = new ResultItem(engine.Name);
             _results.Add(item);
             if (translator == null)
-                item.Fail($"未知的引擎类型：{engine.Type}");
+                item.Fail(Loc.F("Translate.UnknownEngine", engine.Type));
             else
                 _ = RunAsync(item, translator, text, to, ct);
         }
 
         if (_results.Count == 0)
         {
-            var item = new ResultItem("提示");
-            item.Fail("没有启用的翻译引擎，请在设置中启用。");
+            var item = new ResultItem(Loc.T("Translate.Notice"));
+            item.Fail(Loc.T("Translate.NoEngines"));
             _results.Add(item);
         }
     }

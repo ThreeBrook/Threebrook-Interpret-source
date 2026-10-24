@@ -25,7 +25,7 @@ public sealed class YoudaoTranslator : ITranslator
         Http.WithTimeout(Timeout, ct, async token =>
         {
             if (string.IsNullOrWhiteSpace(_config.AppId) || string.IsNullOrWhiteSpace(_config.SecretKey))
-                throw new TranslationException("未配置有道应用 ID 或应用密钥");
+                throw new TranslationException(Services.Loc.T("Engine.YoudaoNoKey"));
 
             var salt = Guid.NewGuid().ToString("N");
             var curtime = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture);
@@ -50,7 +50,7 @@ public sealed class YoudaoTranslator : ITranslator
             var root = doc.RootElement;
             var code = root.GetProperty("errorCode").GetString();
             if (code != "0")
-                throw new TranslationException($"有道翻译错误码 {code}");
+                throw new TranslationException(Services.Loc.F("Engine.Returned", Services.Loc.T("EngineType.youdao"), code, ""));
 
             var lines = new List<string>();
             foreach (var item in root.GetProperty("translation").EnumerateArray())

@@ -2,7 +2,7 @@
 <Window x:Class="ThreebrookInterpret.Views.LongScreenshotWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="三溪通译 长截图" WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        Title="{DynamicResource S.Long.WindowTitle}" WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True" ShowActivated="False"
         SizeToContent="WidthAndHeight" WindowStartupLocation="Manual"
         FontFamily="{StaticResource F.Body}" FontSize="13" Foreground="{DynamicResource B.Text}"
@@ -14,36 +14,36 @@
             <StackPanel>
                 <DockPanel>
                     <Button DockPanel.Dock="Right" Style="{StaticResource Btn.Icon}" Content="{StaticResource I.Close}" FontSize="16"
-                            ToolTip="取消（Esc）" Click="Cancel_Click"/>
+                            ToolTip="{DynamicResource S.Common.CancelEsc}" Click="Cancel_Click"/>
                     <TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.LongShot}" FontSize="18"
                                Foreground="{DynamicResource B.Accent}" Margin="0,0,8,0"/>
-                    <TextBlock Text="长截图" Style="{StaticResource Text.CardTitle}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{DynamicResource S.Long.Title}" Style="{StaticResource Text.CardTitle}" VerticalAlignment="Center"/>
                 </DockPanel>
                 <TextBlock x:Name="StatusText" Style="{StaticResource Text.Caption}" Margin="0,8,0,0"
-                           Text="向下滚动鼠标滚轮，或点「自动滚动」"/>
+                           Text="{DynamicResource S.Long.Start}"/>
                 <TextBlock x:Name="SizeText" Style="{StaticResource Text.Mono}" FontSize="12" Margin="0,4,0,0"
                            HorizontalAlignment="Left" Foreground="{DynamicResource B.TextSub}"/>
 
                 <Button x:Name="AutoButton" Style="{StaticResource Btn.Outline}" HorizontalAlignment="Left" Margin="0,12,0,0"
-                        ToolTip="自动向下滚动，滚到底自动停止" Click="Auto_Click">
+                        ToolTip="{DynamicResource S.Long.AutoTip}" Click="Auto_Click">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock x:Name="AutoIcon" Style="{StaticResource Text.Icon}" Text="{StaticResource I.Play}" Margin="0,0,6,0"/>
-                        <TextBlock x:Name="AutoText" Text="自动滚动" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="AutoText" Text="{DynamicResource S.Long.Auto}" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
 
                 <Border Height="1" Background="{DynamicResource B.Track}" Margin="0,12,0,12"/>
                 <StackPanel Orientation="Horizontal">
-                    <Button Style="{StaticResource Btn.Primary}" Height="36" Padding="16,0" Click="Copy_Click" ToolTip="复制长图到剪贴板">
+                    <Button Style="{StaticResource Btn.Primary}" Height="36" Padding="16,0" Click="Copy_Click" ToolTip="{DynamicResource S.Long.CopyTip}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Copy}" Margin="0,0,6,0"/>
-                            <TextBlock Text="复制" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource S.Common.Copy}" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                    <Button Style="{StaticResource Btn.Outline}" Margin="8,0,0,0" Padding="10,0" Click="Save_Click" ToolTip="保存为图片">
+                    <Button Style="{StaticResource Btn.Outline}" Margin="8,0,0,0" Padding="10,0" Click="Save_Click" ToolTip="{DynamicResource S.Common.SaveAsImage}">
                         <TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Save}"/>
                     </Button>
-                    <Button Style="{StaticResource Btn.Outline}" Margin="8,0,0,0" Padding="10,0" Click="Pin_Click" ToolTip="钉在桌面">
+                    <Button Style="{StaticResource Btn.Outline}" Margin="8,0,0,0" Padding="10,0" Click="Pin_Click" ToolTip="{DynamicResource S.Common.Pin}">
                         <TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Pin}"/>
                     </Button>
                 </StackPanel>

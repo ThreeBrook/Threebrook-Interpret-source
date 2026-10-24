@@ -77,7 +77,7 @@ public partial class PinWindow : Window
     private void SetPinOpacity(double opacity)
     {
         Opacity = Math.Clamp(opacity, MinOpacity, 1.0);
-        ShowLabel($"透明度 {Opacity:P0}");
+        ShowLabel(Loc.F("Pin.OpacityValue", Opacity.ToString("P0")));
     }
 
     private void ShowLabel(string text)

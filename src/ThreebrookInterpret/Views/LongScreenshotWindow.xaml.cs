@@ -77,19 +77,19 @@ public partial class LongScreenshotWindow : Window
         switch (result)
         {
             case StitchResult.Appended:
-                StatusText.Text = _auto ? "正在自动滚动并拼接…" : "正在拼接，继续向下滚动…";
+                StatusText.Text = Loc.T(_auto ? "Long.AutoScrolling" : "Long.Stitching");
                 break;
             case StitchResult.NoOverlap:
-                StatusText.Text = "滚动太快了，请往回滚一点";
+                StatusText.Text = Loc.T("Long.TooFast");
                 break;
             case StitchResult.Full:
-                StatusText.Text = $"已达到最大长度 {ScrollStitcher.MaxHeight} 像素";
+                StatusText.Text = Loc.F("Long.MaxReached", ScrollStitcher.MaxHeight);
                 SetAuto(false);
                 _timer.Stop();
                 break;
             case StitchResult.Unchanged when _auto && _unchanged >= EndAfterUnchanged:
                 SetAuto(false);
-                StatusText.Text = "已经滚到底了，可以复制或保存";
+                StatusText.Text = Loc.T("Long.AtEnd");
                 break;
         }
     }
@@ -101,12 +101,12 @@ public partial class LongScreenshotWindow : Window
         _auto = on;
         _unchanged = 0;
         AutoIcon.Text = (string)FindResource(on ? "I.Pause" : "I.Play");
-        AutoText.Text = on ? "停止滚动" : "自动滚动";
+        AutoText.Text = Loc.T(on ? "Long.Stop" : "Long.Auto");
         if (on)
         {
             // 滚轮消息发给鼠标下的窗口，先把鼠标移到选区中间
             SetCursorPos(_region.Left + _region.Width / 2, _region.Top + _region.Height / 2);
-            StatusText.Text = "正在自动滚动并拼接…";
+            StatusText.Text = Loc.T("Long.AutoScrolling");
         }
     }
 

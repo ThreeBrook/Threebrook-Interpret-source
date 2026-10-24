@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using ThreebrookInterpret.Services;
 
 namespace ThreebrookInterpret.Views;
 
@@ -20,10 +21,10 @@ public partial class ScreenshotOverlay
     private enum Tool { None, Rect, Ellipse, Arrow, Pen, Highlighter, Text, Mosaic, Number }
 
     /// <summary>标注颜色：醒目红为默认，其余取自三溪品牌与产品色（月黄、溪绿、晴蓝、暮紫）及黑白。</summary>
-    private static readonly (string Hex, string Name)[] Palette =
+    private static readonly (string Hex, string NameKey)[] Palette =
     {
-        ("#E5484D", "红"), ("#F4C25B", "月黄"), ("#1F9E6B", "溪绿"), ("#2F7FC1", "晴蓝"),
-        ("#7460C4", "暮紫"), ("#FFFFFF", "白"), ("#1D3331", "墨"),
+        ("#E5484D", "Color.Red"), ("#F4C25B", "Color.Yellow"), ("#1F9E6B", "Color.Green"), ("#2F7FC1", "Color.Blue"),
+        ("#7460C4", "Color.Purple"), ("#FFFFFF", "Color.White"), ("#1D3331", "Color.Ink"),
     };
 
     private static readonly double[] StrokeWidths = { 2, 4, 7 };
@@ -54,7 +55,7 @@ public partial class ScreenshotOverlay
             {
                 Style = (Style)FindResource("Swatch"),
                 GroupName = "Color",
-                ToolTip = name,
+                ToolTip = Loc.T(name),
                 IsChecked = color == _color,
                 Content = new Ellipse
                 {
@@ -442,7 +443,7 @@ public partial class ScreenshotOverlay
         Use(Tool.Pen, 2); Drag(Enumerable.Range(0, 40).Select(i => new Point(90 + i * 6, 335 + Math.Sin(i / 3.0) * 6)).ToArray());
         Use(Tool.Number, 0); BeginDraw(new Point(80, 150)); BeginDraw(new Point(450, 160));
         Use(Tool.Text, 0); BeginDraw(new Point(400, 270));
-        _editingText!.Text = "这里改成周五";
+        _editingText!.Text = Loc.T("Shot.SampleText");
         CommitText();
 
         SetTool(Tool.Arrow); // 显示属性栏

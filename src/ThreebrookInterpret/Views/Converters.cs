@@ -56,13 +56,13 @@ public sealed class RelativeTimeConverter : IValueConverter
             return "";
         var span = DateTime.Now - time;
         if (span.TotalMinutes < 1)
-            return "刚刚";
+            return Loc.T("Time.JustNow");
         if (span.TotalMinutes < 60)
-            return $"{(int)span.TotalMinutes} 分钟前";
+            return Loc.F("Time.MinutesAgo", (int)span.TotalMinutes);
         if (time.Date == DateTime.Today)
             return time.ToString("HH:mm");
         if (time.Date == DateTime.Today.AddDays(-1))
-            return "昨天 " + time.ToString("HH:mm");
+            return Loc.F("Time.Yesterday", time.ToString("HH:mm"));
         return time.ToString("MM-dd HH:mm");
     }
 

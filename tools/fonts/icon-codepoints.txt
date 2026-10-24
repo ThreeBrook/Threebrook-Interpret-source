@@ -50,3 +50,6 @@ swap_horiz             &#xE8D4;
 swipe_vertical         &#xEB51;
 pause                  &#xE034;
 play_arrow             &#xE037;
+lock                   &#xE899;
+install_desktop        &#xEB71;
+delete_forever         &#xE92B;

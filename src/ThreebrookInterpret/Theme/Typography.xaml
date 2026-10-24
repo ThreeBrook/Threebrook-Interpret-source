@@ -65,4 +65,9 @@
     <sys:String x:Key="I.LongShot">&#xEB51;</sys:String>
     <sys:String x:Key="I.Pause">&#xE034;</sys:String>
     <sys:String x:Key="I.Play">&#xE037;</sys:String>
+
+    <!-- 安装程序 -->
+    <sys:String x:Key="I.Lock">&#xE899;</sys:String>
+    <sys:String x:Key="I.Install">&#xEB71;</sys:String>
+    <sys:String x:Key="I.DeleteForever">&#xE92B;</sys:String>
 </ResourceDictionary>

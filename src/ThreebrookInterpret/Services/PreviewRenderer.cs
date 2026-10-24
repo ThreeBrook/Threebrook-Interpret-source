@@ -18,12 +18,17 @@ internal static class PreviewRenderer
     public static void Run(string outputDirectory)
     {
         Directory.CreateDirectory(outputDirectory);
-        foreach (var theme in new[] { "light", "dark" })
+        // 中文输出 light-xxx.png / dark-xxx.png，英文输出 en-light-xxx.png / en-dark-xxx.png
+        foreach (var (lang, mode) in new[] { ("zh", "light"), ("zh", "dark"), ("en", "light"), ("en", "dark") })
         {
-            App.UsePreviewSettings(theme); // 设置窗口打开时会按配置重新应用外观，所以配置里也要写上
+            var theme = lang == "zh" ? mode : "en-" + mode; // 文件名前缀
+            App.UsePreviewSettings(mode); // 设置窗口打开时会按配置重新应用外观和语言，所以配置里也要写上
+            App.Settings.Language = lang;
             App.Settings.Glossary.Add(new GlossaryEntry { Source = "三溪", Target = "Threebrook" });
             App.Settings.Glossary.Add(new GlossaryEntry { Source = "周报", Target = "weekly digest" });
-            ThemeManager.Apply(theme);
+            Loc.Apply(lang);
+            SettingsStore.LocalizeDefaultEngineNames(App.Settings, Loc.IsEnglish);
+            ThemeManager.Apply(mode);
 
             var translate = new TranslateWindow();
             translate.LoadPreview("The meeting has been moved to Friday afternoon because the client is traveling.", "→ 中文",
@@ -56,6 +61,21 @@ internal static class PreviewRenderer
             RenderSelection(outputDirectory, theme, "screenshot-narrow", new Rect(200, 60, 340, 200));
             RenderSelection(outputDirectory, theme, "screenshot-wide", new Rect(20, 40, 720, 300));
             RenderSelection(outputDirectory, theme, "screenshot-hover", new Rect(60, 40, 580, 320), hover: true);
+
+            foreach (var page in new[] { "welcome", "options", "license", "progress", "done", "error", "cancelled" })
+            {
+                var setup = Setup.SetupWindow.CreatePreview(uninstall: false);
+                setup.ShowPreviewPage(page);
+                Render(setup, outputDirectory, theme, "setup-" + page);
+                setup.Close();
+            }
+            foreach (var page in new[] { "confirm", "uprogress", "udone" })
+            {
+                var setup = Setup.SetupWindow.CreatePreview(uninstall: true);
+                setup.ShowPreviewPage(page);
+                Render(setup, outputDirectory, theme, "setup-" + page);
+                setup.Close();
+            }
         }
     }
 

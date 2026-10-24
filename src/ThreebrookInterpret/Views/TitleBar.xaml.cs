@@ -22,9 +22,14 @@ public partial class TitleBar : UserControl
         new PropertyMetadata(false, (d, e) => ((TitleBar)d).MinimizeButton.Visibility = (bool)e.NewValue ? Visibility.Visible : Visibility.Collapsed));
 
     public static readonly DependencyProperty CloseToolTipProperty = DependencyProperty.Register(
-        nameof(CloseToolTip), typeof(string), typeof(TitleBar), new PropertyMetadata("关闭"));
+        nameof(CloseToolTip), typeof(string), typeof(TitleBar));
 
-    public TitleBar() => InitializeComponent();
+    public TitleBar()
+    {
+        InitializeComponent();
+        // 默认提示"关闭"，随界面语言；窗口里写了 CloseToolTip 时覆盖它
+        SetResourceReference(CloseToolTipProperty, "S.Common.Close");
+    }
 
     public string Title { get => (string)GetValue(TitleProperty); set => SetValue(TitleProperty, value); }
 

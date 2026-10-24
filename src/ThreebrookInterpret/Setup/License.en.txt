@@ -1,0 +1,23 @@
+Threebrook Interpret License Agreement
+
+By installing or using this software, you agree to the following terms.
+
+1. License
+You may install and use this software on your own computers free of charge, and you may share the unmodified installer or portable version with others. You may not sell this software or remove its copyright and license notices.
+
+2. Translated content and your data
+· The software doesn't collect or upload any usage data. Installing and uninstalling never connect to the internet.
+· When you use an online translation engine (such as Bing, Yandex or DeepL), the text you translate is sent to that provider and is subject to its terms of service. For confidential content, use a local language model (OpenAI-compatible API) or the offline features only.
+· Screenshot text recognition uses the component built into Windows and runs on your computer.
+· Settings, the glossary and clipboard history are stored on your computer (the installed version uses %AppData%\ThreebrookInterpret; the portable version uses the data folder next to the program). API keys are encrypted with Windows Data Protection so only the current user can read them.
+
+3. Third-party components
+The fonts embedded in this software are released under their own licenses (SIL Open Font License 1.1, Apache License 2.0). The license texts are in the licenses folder of the install location.
+
+4. Disclaimer
+This software is provided "as is", without warranty of any kind, express or implied. Machine translation and text recognition can make mistakes; check important content yourself. The authors aren't liable for any loss arising from use of this software.
+
+5. Other
+When uninstalling, you can choose to keep or delete your settings and history. Updates to this agreement are released with new versions.
+
+© 2026 Threebrook

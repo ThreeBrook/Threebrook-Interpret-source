@@ -22,7 +22,7 @@ public sealed class AzureTranslator : ITranslator
         Http.WithTimeout(Timeout, ct, async token =>
         {
             if (string.IsNullOrWhiteSpace(_config.ApiKey))
-                throw new TranslationException("未配置 Azure 翻译 Key");
+                throw new TranslationException(Services.Loc.T("Engine.AzureNoKey"));
 
             var url = Url + "&to=" + MapCode(to) + (from == Languages.Auto ? "" : "&from=" + MapCode(from));
             using var request = new HttpRequestMessage(HttpMethod.Post, url)
@@ -36,7 +36,7 @@ public sealed class AzureTranslator : ITranslator
             using var response = await Http.Client.SendAsync(request, token);
             var body = await response.Content.ReadAsStringAsync(token);
             if (!response.IsSuccessStatusCode)
-                throw new TranslationException($"Azure 翻译返回 {(int)response.StatusCode}：{body}");
+                throw new TranslationException(Services.Loc.F("Engine.Returned", "Azure", (int)response.StatusCode, body));
 
             using var doc = JsonDocument.Parse(body);
             return doc.RootElement[0].GetProperty("translations")[0].GetProperty("text").GetString() ?? "";

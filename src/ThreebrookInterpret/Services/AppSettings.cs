@@ -13,6 +13,9 @@ public sealed class AppSettings
     /// <summary>外观：auto 跟随系统 / light 浅色 / dark 深色。</summary>
     public string Theme { get; set; } = "auto";
 
+    /// <summary>界面语言：auto（跟随系统）/ zh / en。</summary>
+    public string Language { get; set; } = "auto";
+
     /// <summary>"auto" = 中文→英文，其他语言→中文；否则为固定目标语言代码。</summary>
     public string TargetLanguage { get; set; } = "auto";
 
@@ -30,17 +33,20 @@ public sealed class AppSettings
     /// <summary>划词和截图识别的文字自动合并句子中间的硬换行（PDF、OCR 常见）。</summary>
     public bool MergeLineBreaks { get; set; } = true;
 
-    public static AppSettings CreateDefault() => new()
+    public static AppSettings CreateDefault() => CreateDefault(Loc.Resolve("auto") == "en");
+
+    /// <param name="english">默认引擎名用哪种语言（第一次运行时按系统语言）。</param>
+    private static AppSettings CreateDefault(bool english) => new()
     {
         Engines =
         {
-            new EngineConfig { Id = "bing", Type = "bing", Name = "必应翻译", Enabled = true },
+            new EngineConfig { Id = "bing", Type = "bing", Name = english ? "Bing" : "必应翻译", Enabled = true },
             new EngineConfig { Id = "yandex", Type = "yandex", Name = "Yandex", Enabled = true },
             new EngineConfig
             {
                 Id = "local-llm",
                 Type = "openai",
-                Name = "本地大模型",
+                Name = english ? "Local model" : "本地大模型",
                 Enabled = false,
                 BaseUrl = "http://localhost:11434/v1",
                 ApiKey = "",
@@ -131,8 +137,17 @@ public sealed class EngineConfig
 
 public static class SettingsStore
 {
-    public static string DataDirectory { get; } =
+    /// <summary>
+    /// 绿色版：程序旁边有 portable 文件时，所有数据放在程序旁边的 data 文件夹，不碰 %AppData%，拷走整个文件夹就能接着用。
+    /// </summary>
+    public static bool IsPortable { get; } = File.Exists(Path.Combine(AppContext.BaseDirectory, "portable"));
+
+    /// <summary>安装版数据目录（卸载程序勾选"同时删除"时删的也是它）。</summary>
+    public static string InstalledDataDirectory { get; } =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ThreebrookInterpret");
+
+    public static string DataDirectory { get; } =
+        IsPortable ? Path.Combine(AppContext.BaseDirectory, "data") : InstalledDataDirectory;
 
     public static string SettingsPath => Path.Combine(DataDirectory, "settings.json");
 
@@ -166,6 +181,19 @@ public static class SettingsStore
     /// <summary>
     /// 手改配置时可能写出 "Hotkeys": null 之类，补回默认值，避免启动时空引用导致快捷键全部失效。
     /// </summary>
+    /// <summary>默认引擎名（没改过的）跟着界面语言换：必应翻译 ⇄ Bing、本地大模型 ⇄ Local model。</summary>
+    public static void LocalizeDefaultEngineNames(AppSettings settings, bool english)
+    {
+        foreach (var engine in settings.Engines)
+        {
+            foreach (var (zh, en) in new[] { ("必应翻译", "Bing"), ("本地大模型", "Local model") })
+            {
+                if (engine.Name == (english ? zh : en))
+                    engine.Name = english ? en : zh;
+            }
+        }
+    }
+
     private static AppSettings Normalize(AppSettings settings)
     {
         settings.Hotkeys ??= new HotkeySettings();
@@ -176,6 +204,7 @@ public static class SettingsStore
         settings.Glossary ??= new List<GlossaryEntry>();
         settings.Glossary.RemoveAll(g => g == null || string.IsNullOrWhiteSpace(g.Source) || string.IsNullOrWhiteSpace(g.Target));
         settings.Theme ??= "auto";
+        settings.Language ??= "auto";
         settings.TargetLanguage ??= "auto";
         var h = settings.Hotkeys;
         h.InputTranslate ??= "";

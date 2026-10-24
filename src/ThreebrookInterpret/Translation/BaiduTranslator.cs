@@ -24,7 +24,7 @@ public sealed class BaiduTranslator : ITranslator
         Http.WithTimeout(Timeout, ct, async token =>
         {
             if (string.IsNullOrWhiteSpace(_config.AppId) || string.IsNullOrWhiteSpace(_config.SecretKey))
-                throw new TranslationException("未配置百度翻译 APP ID 或密钥");
+                throw new TranslationException(Services.Loc.T("Engine.BaiduNoKey"));
 
             var salt = Random.Shared.Next(100000, 999999).ToString();
             var sign = Convert.ToHexString(MD5.HashData(Encoding.UTF8.GetBytes(_config.AppId + text + salt + _config.SecretKey))).ToLowerInvariant();
@@ -43,7 +43,7 @@ public sealed class BaiduTranslator : ITranslator
             using var doc = JsonDocument.Parse(body);
             var root = doc.RootElement;
             if (root.TryGetProperty("error_code", out var code))
-                throw new TranslationException($"百度翻译错误 {code}：{root.GetProperty("error_msg").GetString()}");
+                throw new TranslationException(Services.Loc.F("Engine.Returned", Services.Loc.T("EngineType.baidu"), code, root.GetProperty("error_msg").GetString()));
 
             var lines = new List<string>();
             foreach (var item in root.GetProperty("trans_result").EnumerateArray())

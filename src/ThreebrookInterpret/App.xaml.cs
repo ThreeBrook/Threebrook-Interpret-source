@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ public partial class App : Application
 
     private Mutex? _singleInstance;
     private EventWaitHandle? _showSettingsEvent;
+    private EventWaitHandle? _quitEvent;
     private TrayIcon? _tray;
     private HotkeyManager? _hotkeys;
     private TranslateWindow? _translateWindow;
@@ -45,6 +47,13 @@ public partial class App : Application
             return;
         }
 
+        // 安装包 / 卸载：进入安装模式，不占用单实例、不读写配置、不建托盘
+        if (Setup.SetupEntry.TryRun(this, e.Args))
+        {
+            base.OnStartup(e);
+            return;
+        }
+
         _singleInstance = new Mutex(true, @"Local\ThreebrookInterpret.SingleInstance", out var isFirst);
         if (!isFirst)
         {
@@ -60,12 +69,19 @@ public partial class App : Application
         _showSettingsEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ShowSettingsEventName);
         ThreadPool.RegisterWaitForSingleObject(_showSettingsEvent,
             (_, _) => Dispatcher.BeginInvoke(ShowSettings), null, Timeout.Infinite, executeOnlyOnce: false);
+        // 安装程序覆盖安装、卸载时通知正在运行的实例正常退出（删托盘图标）
+        _quitEvent = new EventWaitHandle(false, EventResetMode.AutoReset, Setup.SetupEngine.QuitEventName);
+        ThreadPool.RegisterWaitForSingleObject(_quitEvent,
+            (_, _) => Dispatcher.BeginInvoke(ExitApp), null, Timeout.Infinite, executeOnlyOnce: true);
 
         base.OnStartup(e);
         DispatcherUnhandledException += OnUnhandledException;
 
-        LegacyMigration.Run(); // 改名前的数据目录、开机自启项迁移到新名字
+        if (!SettingsStore.IsPortable)
+            LegacyMigration.Run(); // 改名前的数据目录、开机自启项迁移到新名字
         LoadSettings();
+        Loc.Apply(Settings.Language);
+        SettingsStore.LocalizeDefaultEngineNames(Settings, Loc.IsEnglish);
         ThemeManager.Initialize();
         // 规范 §5：提示气泡悬停 0.4 秒后出现
         ToolTipService.InitialShowDelayProperty.OverrideMetadata(typeof(FrameworkElement), new FrameworkPropertyMetadata(400));
@@ -96,6 +112,13 @@ public partial class App : Application
         RegisterHotkeys();
 
         // 启动完成后回收初始化时的临时对象
+        // 安装程序装好后打开（--welcome）：弹出设置窗口并提示在托盘里，免得以为没装好
+        if (e.Args.Contains("--welcome"))
+        {
+            ShowSettings();
+            _tray.ShowMessage(Loc.F("App.InstalledTitle", AppInfo.Name), Loc.T("App.InstalledText"));
+        }
+
         _ = Task.Delay(3000).ContinueWith(_ => Dispatcher.Invoke(CollectGarbage));
     }
 
@@ -117,13 +140,13 @@ public partial class App : Application
             string backupNote;
             try
             {
-                backupNote = SettingsStore.BackupBrokenFile() is { } backup ? $"原文件已备份为：\n{backup}" : "";
+                backupNote = SettingsStore.BackupBrokenFile() is { } backup ? Loc.F("App.SettingsBackedUp", backup) : "";
             }
             catch (Exception backupError) when (backupError is IOException or UnauthorizedAccessException)
             {
-                backupNote = "原文件备份失败：" + backupError.Message;
+                backupNote = Loc.F("App.SettingsBackupFailed", backupError.Message);
             }
-            MessageBox.Show($"配置文件读取失败，已使用默认配置：\n{ex.Message}\n\n{backupNote}",
+            MessageBox.Show(Loc.F("App.SettingsLoadFailed", ex.Message, backupNote),
                 AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
@@ -132,7 +155,7 @@ public partial class App : Application
     {
         LoadSettings();
         OnSettingsChanged();
-        _tray?.ShowMessage(AppInfo.Name, "配置已重新加载");
+        _tray?.ShowMessage(AppInfo.Name, Loc.T("App.SettingsReloaded"));
     }
 
     /// <summary>设置窗口点"保存"后调用。</summary>
@@ -145,7 +168,7 @@ public partial class App : Application
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            MessageBox.Show("保存配置失败（本次运行仍按新设置生效）：" + ex.Message, AppInfo.Name,
+            MessageBox.Show(Loc.F("App.SettingsSaveFailed", ex.Message), AppInfo.Name,
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         OnSettingsChanged();
@@ -159,6 +182,8 @@ public partial class App : Application
     private void OnSettingsChanged()
     {
         ThemeManager.Apply();
+        Loc.Apply(Settings.Language);
+        SettingsStore.LocalizeDefaultEngineNames(Settings, Loc.IsEnglish);
         _translateWindow?.LoadTargets();
         _history?.Trim();
         RegisterHotkeys();
@@ -202,19 +227,19 @@ public partial class App : Application
                 return;
             var key = HotkeyManager.Normalize(gesture);
             if (used.TryGetValue(key, out var other))
-                failed.Add($"{name} {gesture}（与{other}重复）");
+                failed.Add(Loc.F("App.HotkeyDuplicate", name, gesture, other));
             else if (!_hotkeys.Register(gesture, handler))
-                failed.Add($"{name} {gesture}（可能被其他程序占用）");
+                failed.Add(Loc.F("App.HotkeyTaken", name, gesture));
             used[key] = name;
         }
-        Register("输入翻译", hotkeys.InputTranslate, _translateWindow.Toggle);
-        Register("划词翻译", hotkeys.SelectionTranslate, TranslateSelection);
-        Register("截图", hotkeys.Screenshot, () => StartScreenshot(translateMode: false));
-        Register("截图翻译", hotkeys.ScreenshotTranslate, () => StartScreenshot(translateMode: true));
-        Register("剪贴板历史", hotkeys.History, ToggleHistory);
+        Register(Loc.T("Common.InputTranslate"), hotkeys.InputTranslate, _translateWindow.Toggle);
+        Register(Loc.T("Common.SelectionTranslate"), hotkeys.SelectionTranslate, TranslateSelection);
+        Register(Loc.T("Common.Screenshot"), hotkeys.Screenshot, () => StartScreenshot(translateMode: false));
+        Register(Loc.T("Common.ScreenshotTranslate"), hotkeys.ScreenshotTranslate, () => StartScreenshot(translateMode: true));
+        Register(Loc.T("Common.ClipboardHistory"), hotkeys.History, ToggleHistory);
 
         if (failed.Count > 0)
-            _tray.ShowMessage("快捷键注册失败", string.Join("；", failed) + "。请在设置 → 快捷键中修改。", warning: true);
+            _tray.ShowMessage(Loc.T("App.HotkeyFailedTitle"), Loc.F("App.HotkeyFailedText", string.Join(Loc.T("App.HotkeySeparator"), failed)), warning: true);
     }
 
     // —— 功能入口 ——
@@ -276,12 +301,12 @@ public partial class App : Application
         try
         {
             var text = await WindowsOcr.RecognizeAsync(image, Settings.Screenshot.OcrLanguage);
-            _translateWindow?.ShowAtCursor(PrepareText(text), translate, emptyHint: "没有识别到文字");
+            _translateWindow?.ShowAtCursor(PrepareText(text), translate, emptyHint: Loc.T("App.NoTextFound"));
         }
         catch (Exception ex)
         {
             // OCR 走 WinRT，HRESULT 会被映射成各种异常类型；都用托盘提示，不弹程序出错对话框
-            _tray?.ShowMessage("文字识别失败", ex.Message, warning: true);
+            _tray?.ShowMessage(Loc.T("App.OcrFailed"), ex.Message, warning: true);
         }
     }
 
@@ -328,7 +353,7 @@ public partial class App : Application
         catch (IOException)
         {
         }
-        MessageBox.Show(e.Exception.Message, AppInfo.Name + " 出错", MessageBoxButton.OK, MessageBoxImage.Error);
+        MessageBox.Show(e.Exception.Message, Loc.F("App.ErrorTitle", AppInfo.Name), MessageBoxButton.OK, MessageBoxImage.Error);
         e.Handled = true;
     }
 

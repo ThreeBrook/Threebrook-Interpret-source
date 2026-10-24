@@ -37,7 +37,7 @@ public sealed class OpenAiCompatibleTranslator : ITranslator, IGlossaryPromptTra
         Http.WithTimeout(TimeSpan.FromSeconds(Math.Max(5, _config.TimeoutSeconds)), ct, async token =>
         {
             if (string.IsNullOrWhiteSpace(_config.BaseUrl) || string.IsNullOrWhiteSpace(_config.Model))
-                throw new TranslationException("未配置 BaseUrl 或 Model");
+                throw new TranslationException(Services.Loc.T("Engine.LlmNoConfig"));
 
             var target = Languages.Get(to).EnglishName;
             var prompt = (string.IsNullOrWhiteSpace(_config.SystemPrompt) ? DefaultPrompt : _config.SystemPrompt)
@@ -75,7 +75,7 @@ public sealed class OpenAiCompatibleTranslator : ITranslator, IGlossaryPromptTra
             {
                 var json = await response.Content.ReadAsStringAsync(token);
                 if (!response.IsSuccessStatusCode)
-                    throw new TranslationException($"{_config.Name} 返回 {(int)response.StatusCode}：{json}");
+                    throw new TranslationException(Services.Loc.F("Engine.Returned", _config.Name, (int)response.StatusCode, json));
 
                 using var doc = JsonDocument.Parse(json);
                 var content = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString() ?? "";
@@ -88,7 +88,7 @@ public sealed class OpenAiCompatibleTranslator : ITranslator, IGlossaryPromptTra
         Http.WithTimeout(TimeSpan.FromSeconds(10), ct, async token =>
         {
             if (string.IsNullOrWhiteSpace(config.BaseUrl))
-                throw new TranslationException("请先填写接口地址");
+                throw new TranslationException(Services.Loc.T("Engine.NoBaseUrl"));
 
             using var request = new HttpRequestMessage(HttpMethod.Get, config.BaseUrl.TrimEnd('/') + "/models");
             if (!string.IsNullOrWhiteSpace(config.ApiKey))
@@ -96,7 +96,7 @@ public sealed class OpenAiCompatibleTranslator : ITranslator, IGlossaryPromptTra
             using var response = await Http.Client.SendAsync(request, token);
             var json = await response.Content.ReadAsStringAsync(token);
             if (!response.IsSuccessStatusCode)
-                throw new TranslationException($"获取模型列表失败 {(int)response.StatusCode}：{json}");
+                throw new TranslationException(Services.Loc.F("Engine.ModelsFailed", (int)response.StatusCode, json));
 
             using var doc = JsonDocument.Parse(json);
             var models = new List<string>();

@@ -176,7 +176,7 @@ public sealed class ScrollStitcher
     public BitmapSource ToBitmap()
     {
         if (_previous == null)
-            throw new InvalidOperationException("还没有截到内容");
+            throw new InvalidOperationException(Loc.T("Long.Empty"));
 
         byte[] pixels;
         int height;

@@ -28,12 +28,15 @@ public partial class SettingsWindow : Window
         _engines = new ObservableCollection<EngineConfig>(_settings.Engines);
         DataContext = _settings;
 
-        TargetBox.ItemsSource = new[] { new Language(Languages.Auto, "自动（中⇄英）", "") }.Concat(Languages.All).ToList();
+        TargetBox.ItemsSource = new[] { Languages.AutoOption }.Concat(Languages.All).ToList();
         AutoStartBox.IsChecked = AutoStart.IsEnabled;
         DataDirBox.Text = SettingsStore.DataDirectory;
-        VersionText.Text = $"版本 {Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)}";
-
-        LoadOcrLanguages();
+        foreach (var (link, url) in new[] { (ProductLink, AppInfo.ProductUrl), (CompanyLink, AppInfo.CompanyUrl) })
+        {
+            link.Content = url.TrimEnd('/');
+            link.Tag = url;
+        }
+        ApplyCodeTexts();
 
         var addMenu = new ContextMenu();
         foreach (var type in TranslatorFactory.Types)
@@ -54,6 +57,7 @@ public partial class SettingsWindow : Window
         UpdateEngineDetail();
 
         (_settings.Theme switch { "light" => ThemeLight, "dark" => ThemeDark, _ => ThemeAuto }).IsChecked = true;
+        (_settings.Language switch { "zh" => LangZh, "en" => LangEn, _ => LangAuto }).IsChecked = true;
     }
 
     // —— 导航与外观 ——
@@ -69,6 +73,18 @@ public partial class SettingsWindow : Window
     }
 
     /// <summary>切换外观立即预览；点"取消"或直接关闭窗口时恢复为已保存的外观。</summary>
+    /// <summary>和外观一样立即预览；取消时恢复已保存的语言。</summary>
+    private void Language_Checked(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded)
+            return;
+        _settings.Language = (string)((FrameworkElement)sender).Tag;
+        Loc.Apply(_settings.Language);
+        SettingsStore.LocalizeDefaultEngineNames(_settings, Loc.IsEnglish);
+        EnginesList.Items.Refresh();
+        ApplyCodeTexts();
+    }
+
     private void Theme_Checked(object sender, RoutedEventArgs e)
     {
         _settings.Theme = (string)((FrameworkElement)sender).Tag;
@@ -114,7 +130,10 @@ public partial class SettingsWindow : Window
         base.OnClosed(e);
         ResumeHotkeys();
         if (!_saved)
+        {
             ThemeManager.Apply();
+            Loc.Apply(App.Settings.Language);
+        }
     }
 
     private void SetTestResult(string text, string brushKey)
@@ -123,9 +142,24 @@ public partial class SettingsWindow : Window
         TestResultText.SetResourceReference(TextBlock.ForegroundProperty, brushKey);
     }
 
+    /// <summary>代码里设置的文字（XAML 里的随语言字典自动更新）；切换界面语言时重新设置。</summary>
+    private void ApplyCodeTexts()
+    {
+        ProductLink.ToolTip = Loc.F("Settings.OpenInBrowser", AppInfo.ProductUrl);
+        CompanyLink.ToolTip = Loc.F("Settings.OpenInBrowser", AppInfo.CompanyUrl);
+        VersionText.Text = Loc.F("Settings.Version", AppInfo.Version);
+        // 英文界面大标题已是英文名，下面不再重复
+        AboutEnglishName.Visibility = Loc.IsEnglish ? Visibility.Collapsed : Visibility.Visible;
+        var ocr = OcrLanguageBox.SelectedValue;
+        LoadOcrLanguages();
+        OcrLanguageBox.SelectedValue = ocr ?? _settings.Screenshot.OcrLanguage;
+        TargetBox.Items.Refresh();
+        UpdateEngineDetail();
+    }
+
     private void LoadOcrLanguages()
     {
-        var languages = new[] { new OcrLanguage("auto", "跟随系统语言") }.ToList();
+        var languages = new[] { new OcrLanguage("auto", Loc.T("Settings.OcrAuto")) }.ToList();
         try
         {
             languages.AddRange(WindowsOcr.GetAvailableLanguages());
@@ -221,12 +255,12 @@ public partial class SettingsWindow : Window
         {
             Id = $"{type.Type}-{Guid.NewGuid().ToString("N")[..6]}",
             Type = type.Type,
-            Name = type.DisplayName.Split('（')[0],
+            Name = type.DisplayName.Split('（', '(')[0].Trim(),
             Enabled = true,
         };
         if (type.Type == "openai")
         {
-            engine.Name = "本地大模型";
+            engine.Name = Loc.T("Engine.LocalModel");
             engine.BaseUrl = "http://localhost:11434/v1";
         }
         _engines.Add(engine);
@@ -259,19 +293,19 @@ public partial class SettingsWindow : Window
         if (SelectedEngine is not { } engine)
             return;
 
-        SetTestResult("正在获取模型列表…", "B.TextMuted");
+        SetTestResult(Loc.T("Settings.FetchingModels"), "B.TextMuted");
         try
         {
             var models = await OpenAiCompatibleTranslator.ListModelsAsync(engine, CancellationToken.None);
             if (models.Count == 0)
             {
-                SetTestResult("接口没有返回任何模型", "B.TextMuted");
+                SetTestResult(Loc.T("Settings.NoModels"), "B.TextMuted");
                 return;
             }
             if (models.Count == 1)
             {
                 SetModel(models[0]);
-                SetTestResult($"已填入唯一的模型：{models[0]}", "B.Success");
+                SetTestResult(Loc.F("Settings.OneModel", models[0]), "B.Success");
                 return;
             }
 
@@ -284,7 +318,7 @@ public partial class SettingsWindow : Window
                 menu.Items.Add(item);
             }
             menu.IsOpen = true;
-            SetTestResult($"共 {models.Count} 个模型，请选择", "B.TextSub");
+            SetTestResult(Loc.F("Settings.ManyModels", models.Count), "B.TextSub");
         }
         catch (Exception ex)
         {
@@ -303,7 +337,7 @@ public partial class SettingsWindow : Window
         if (SelectedEngine is not { } engine || TranslatorFactory.Create(engine) is not { } translator)
             return;
 
-        SetTestResult("翻译中…", "B.TextMuted");
+        SetTestResult(Loc.T("Common.Translating"), "B.TextMuted");
         try
         {
             var result = await translator.TranslateAsync("Hello, this is a translation test.", Languages.Auto, "zh", CancellationToken.None);
@@ -332,13 +366,16 @@ public partial class SettingsWindow : Window
 
     private void BrowseSaveDir_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFolderDialog { Title = "选择截图保存目录" };
+        var dialog = new OpenFolderDialog { Title = Loc.T("Settings.ChooseSaveFolder") };
         if (dialog.ShowDialog(this) == true)
         {
             SaveDirBox.Text = dialog.FolderName;
             SaveDirBox.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
         }
     }
+
+    private void OpenLink_Click(object sender, RoutedEventArgs e) =>
+        Process.Start(new ProcessStartInfo((string)((FrameworkElement)sender).Tag) { UseShellExecute = true });
 
     private void OpenDataFolder_Click(object sender, RoutedEventArgs e) =>
         Process.Start("explorer.exe", $"\"{SettingsStore.DataDirectory}\"");
@@ -351,7 +388,7 @@ public partial class SettingsWindow : Window
 
     private void ClearHistory_Click(object sender, RoutedEventArgs e)
     {
-        if (MessageBox.Show(this, "确定清空全部剪贴板历史吗？", AppInfo.Name, MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
+        if (MessageBox.Show(this, Loc.T("Settings.ConfirmClearHistory"), AppInfo.Name, MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
             App.Instance.ClearHistory();
     }
 
@@ -373,16 +410,16 @@ public partial class SettingsWindow : Window
         // 快捷键不能重复
         var hotkeys = new (string Name, string Gesture)[]
         {
-            ("输入翻译", _settings.Hotkeys.InputTranslate), ("划词翻译", _settings.Hotkeys.SelectionTranslate),
-            ("截图", _settings.Hotkeys.Screenshot), ("截图翻译", _settings.Hotkeys.ScreenshotTranslate),
-            ("剪贴板历史", _settings.Hotkeys.History),
+            (Loc.T("Common.InputTranslate"), _settings.Hotkeys.InputTranslate), (Loc.T("Common.SelectionTranslate"), _settings.Hotkeys.SelectionTranslate),
+            (Loc.T("Common.Screenshot"), _settings.Hotkeys.Screenshot), (Loc.T("Common.ScreenshotTranslate"), _settings.Hotkeys.ScreenshotTranslate),
+            (Loc.T("Common.ClipboardHistory"), _settings.Hotkeys.History),
         };
         var duplicate = hotkeys.Where(h => !string.IsNullOrWhiteSpace(h.Gesture))
             .GroupBy(h => HotkeyManager.Normalize(h.Gesture)).FirstOrDefault(g => g.Count() > 1);
         if (duplicate != null)
         {
             NavList.SelectedIndex = 1;
-            MessageBox.Show(this, $"{string.Join("、", duplicate.Select(h => h.Name))} 用了同一个快捷键 {duplicate.First().Gesture}，请改成不同的组合。",
+            MessageBox.Show(this, Loc.F("Settings.DuplicateHotkey", string.Join(Loc.T("Common.ListSeparator"), duplicate.Select(h => h.Name)), duplicate.First().Gesture),
                 AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
@@ -400,7 +437,7 @@ public partial class SettingsWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, "设置开机自启失败：" + ex.Message, AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, Loc.F("Settings.AutoStartFailed", ex.Message), AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
         _saved = true;

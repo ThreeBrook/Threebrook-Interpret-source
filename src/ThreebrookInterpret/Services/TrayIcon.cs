@@ -14,6 +14,9 @@ public sealed class TrayIcon : IDisposable
     private readonly ToolStripMenuItem _screenshotItem;
     private readonly ToolStripMenuItem _screenshotTranslateItem;
     private readonly ToolStripMenuItem _historyItem;
+    private readonly ToolStripMenuItem _settingsItem;
+    private readonly ToolStripMenuItem _advancedItem;
+    private readonly ToolStripMenuItem _exitItem;
 
     public event Action? InputTranslateRequested;
     public event Action? ScreenshotRequested;
@@ -35,26 +38,28 @@ public sealed class TrayIcon : IDisposable
             Padding = new Padding(0, 4, 0, 4),
         };
         var menu = _menu;
-        _inputItem = new ToolStripMenuItem("输入翻译", null, (_, _) => InputTranslateRequested?.Invoke());
+        _inputItem = new ToolStripMenuItem("", null, (_, _) => InputTranslateRequested?.Invoke());
         // 划词需要先在其他程序里选中文字，从菜单触发没有意义，这里只做快捷键提示
-        _selectionItem = new ToolStripMenuItem("划词翻译（选中文字后按快捷键）") { Enabled = false };
-        _screenshotItem = new ToolStripMenuItem("截图", null, (_, _) => ScreenshotRequested?.Invoke());
-        _screenshotTranslateItem = new ToolStripMenuItem("截图翻译", null, (_, _) => ScreenshotTranslateRequested?.Invoke());
-        _historyItem = new ToolStripMenuItem("剪贴板历史", null, (_, _) => HistoryRequested?.Invoke());
+        _selectionItem = new ToolStripMenuItem("") { Enabled = false };
+        _screenshotItem = new ToolStripMenuItem("", null, (_, _) => ScreenshotRequested?.Invoke());
+        _screenshotTranslateItem = new ToolStripMenuItem("", null, (_, _) => ScreenshotTranslateRequested?.Invoke());
+        _historyItem = new ToolStripMenuItem("", null, (_, _) => HistoryRequested?.Invoke());
 
-        var advanced = new ToolStripMenuItem("高级");
-        advanced.DropDownItems.Add("打开配置文件", null, (_, _) => OpenSettingsFileRequested?.Invoke());
-        advanced.DropDownItems.Add("重新加载配置文件", null, (_, _) => ReloadSettingsRequested?.Invoke());
-        advanced.DropDownItems.Add("打开数据目录", null, (_, _) => OpenDataFolderRequested?.Invoke());
+        var advanced = _advancedItem = new ToolStripMenuItem("");
+        advanced.DropDownItems.Add("", null, (_, _) => OpenSettingsFileRequested?.Invoke());
+        advanced.DropDownItems.Add("", null, (_, _) => ReloadSettingsRequested?.Invoke());
+        advanced.DropDownItems.Add("", null, (_, _) => OpenDataFolderRequested?.Invoke());
+        _settingsItem = new ToolStripMenuItem("", null, (_, _) => SettingsRequested?.Invoke());
+        _exitItem = new ToolStripMenuItem("", null, (_, _) => ExitRequested?.Invoke());
 
         menu.Items.AddRange(new ToolStripItem[]
         {
             _inputItem, _selectionItem, _screenshotItem, _screenshotTranslateItem, _historyItem,
             new ToolStripSeparator(),
-            new ToolStripMenuItem("设置…", null, (_, _) => SettingsRequested?.Invoke()),
+            _settingsItem,
             advanced,
             new ToolStripSeparator(),
-            new ToolStripMenuItem("退出", null, (_, _) => ExitRequested?.Invoke()),
+            _exitItem,
         });
 
         foreach (ToolStripItem item in menu.Items)
@@ -66,6 +71,8 @@ public sealed class TrayIcon : IDisposable
         advanced.DropDown.Renderer = _renderer;
         ApplyTheme();
         ThemeManager.Changed += ApplyTheme;
+        ApplyTexts();
+        Loc.Changed += ApplyTexts;
 
         _icon = new NotifyIcon
         {
@@ -79,6 +86,25 @@ public sealed class TrayIcon : IDisposable
             if (e.Button == MouseButtons.Left)
                 InputTranslateRequested?.Invoke();
         };
+    }
+
+    /// <summary>菜单文字随界面语言。</summary>
+    private void ApplyTexts()
+    {
+        _inputItem.Text = Loc.T("Common.InputTranslate");
+        // 划词需要先在其他程序里选中文字，从菜单触发没有意义，这里只做快捷键提示
+        _selectionItem.Text = Loc.T("Tray.SelectionHint");
+        _screenshotItem.Text = Loc.T("Common.Screenshot");
+        _screenshotTranslateItem.Text = Loc.T("Common.ScreenshotTranslate");
+        _historyItem.Text = Loc.T("Common.ClipboardHistory");
+        _settingsItem.Text = Loc.T("Tray.Settings");
+        _advancedItem.Text = Loc.T("Tray.Advanced");
+        _advancedItem.DropDownItems[0].Text = Loc.T("Tray.OpenSettingsFile");
+        _advancedItem.DropDownItems[1].Text = Loc.T("Tray.ReloadSettings");
+        _advancedItem.DropDownItems[2].Text = Loc.T("Tray.OpenDataFolder");
+        _exitItem.Text = Loc.T("Tray.Exit");
+        if (_icon != null)
+            _icon.Text = AppInfo.Name;
     }
 
     public void SetHotkeys(HotkeySettings hotkeys)

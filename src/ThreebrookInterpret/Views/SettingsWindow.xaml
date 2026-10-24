@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:v="clr-namespace:ThreebrookInterpret.Views"
-        Title="三溪通译 设置" Width="904" Height="664"
+        Title="{DynamicResource S.Settings.WindowTitle}" Width="904" Height="664"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen" Icon="pack://application:,,,/ThreebrookInterpret;component/Assets/AppIcon.ico"
         FontFamily="{StaticResource F.Body}" FontSize="13" Foreground="{DynamicResource B.Text}"
@@ -54,18 +54,18 @@
                 <Border Grid.RowSpan="3" Background="{DynamicResource B.Sidebar}" CornerRadius="13,0,0,13"/>
                 <Border Grid.RowSpan="3" Width="1" HorizontalAlignment="Right" Background="{DynamicResource B.Border}"/>
 
-                <v:TitleBar Grid.ColumnSpan="2" Title="设置" ShowMinimize="True"/>
+                <v:TitleBar Grid.ColumnSpan="2" Title="{DynamicResource S.Settings.Title}" ShowMinimize="True"/>
 
                 <!-- 侧栏导航 -->
                 <ListBox x:Name="NavList" Grid.Row="1" Grid.RowSpan="2" Margin="12,8,12,12" SelectedIndex="0"
                          ItemContainerStyle="{StaticResource NavItem}" SelectionChanged="NavList_SelectionChanged">
-                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Tune}"/><TextBlock Text="常规" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
-                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Keyboard}"/><TextBlock Text="快捷键" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
-                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Translate}"/><TextBlock Text="翻译引擎" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
-                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Glossary}"/><TextBlock Text="术语表" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
-                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Screenshot}"/><TextBlock Text="截图与识别" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
-                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.History}"/><TextBlock Text="剪贴板历史" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
-                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Info}"/><TextBlock Text="关于" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
+                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Tune}"/><TextBlock Text="{DynamicResource S.Settings.General}" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
+                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Keyboard}"/><TextBlock Text="{DynamicResource S.Settings.Hotkeys}" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
+                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Translate}"/><TextBlock Text="{DynamicResource S.Settings.Engines}" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
+                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Glossary}"/><TextBlock Text="{DynamicResource S.Settings.Glossary}" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
+                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Screenshot}"/><TextBlock Text="{DynamicResource S.Settings.Screenshot}" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
+                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.History}"/><TextBlock Text="{DynamicResource S.Common.ClipboardHistory}" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
+                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Info}"/><TextBlock Text="{DynamicResource S.Settings.About}" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
                 </ListBox>
 
                 <!-- 内容区 -->
@@ -73,46 +73,62 @@
                     <Grid>
                         <!-- ===== 常规 ===== -->
                         <StackPanel x:Name="PageGeneral">
-                            <TextBlock Text="常规" Style="{StaticResource PageTitle}"/>
+                            <TextBlock Text="{DynamicResource S.Settings.General}" Style="{StaticResource PageTitle}"/>
                             <Border Style="{StaticResource Card}" Padding="20,4">
                                 <StackPanel>
                                     <Grid Style="{StaticResource Row}">
 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                         <StackPanel VerticalAlignment="Center">
-                                            <TextBlock Text="外观" Style="{StaticResource RowLabel}"/>
-                                            <TextBlock Text="跟随系统时随 Windows 自动切换" Style="{StaticResource Text.Caption}" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{DynamicResource S.Settings.Appearance}" Style="{StaticResource RowLabel}"/>
+                                            <TextBlock Text="{DynamicResource S.Settings.AppearanceHint}" Style="{StaticResource Text.Caption}" Margin="0,2,0,0"/>
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <RadioButton x:Name="ThemeAuto" Style="{StaticResource Segment}" GroupName="Theme" Tag="auto" Checked="Theme_Checked">
-                                                <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" FontSize="15" Text="{StaticResource I.Contrast}" Margin="0,0,5,0"/><TextBlock Text="跟随系统" VerticalAlignment="Center"/></StackPanel>
+                                                <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" FontSize="15" Text="{StaticResource I.Contrast}" Margin="0,0,5,0"/><TextBlock Text="{DynamicResource S.Settings.FollowSystem}" VerticalAlignment="Center"/></StackPanel>
                                             </RadioButton>
                                             <RadioButton x:Name="ThemeLight" Style="{StaticResource Segment}" GroupName="Theme" Tag="light" Checked="Theme_Checked">
-                                                <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" FontSize="15" Text="{StaticResource I.Light}" Margin="0,0,5,0"/><TextBlock Text="浅色" VerticalAlignment="Center"/></StackPanel>
+                                                <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" FontSize="15" Text="{StaticResource I.Light}" Margin="0,0,5,0"/><TextBlock Text="{DynamicResource S.Settings.Light}" VerticalAlignment="Center"/></StackPanel>
                                             </RadioButton>
                                             <RadioButton x:Name="ThemeDark" Style="{StaticResource Segment}" GroupName="Theme" Tag="dark" Margin="0" Checked="Theme_Checked">
-                                                <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" FontSize="15" Text="{StaticResource I.Dark}" Margin="0,0,5,0"/><TextBlock Text="深色" VerticalAlignment="Center"/></StackPanel>
+                                                <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" FontSize="15" Text="{StaticResource I.Dark}" Margin="0,0,5,0"/><TextBlock Text="{DynamicResource S.Settings.Dark}" VerticalAlignment="Center"/></StackPanel>
                                             </RadioButton>
                                         </StackPanel>
-                                    </Grid>
-                                    <Border Style="{StaticResource RowDivider}"/>
-                                    <Grid Style="{StaticResource Row}">
-<Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="开机自动启动" Style="{StaticResource RowLabel}"/>
-                                        <CheckBox x:Name="AutoStartBox" Style="{StaticResource Switch}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                                    </Grid>
-                                    <Border Style="{StaticResource RowDivider}"/>
-                                    <Grid Style="{StaticResource Row}">
-<Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="默认目标语言" Style="{StaticResource RowLabel}"/>
-                                        <ComboBox x:Name="TargetBox" Width="200" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                  DisplayMemberPath="Name" SelectedValuePath="Code" SelectedValue="{Binding TargetLanguage}"/>
                                     </Grid>
                                     <Border Style="{StaticResource RowDivider}"/>
                                     <Grid Style="{StaticResource Row}">
 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                         <StackPanel VerticalAlignment="Center" Margin="0,8,16,8">
-                                            <TextBlock Text="合并句中换行" Style="{StaticResource RowLabel}"/>
-                                            <TextBlock Text="划词、截图识别的文字自动合并句子中间的硬换行，适合 PDF" Style="{StaticResource Text.Caption}" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{DynamicResource S.Settings.Language}" Style="{StaticResource RowLabel}"/>
+                                            <TextBlock Text="{DynamicResource S.Settings.LanguageHint}" Style="{StaticResource Text.Caption}" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                        <!-- 语言名称用各自的语言写，不随界面语言变化 -->
+                                        <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <RadioButton x:Name="LangAuto" Style="{StaticResource Segment}" GroupName="Language" Tag="auto" Checked="Language_Checked">
+                                                <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" FontSize="15" Text="{StaticResource I.Translate}" Margin="0,0,5,0"/><TextBlock Text="{DynamicResource S.Settings.FollowSystem}" VerticalAlignment="Center"/></StackPanel>
+                                            </RadioButton>
+                                            <RadioButton x:Name="LangZh" Style="{StaticResource Segment}" GroupName="Language" Tag="zh" Content="中文" Checked="Language_Checked"/>
+                                            <RadioButton x:Name="LangEn" Style="{StaticResource Segment}" GroupName="Language" Tag="en" Content="English" Margin="0" Checked="Language_Checked"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Border Style="{StaticResource RowDivider}"/>
+                                    <Grid Style="{StaticResource Row}">
+<Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="{DynamicResource S.Settings.AutoStart}" Style="{StaticResource RowLabel}"/>
+                                        <CheckBox x:Name="AutoStartBox" Style="{StaticResource Switch}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Style="{StaticResource RowDivider}"/>
+                                    <Grid Style="{StaticResource Row}">
+<Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="{DynamicResource S.Settings.DefaultTarget}" Style="{StaticResource RowLabel}"/>
+                                        <ComboBox x:Name="TargetBox" Width="200" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                  DisplayMemberPath="DisplayName" SelectedValuePath="Code" SelectedValue="{Binding TargetLanguage}"/>
+                                    </Grid>
+                                    <Border Style="{StaticResource RowDivider}"/>
+                                    <Grid Style="{StaticResource Row}">
+<Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center" Margin="0,8,16,8">
+                                            <TextBlock Text="{DynamicResource S.Settings.MergeLines}" Style="{StaticResource RowLabel}"/>
+                                            <TextBlock Text="{DynamicResource S.Settings.MergeLinesHint}" Style="{StaticResource Text.Caption}" Margin="0,2,0,0"/>
                                         </StackPanel>
                                         <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding MergeLineBreaks}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
@@ -121,11 +137,11 @@
 
                             <Border Style="{StaticResource Card}" Margin="0,16,0,8">
                                 <StackPanel>
-                                    <TextBlock Text="数据目录" Style="{StaticResource Text.CardTitle}"/>
-                                    <TextBlock Text="配置、剪贴板历史和诊断日志都只保存在这里，不上传" Style="{StaticResource Text.Caption}" Margin="0,4,0,12"/>
+                                    <TextBlock Text="{DynamicResource S.Settings.DataFolder}" Style="{StaticResource Text.CardTitle}"/>
+                                    <TextBlock Text="{DynamicResource S.Settings.DataFolderHint}" Style="{StaticResource Text.Caption}" Margin="0,4,0,12"/>
                                     <DockPanel>
                                         <Button DockPanel.Dock="Right" Style="{StaticResource Btn.Outline}" Margin="8,0,0,0" Click="OpenDataFolder_Click">
-                                            <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Folder}" Margin="0,0,6,0"/><TextBlock Text="打开" VerticalAlignment="Center"/></StackPanel>
+                                            <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Folder}" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource S.Common.Open}" VerticalAlignment="Center"/></StackPanel>
                                         </Button>
                                         <TextBox x:Name="DataDirBox" IsReadOnly="True" FontFamily="{StaticResource F.Mono}" FontSize="12"
                                                  Foreground="{DynamicResource B.TextSub}" Background="{DynamicResource B.Bg}"/>
@@ -136,40 +152,40 @@
 
                         <!-- ===== 快捷键 ===== -->
                         <StackPanel x:Name="PageHotkeys" Visibility="Collapsed">
-                            <TextBlock Text="快捷键" Style="{StaticResource PageTitle}"/>
+                            <TextBlock Text="{DynamicResource S.Settings.Hotkeys}" Style="{StaticResource PageTitle}"/>
                             <Border Style="{StaticResource Card}" Padding="20,4">
                                 <StackPanel DataContext="{Binding Hotkeys}">
                                     <Grid Style="{StaticResource Row}">
 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="输入翻译" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Common.InputTranslate}" Style="{StaticResource RowLabel}"/>
                                         <TextBox Width="200" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource F.Mono}"
                                                  Text="{Binding InputTranslate}" IsReadOnly="True" PreviewKeyDown="Hotkey_PreviewKeyDown" GotKeyboardFocus="Hotkey_GotFocus" LostKeyboardFocus="Hotkey_LostFocus"/>
                                     </Grid>
                                     <Border Style="{StaticResource RowDivider}"/>
                                     <Grid Style="{StaticResource Row}">
 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="划词翻译" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Common.SelectionTranslate}" Style="{StaticResource RowLabel}"/>
                                         <TextBox Width="200" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource F.Mono}"
                                                  Text="{Binding SelectionTranslate}" IsReadOnly="True" PreviewKeyDown="Hotkey_PreviewKeyDown" GotKeyboardFocus="Hotkey_GotFocus" LostKeyboardFocus="Hotkey_LostFocus"/>
                                     </Grid>
                                     <Border Style="{StaticResource RowDivider}"/>
                                     <Grid Style="{StaticResource Row}">
 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="截图" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Common.Screenshot}" Style="{StaticResource RowLabel}"/>
                                         <TextBox Width="200" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource F.Mono}"
                                                  Text="{Binding Screenshot}" IsReadOnly="True" PreviewKeyDown="Hotkey_PreviewKeyDown" GotKeyboardFocus="Hotkey_GotFocus" LostKeyboardFocus="Hotkey_LostFocus"/>
                                     </Grid>
                                     <Border Style="{StaticResource RowDivider}"/>
                                     <Grid Style="{StaticResource Row}">
 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="截图翻译" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Common.ScreenshotTranslate}" Style="{StaticResource RowLabel}"/>
                                         <TextBox Width="200" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource F.Mono}"
                                                  Text="{Binding ScreenshotTranslate}" IsReadOnly="True" PreviewKeyDown="Hotkey_PreviewKeyDown" GotKeyboardFocus="Hotkey_GotFocus" LostKeyboardFocus="Hotkey_LostFocus"/>
                                     </Grid>
                                     <Border Style="{StaticResource RowDivider}"/>
                                     <Grid Style="{StaticResource Row}">
 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="剪贴板历史" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Common.ClipboardHistory}" Style="{StaticResource RowLabel}"/>
                                         <TextBox Width="200" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource F.Mono}"
                                                  Text="{Binding History}" IsReadOnly="True" PreviewKeyDown="Hotkey_PreviewKeyDown" GotKeyboardFocus="Hotkey_GotFocus" LostKeyboardFocus="Hotkey_LostFocus"/>
                                     </Grid>
@@ -179,7 +195,7 @@
                                 <DockPanel>
                                     <TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Info}" FontSize="18" Foreground="{DynamicResource B.Accent}" Margin="0,0,10,0"/>
                                     <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource B.Text}" VerticalAlignment="Center"
-                                               Text="点击输入框后直接按下新的组合键；按 Backspace 清除，清除后该功能不注册快捷键。"/>
+                                               Text="{DynamicResource S.Settings.HotkeysHint}"/>
                                 </DockPanel>
                             </Border>
                         </StackPanel>
@@ -188,15 +204,15 @@
                         <Grid x:Name="PageEngines" Visibility="Collapsed">
                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="200"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <TextBlock Grid.ColumnSpan="2" Text="翻译引擎" Style="{StaticResource PageTitle}"/>
+                            <TextBlock Grid.ColumnSpan="2" Text="{DynamicResource S.Settings.Engines}" Style="{StaticResource PageTitle}"/>
 
                             <Border Grid.Row="1" Style="{StaticResource Card}" Padding="8" VerticalAlignment="Top" Margin="0,0,0,8">
                                 <DockPanel>
                                     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="4,8,0,2">
-                                        <Button x:Name="AddEngineButton" Style="{StaticResource Btn.Icon}" Content="{StaticResource I.Add}" ToolTip="添加引擎" Click="AddEngine_Click"/>
-                                        <Button Style="{StaticResource Btn.Icon}" Content="{StaticResource I.Delete}" ToolTip="删除选中的引擎" Click="RemoveEngine_Click"/>
-                                        <Button Style="{StaticResource Btn.Icon}" Content="{StaticResource I.Up}" ToolTip="上移" Click="MoveUp_Click"/>
-                                        <Button Style="{StaticResource Btn.Icon}" Content="{StaticResource I.Down}" ToolTip="下移" Click="MoveDown_Click"/>
+                                        <Button x:Name="AddEngineButton" Style="{StaticResource Btn.Icon}" Content="{StaticResource I.Add}" ToolTip="{DynamicResource S.Settings.AddEngine}" Click="AddEngine_Click"/>
+                                        <Button Style="{StaticResource Btn.Icon}" Content="{StaticResource I.Delete}" ToolTip="{DynamicResource S.Settings.RemoveEngine}" Click="RemoveEngine_Click"/>
+                                        <Button Style="{StaticResource Btn.Icon}" Content="{StaticResource I.Up}" ToolTip="{DynamicResource S.Settings.MoveUp}" Click="MoveUp_Click"/>
+                                        <Button Style="{StaticResource Btn.Icon}" Content="{StaticResource I.Down}" ToolTip="{DynamicResource S.Settings.MoveDown}" Click="MoveDown_Click"/>
                                     </StackPanel>
                                     <ListBox x:Name="EnginesList" SelectionChanged="EnginesList_SelectionChanged" MinHeight="120">
                                         <ListBox.ItemContainerStyle>
@@ -206,7 +222,7 @@
                                             <DataTemplate>
                                                 <!-- 复选框只管启用；名字是普通文字，点击选中该行查看设置 -->
                                                 <StackPanel Orientation="Horizontal">
-                                                    <CheckBox IsChecked="{Binding Enabled}" VerticalAlignment="Center" ToolTip="勾选表示启用"
+                                                    <CheckBox IsChecked="{Binding Enabled}" VerticalAlignment="Center" ToolTip="{DynamicResource S.Settings.EngineEnabledTip}"
                                                               Click="EngineCheckBox_Click"/>
                                                     <TextBlock Text="{Binding Name}" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                                 </StackPanel>
@@ -222,7 +238,7 @@
                                     <TextBlock x:Name="EngineHelpText" Style="{StaticResource Text.Caption}" Margin="0,4,0,10"/>
                                     <Grid Style="{StaticResource Field}">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="76"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="显示名称" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.DisplayName}" Style="{StaticResource FieldLabel}"/>
                                         <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" LostFocus="EngineName_LostFocus"/>
                                     </Grid>
                                     <Grid x:Name="AppIdRow" Style="{StaticResource Field}">
@@ -232,14 +248,14 @@
                                     </Grid>
                                     <Grid x:Name="SecretKeyRow" Style="{StaticResource Field}">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="76"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="密钥" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.SecretKey}" Style="{StaticResource FieldLabel}"/>
                                         <TextBox Grid.Column="1" FontFamily="{StaticResource F.Mono}" Text="{Binding SecretKey, UpdateSourceTrigger=PropertyChanged}"/>
                                     </Grid>
                                     <Grid x:Name="BaseUrlRow" Style="{StaticResource Field}">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="76"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="接口地址" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.BaseUrl}" Style="{StaticResource FieldLabel}"/>
                                         <TextBox Grid.Column="1" FontFamily="{StaticResource F.Mono}" Text="{Binding BaseUrl, UpdateSourceTrigger=PropertyChanged}"
-                                                 ToolTip="例如 http://localhost:11434/v1"/>
+                                                 ToolTip="{DynamicResource S.Settings.BaseUrlTip}"/>
                                     </Grid>
                                     <Grid x:Name="ApiKeyRow" Style="{StaticResource Field}">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="76"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -248,42 +264,42 @@
                                     </Grid>
                                     <Grid x:Name="RegionRow" Style="{StaticResource Field}">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="76"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="区域" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.Region}" Style="{StaticResource FieldLabel}"/>
                                         <TextBox Grid.Column="1" FontFamily="{StaticResource F.Mono}" Text="{Binding Region, UpdateSourceTrigger=PropertyChanged}"
-                                                 ToolTip="腾讯默认 ap-guangzhou；Azure 填资源所在区域，如 eastasia"/>
+                                                 ToolTip="{DynamicResource S.Settings.RegionTip}"/>
                                     </Grid>
                                     <Grid x:Name="ModelRow" Style="{StaticResource Field}">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="76"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="模型名" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.Model}" Style="{StaticResource FieldLabel}"/>
                                         <TextBox x:Name="ModelBox" Grid.Column="1" FontFamily="{StaticResource F.Mono}"
-                                                 Text="{Binding Model, UpdateSourceTrigger=PropertyChanged}" ToolTip="例如 qwen3:8b、deepseek-chat"/>
+                                                 Text="{Binding Model, UpdateSourceTrigger=PropertyChanged}" ToolTip="{DynamicResource S.Settings.ModelTip}"/>
                                         <Button x:Name="FetchModelsButton" Grid.Column="2" Style="{StaticResource Btn.Outline}" Margin="8,0,0,0" Padding="12,0"
-                                                ToolTip="从接口地址读取可用的模型" Click="FetchModels_Click">
-                                            <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Refresh}" Margin="0,0,6,0"/><TextBlock Text="获取" VerticalAlignment="Center"/></StackPanel>
+                                                ToolTip="{DynamicResource S.Settings.FetchModelsTip}" Click="FetchModels_Click">
+                                            <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Refresh}" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource S.Settings.FetchModels}" VerticalAlignment="Center"/></StackPanel>
                                         </Button>
                                     </Grid>
                                     <StackPanel x:Name="LlmRows">
                                         <Grid Style="{StaticResource Field}" Margin="0,10,0,6">
 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                             <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
-                                                <TextBlock Text="关闭思考模式" Style="{StaticResource RowLabel}"/>
-                                                <TextBlock Text="Qwen3 等推理模型关闭后翻译快 2–5 倍，质量相同" Style="{StaticResource Text.Caption}" Margin="0,2,0,0"/>
+                                                <TextBlock Text="{DynamicResource S.Settings.DisableThinking}" Style="{StaticResource RowLabel}"/>
+                                                <TextBlock Text="{DynamicResource S.Settings.DisableThinkingHint}" Style="{StaticResource Text.Caption}" Margin="0,2,0,0"/>
                                             </StackPanel>
                                             <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding DisableThinking}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
                                         <Grid Style="{StaticResource Field}">
                                             <Grid.ColumnDefinitions><ColumnDefinition Width="76"/><ColumnDefinition Width="90"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                            <TextBlock Text="超时" Style="{StaticResource FieldLabel}"/>
+                                            <TextBlock Text="{DynamicResource S.Settings.Timeout}" Style="{StaticResource FieldLabel}"/>
                                             <TextBox Grid.Column="1" FontFamily="{StaticResource F.Mono}" Text="{Binding TimeoutSeconds}"/>
-                                            <TextBlock Grid.Column="2" Text="秒" Style="{StaticResource FieldLabel}" Margin="8,0,0,0"/>
+                                            <TextBlock Grid.Column="2" Text="{DynamicResource S.Settings.Seconds}" Style="{StaticResource FieldLabel}" Margin="8,0,0,0"/>
                                         </Grid>
-                                        <TextBlock Text="自定义提示词（可选，{target} 会替换为目标语言）" Style="{StaticResource Text.Caption}" Margin="0,8,0,6"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.CustomPrompt}" Style="{StaticResource Text.Caption}" Margin="0,8,0,6"/>
                                         <TextBox Text="{Binding SystemPrompt, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap"
                                                  Height="72" VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto"/>
                                     </StackPanel>
                                     <DockPanel Margin="0,14,0,0">
                                         <Button DockPanel.Dock="Left" Style="{StaticResource Btn.Outline}" VerticalAlignment="Top" Click="TestEngine_Click">
-                                            <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Translate}" Margin="0,0,6,0"/><TextBlock Text="测试翻译" VerticalAlignment="Center"/></StackPanel>
+                                            <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Translate}" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource S.Settings.TestEngine}" VerticalAlignment="Center"/></StackPanel>
                                         </Button>
                                         <TextBlock x:Name="TestResultText" Margin="12,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap"/>
                                     </DockPanel>
@@ -293,13 +309,13 @@
 
                         <!-- ===== 术语表 ===== -->
                         <StackPanel x:Name="PageGlossary" Visibility="Collapsed">
-                            <TextBlock Text="术语表" Style="{StaticResource PageTitle}"/>
+                            <TextBlock Text="{DynamicResource S.Settings.Glossary}" Style="{StaticResource PageTitle}"/>
                             <Border Style="{StaticResource Card}" Padding="20,4">
                                 <Grid Style="{StaticResource Row}">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                     <StackPanel VerticalAlignment="Center" Margin="0,8,16,8">
-                                        <TextBlock Text="启用术语表" Style="{StaticResource RowLabel}"/>
-                                        <TextBlock Text="每对术语双向生效：原文里出现哪一边，就固定翻成另一边" Style="{StaticResource Text.Caption}" Margin="0,2,0,0"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.GlossaryEnable}" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.GlossaryEnableHint}" Style="{StaticResource Text.Caption}" Margin="0,2,0,0"/>
                                     </StackPanel>
                                     <CheckBox Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding GlossaryEnabled}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
@@ -309,8 +325,8 @@
                                 <StackPanel>
                                     <Grid Margin="0,0,0,6">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/><ColumnDefinition Width="36"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="术语" FontSize="12" Foreground="{DynamicResource B.TextSub}"/>
-                                        <TextBlock Grid.Column="2" Text="固定译法" FontSize="12" Foreground="{DynamicResource B.TextSub}"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.Term}" FontSize="12" Foreground="{DynamicResource B.TextSub}"/>
+                                        <TextBlock Grid.Column="2" Text="{DynamicResource S.Settings.FixedTranslation}" FontSize="12" Foreground="{DynamicResource B.TextSub}"/>
                                     </Grid>
                                     <ItemsControl x:Name="GlossaryList">
                                         <ItemsControl.ItemTemplate>
@@ -319,17 +335,17 @@
                                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="36"/><ColumnDefinition Width="*"/><ColumnDefinition Width="36"/></Grid.ColumnDefinitions>
                                                     <TextBox Text="{Binding Source, UpdateSourceTrigger=PropertyChanged}"/>
                                                     <TextBlock Grid.Column="1" Style="{StaticResource Text.Icon}" Text="{StaticResource I.Swap}" FontSize="18"
-                                                               Foreground="{DynamicResource B.TextMuted}" HorizontalAlignment="Center" ToolTip="双向生效"/>
+                                                               Foreground="{DynamicResource B.TextMuted}" HorizontalAlignment="Center" ToolTip="{DynamicResource S.Settings.BothWays}"/>
                                                     <TextBox Grid.Column="2" Text="{Binding Target, UpdateSourceTrigger=PropertyChanged}"/>
                                                     <Button Grid.Column="3" Style="{StaticResource Btn.Icon}" Content="{StaticResource I.Delete}" HorizontalAlignment="Right"
-                                                            ToolTip="删除这条术语" Click="RemoveTerm_Click"/>
+                                                            ToolTip="{DynamicResource S.Settings.RemoveTerm}" Click="RemoveTerm_Click"/>
                                                 </Grid>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
-                                    <TextBlock x:Name="GlossaryEmpty" Text="还没有术语。例如：三溪 ⇄ Threebrook、周报 ⇄ weekly digest" Style="{StaticResource Text.Caption}" Margin="0,4,0,0"/>
+                                    <TextBlock x:Name="GlossaryEmpty" Text="{DynamicResource S.Settings.GlossaryEmpty}" Style="{StaticResource Text.Caption}" Margin="0,4,0,0"/>
                                     <Button Style="{StaticResource Btn.Outline}" HorizontalAlignment="Left" Margin="0,12,0,0" Click="AddTerm_Click">
-                                        <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Add}" Margin="0,0,6,0"/><TextBlock Text="添加术语" VerticalAlignment="Center"/></StackPanel>
+                                        <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Add}" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource S.Settings.AddTerm}" VerticalAlignment="Center"/></StackPanel>
                                     </Button>
                                 </StackPanel>
                             </Border>
@@ -337,30 +353,30 @@
                                 <DockPanel>
                                     <TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Info}" FontSize="18" Foreground="{DynamicResource B.Accent}" Margin="0,0,10,0"/>
                                     <TextBlock TextWrapping="Wrap" VerticalAlignment="Center"
-                                               Text="大模型会把用到的术语写进提示词；必应、Yandex 等机器翻译先把术语换成占位符，翻完再换回固定译法。英文术语按整词匹配，不区分大小写。"/>
+                                               Text="{DynamicResource S.Settings.GlossaryHint}"/>
                                 </DockPanel>
                             </Border>
                         </StackPanel>
 
                         <!-- ===== 截图与识别 ===== -->
                         <StackPanel x:Name="PageScreenshot" Visibility="Collapsed">
-                            <TextBlock Text="截图与识别" Style="{StaticResource PageTitle}"/>
+                            <TextBlock Text="{DynamicResource S.Settings.Screenshot}" Style="{StaticResource PageTitle}"/>
                             <Border Style="{StaticResource Card}" DataContext="{Binding Screenshot}">
                                 <StackPanel>
-                                    <TextBlock Text="保存截图" Style="{StaticResource Text.CardTitle}"/>
+                                    <TextBlock Text="{DynamicResource S.Settings.SaveScreenshots}" Style="{StaticResource Text.CardTitle}"/>
                                     <Grid Style="{StaticResource Field}" Margin="0,14,0,4">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="76"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="保存目录" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.SaveFolder}" Style="{StaticResource FieldLabel}"/>
                                         <TextBox x:Name="SaveDirBox" Grid.Column="1" FontFamily="{StaticResource F.Mono}" FontSize="12"
                                                  Text="{Binding SaveDirectory, UpdateSourceTrigger=PropertyChanged}"/>
                                         <Button Grid.Column="2" Style="{StaticResource Btn.Outline}" Margin="8,0,0,0" Click="BrowseSaveDir_Click">
-                                            <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Folder}" Margin="0,0,6,0"/><TextBlock Text="浏览" VerticalAlignment="Center"/></StackPanel>
+                                            <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Folder}" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource S.Common.Browse}" VerticalAlignment="Center"/></StackPanel>
                                         </Button>
                                     </Grid>
-                                    <TextBlock Text="留空则保存到 图片\三溪通译" Style="{StaticResource Text.Caption}" Margin="76,0,0,8"/>
+                                    <TextBlock Text="{DynamicResource S.Settings.SaveFolderHint}" Style="{StaticResource Text.Caption}" Margin="76,0,0,8"/>
                                     <Grid Style="{StaticResource Field}">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="76"/><ColumnDefinition Width="120"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="图片格式" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.ImageFormat}" Style="{StaticResource FieldLabel}"/>
                                         <ComboBox Grid.Column="1" SelectedValue="{Binding ImageFormat}" SelectedValuePath="Tag">
                                             <ComboBoxItem Content="PNG" Tag="png"/>
                                             <ComboBoxItem Content="JPG" Tag="jpg"/>
@@ -369,74 +385,74 @@
                                     <Border Style="{StaticResource RowDivider}" Margin="0,10"/>
                                     <Grid Style="{StaticResource Row}" MinHeight="40">
 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="保存时弹出“另存为”对话框" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.AskSavePath}" Style="{StaticResource RowLabel}"/>
                                         <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding AskSavePath}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
-                                    <TextBlock Text="关闭后直接保存到上面的目录" Style="{StaticResource Text.Caption}"/>
+                                    <TextBlock Text="{DynamicResource S.Settings.AskSavePathHint}" Style="{StaticResource Text.Caption}"/>
                                 </StackPanel>
                             </Border>
                             <Border Style="{StaticResource Card}" Margin="0,16,0,8" DataContext="{Binding Screenshot}">
                                 <StackPanel>
-                                    <TextBlock Text="文字识别" Style="{StaticResource Text.CardTitle}"/>
+                                    <TextBlock Text="{DynamicResource S.Common.Ocr}" Style="{StaticResource Text.CardTitle}"/>
                                     <Grid Style="{StaticResource Field}" Margin="0,14,0,8">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="76"/><ColumnDefinition Width="240"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="识别语言" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.OcrLanguage}" Style="{StaticResource FieldLabel}"/>
                                         <ComboBox x:Name="OcrLanguageBox" Grid.Column="1" DisplayMemberPath="DisplayName" SelectedValuePath="Tag"
                                                   SelectedValue="{Binding OcrLanguage}"/>
                                     </Grid>
                                     <TextBlock Style="{StaticResource Text.Caption}"
-                                               Text="使用 Windows 自带的文字识别，离线、不上传。识别日语、韩语、泰语等需要先在 Windows 设置 → 时间和语言 → 语言 中添加该语言（含“光学字符识别”），之后会出现在列表里。"/>
+                                               Text="{DynamicResource S.Settings.OcrHint}"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
 
                         <!-- ===== 剪贴板历史 ===== -->
                         <StackPanel x:Name="PageHistory" Visibility="Collapsed">
-                            <TextBlock Text="剪贴板历史" Style="{StaticResource PageTitle}"/>
+                            <TextBlock Text="{DynamicResource S.Common.ClipboardHistory}" Style="{StaticResource PageTitle}"/>
                             <Border Style="{StaticResource Card}" Padding="20,4" DataContext="{Binding History}">
                                 <StackPanel>
                                     <Grid Style="{StaticResource Row}">
 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="记录剪贴板历史" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.HistoryEnable}" Style="{StaticResource RowLabel}"/>
                                         <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding Enabled}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
                                     <Border Style="{StaticResource RowDivider}"/>
                                     <Grid Style="{StaticResource Row}">
 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="记录文字" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.HistoryText}" Style="{StaticResource RowLabel}"/>
                                         <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding RecordText}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
                                     <Border Style="{StaticResource RowDivider}"/>
                                     <Grid Style="{StaticResource Row}">
 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="记录图片" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.HistoryImages}" Style="{StaticResource RowLabel}"/>
                                         <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding RecordImages}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
                                     <Border Style="{StaticResource RowDivider}"/>
                                     <Grid Style="{StaticResource Row}">
 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                         <StackPanel VerticalAlignment="Center" Margin="0,8,16,8">
-                                            <TextBlock Text="选中后自动粘贴" Style="{StaticResource RowLabel}"/>
-                                            <TextBlock Text="在历史窗口按 Enter 或双击时，复制后粘贴到之前的窗口" Style="{StaticResource Text.Caption}" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{DynamicResource S.Settings.PasteOnSelect}" Style="{StaticResource RowLabel}"/>
+                                            <TextBlock Text="{DynamicResource S.Settings.PasteOnSelectHint}" Style="{StaticResource Text.Caption}" Margin="0,2,0,0"/>
                                         </StackPanel>
                                         <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding PasteOnSelect}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
                                     <Border Style="{StaticResource RowDivider}"/>
                                     <Grid Style="{StaticResource Row}">
 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="最多保留" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.MaxItems}" Style="{StaticResource RowLabel}"/>
                                         <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <TextBox Width="80" FontFamily="{StaticResource F.Mono}" Text="{Binding MaxItems}"/>
-                                            <TextBlock Text="条" Style="{StaticResource FieldLabel}" Margin="8,0,0,0"/>
+                                            <TextBlock Text="{DynamicResource S.Settings.Items}" Style="{StaticResource FieldLabel}" Margin="8,0,0,0"/>
                                         </StackPanel>
                                     </Grid>
                                     <Border Style="{StaticResource RowDivider}"/>
                                     <Grid Style="{StaticResource Row}">
 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock Text="保留天数" Style="{StaticResource RowLabel}"/>
+                                        <TextBlock Text="{DynamicResource S.Settings.MaxDays}" Style="{StaticResource RowLabel}"/>
                                         <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
                                             <TextBox Width="80" FontFamily="{StaticResource F.Mono}" Text="{Binding MaxDays}"/>
-                                            <TextBlock Text="天" Style="{StaticResource FieldLabel}" Margin="8,0,0,0"/>
+                                            <TextBlock Text="{DynamicResource S.Settings.Days}" Style="{StaticResource FieldLabel}" Margin="8,0,0,0"/>
                                         </StackPanel>
                                     </Grid>
                                 </StackPanel>
@@ -445,41 +461,53 @@
                                 <DockPanel>
                                     <TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Info}" FontSize="18" Foreground="{DynamicResource B.Accent}" Margin="0,0,10,0"/>
                                     <TextBlock TextWrapping="Wrap" VerticalAlignment="Center"
-                                               Text="历史只保存在本机数据目录的 history 文件夹，不上传。密码管理器等标记为“不记录”的内容会自动跳过。"/>
+                                               Text="{DynamicResource S.Settings.HistoryHint}"/>
                                 </DockPanel>
                             </Border>
                             <StackPanel Orientation="Horizontal" Margin="0,16,0,8">
                                 <Button Style="{StaticResource Btn.Outline}" Click="OpenHistoryFolder_Click">
-                                    <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Folder}" Margin="0,0,6,0"/><TextBlock Text="打开历史目录" VerticalAlignment="Center"/></StackPanel>
+                                    <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Folder}" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource S.Settings.OpenHistoryFolder}" VerticalAlignment="Center"/></StackPanel>
                                 </Button>
                                 <Button Style="{StaticResource Btn.Danger}" Margin="8,0,0,0" Click="ClearHistory_Click">
-                                    <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Delete}" Margin="0,0,6,0"/><TextBlock Text="清空历史" VerticalAlignment="Center"/></StackPanel>
+                                    <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Delete}" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource S.Settings.ClearHistory}" VerticalAlignment="Center"/></StackPanel>
                                 </Button>
                             </StackPanel>
                         </StackPanel>
 
                         <!-- ===== 关于 ===== -->
                         <StackPanel x:Name="PageAbout" Visibility="Collapsed">
-                            <TextBlock Text="关于" Style="{StaticResource PageTitle}"/>
+                            <TextBlock Text="{DynamicResource S.Settings.About}" Style="{StaticResource PageTitle}"/>
                             <Border Style="{StaticResource Card}" Padding="24">
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal">
                                         <Image Source="pack://application:,,,/ThreebrookInterpret;component/Assets/AppIcon-128.png" Width="64" Height="64"
                                                RenderOptions.BitmapScalingMode="HighQuality"/>
                                         <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
-                                            <TextBlock Text="三溪通译" FontFamily="{StaticResource F.DisplayZh}" FontSize="28" Foreground="{DynamicResource B.Text}"/>
+                                            <TextBlock Text="{DynamicResource S.App.Name}" FontFamily="{DynamicResource F.Title}" FontWeight="{DynamicResource F.TitleWeight}" FontSize="28" Foreground="{DynamicResource B.Text}"/>
                                             <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                                <TextBlock Text="Threebrook Interpret" FontFamily="{StaticResource F.DisplayEn}" FontSize="15" Foreground="{DynamicResource B.TextSub}" VerticalAlignment="Center"/>
+                                                <TextBlock x:Name="AboutEnglishName" Text="Threebrook Interpret" FontFamily="{StaticResource F.DisplayEn}" FontSize="15" Foreground="{DynamicResource B.TextSub}" VerticalAlignment="Center"/>
                                                 <TextBlock x:Name="VersionText" Style="{StaticResource Text.Mono}" FontSize="12" Margin="10,0,0,0"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </StackPanel>
-                                    <TextBlock Text="轻巧的托盘翻译工具：划词翻译、截图翻译、输入翻译、截图钉图、剪贴板历史。" TextWrapping="Wrap"
+                                    <TextBlock Text="{DynamicResource S.Settings.AboutText}" TextWrapping="Wrap"
                                                Foreground="{DynamicResource B.TextSub}" Margin="0,18,0,0"/>
                                     <Border Style="{StaticResource RowDivider}" Margin="0,18"/>
-                                    <TextBlock Text="字体与图标" Style="{StaticResource Text.CardTitle}" FontSize="13.5"/>
+                                    <TextBlock Text="{DynamicResource S.Settings.Websites}" Style="{StaticResource Text.CardTitle}" FontSize="13.5"/>
+                                    <Grid Margin="0,10,0,0">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="84"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+                                        <TextBlock Text="{DynamicResource S.Settings.ProductSite}" Foreground="{DynamicResource B.TextSub}" VerticalAlignment="Center"/>
+                                        <Button x:Name="ProductLink" Grid.Column="1" Style="{StaticResource Link}" HorizontalAlignment="Left"
+                                                FontFamily="{StaticResource F.Mono}" FontSize="12.5" Click="OpenLink_Click"/>
+                                        <TextBlock Grid.Row="1" Text="{DynamicResource S.Settings.CompanySite}" Foreground="{DynamicResource B.TextSub}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                        <Button x:Name="CompanyLink" Grid.Row="1" Grid.Column="1" Style="{StaticResource Link}" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                                FontFamily="{StaticResource F.Mono}" FontSize="12.5" Click="OpenLink_Click"/>
+                                    </Grid>
+                                    <Border Style="{StaticResource RowDivider}" Margin="0,18"/>
+                                    <TextBlock Text="{DynamicResource S.Settings.FontsAndIcons}" Style="{StaticResource Text.CardTitle}" FontSize="13.5"/>
                                     <TextBlock Style="{StaticResource Text.Caption}" Margin="0,6,0,0"
-                                               Text="站酷小薇、Bricolage Grotesque、JetBrains Mono（SIL OFL 1.1）；Material Symbols（Apache 2.0）。许可文本见程序目录下的 licenses 文件夹。"/>
+                                               Text="{DynamicResource S.Settings.FontsText}"/>
                                     <TextBlock Text="© 2026 三溪 Threebrook · 三溪通译 Threebrook Interpret" Style="{StaticResource Text.Caption}" Margin="0,18,0,0"/>
                                 </StackPanel>
                             </Border>
@@ -490,8 +518,8 @@
                 <!-- 底部操作：只有"保存"用实心主按钮 -->
                 <Border Grid.Row="2" Grid.Column="1" BorderBrush="{DynamicResource B.Border}" BorderThickness="0,1,0,0" Padding="28,14">
                     <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right">
-                        <Button Content="取消" Style="{StaticResource Btn.Outline}" Height="40" Padding="20,0" IsCancel="True" Click="Cancel_Click"/>
-                        <Button Content="保存" Style="{StaticResource Btn.Primary}" Margin="10,0,0,0" IsDefault="True" Click="Save_Click"/>
+                        <Button Content="{DynamicResource S.Common.Cancel}" Style="{StaticResource Btn.Outline}" Height="40" Padding="20,0" IsCancel="True" Click="Cancel_Click"/>
+                        <Button Content="{DynamicResource S.Common.Save}" Style="{StaticResource Btn.Primary}" Margin="10,0,0,0" IsDefault="True" Click="Save_Click"/>
                     </StackPanel>
                 </Border>
             </Grid>

@@ -155,7 +155,7 @@ public static unsafe class WindowsOcr
             {
                 Check(CallOut(statics, 10, &engine)); // TryCreateFromUserProfileLanguages
                 if (engine == IntPtr.Zero)
-                    throw new InvalidOperationException("系统没有可用的 OCR 语言包，请在 Windows 设置 → 时间和语言 → 语言 中安装。");
+                    throw new InvalidOperationException(Loc.T("Ocr.NoLanguages"));
                 return engine;
             }
 
@@ -169,7 +169,7 @@ public static unsafe class WindowsOcr
                 Marshal.Release(language);
             }
             if (engine == IntPtr.Zero)
-                throw new InvalidOperationException($"未安装 {languageTag} 的 OCR 语言包，请在 Windows 设置 → 时间和语言 → 语言 中添加该语言（勾选\"光学字符识别\"）。");
+                throw new InvalidOperationException(Loc.F("Ocr.MissingLanguage", languageTag));
             return engine;
         }
         finally

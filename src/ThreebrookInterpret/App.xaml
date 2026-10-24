@@ -8,6 +8,8 @@
                 <!-- 第一项是颜色字典，ThemeManager 按浅色 / 深色替换 -->
                 <ResourceDictionary Source="Theme/Colors.Light.xaml"/>
                 <ResourceDictionary Source="Theme/Controls.xaml"/>
+                <!-- 界面文字，Loc 按语言替换 -->
+                <ResourceDictionary Source="Localization/Strings.zh.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

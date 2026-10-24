@@ -3,12 +3,19 @@ using System.Linq;
 
 namespace ThreebrookInterpret.Translation;
 
-public sealed record Language(string Code, string Name, string EnglishName);
+public sealed record Language(string Code, string Name, string EnglishName)
+{
+    /// <summary>界面上显示的名字（随界面语言）。EnglishName 同时用于大模型提示词。</summary>
+    public string DisplayName => Services.Loc.IsEnglish ? EnglishName : Name;
+}
 
 /// <summary>内部统一使用的语言代码，各引擎自行映射到自己的代码。</summary>
 public static class Languages
 {
     public const string Auto = "auto";
+
+    /// <summary>目标语言下拉框里的"自动"项。</summary>
+    public static Language AutoOption { get; } = new(Auto, "自动（中⇄英）", "Auto (ZH ⇄ EN)");
 
     public static IReadOnlyList<Language> All { get; } = new[]
     {

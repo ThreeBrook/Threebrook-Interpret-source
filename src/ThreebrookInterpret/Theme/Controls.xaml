@@ -17,7 +17,9 @@
     </Style>
     <!-- 中文标题：站酷小薇，字号 +2、字间距 +0.5（WPF 无字间距属性，以字号补偿） -->
     <Style x:Key="Text.TitleZh" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource F.DisplayZh}"/>
+        <!-- 标题字体随界面语言：中文站酷小薇，英文 Bricolage Grotesque 粗体（在语言字典里定义） -->
+        <Setter Property="FontFamily" Value="{DynamicResource F.Title}"/>
+        <Setter Property="FontWeight" Value="{DynamicResource F.TitleWeight}"/>
         <Setter Property="FontSize" Value="26"/>
         <Setter Property="Foreground" Value="{DynamicResource B.Text}"/>
     </Style>
@@ -114,6 +116,20 @@
         <Setter Property="Foreground" Value="{DynamicResource B.Danger}"/>
     </Style>
 
+    <!-- 文字链接：accent 色、带下划线，悬停变浅 -->
+    <Style x:Key="Link" TargetType="Button" BasedOn="{StaticResource Btn.Base}">
+        <Setter Property="Foreground" Value="{DynamicResource B.Accent}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <TextBlock x:Name="Text" Text="{TemplateBinding Content}" Background="Transparent" TextDecorations="Underline"/>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Text" Property="Opacity" Value="0.75"/></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
     <!-- 图标按钮：标题栏、卡片内的小操作；Content 为图标码点 -->
     <Style x:Key="Btn.Icon" TargetType="ButtonBase" BasedOn="{StaticResource Btn.Base}">
         <Setter Property="Width" Value="30"/>

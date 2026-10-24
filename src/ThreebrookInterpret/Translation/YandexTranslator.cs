@@ -26,12 +26,12 @@ public sealed class YandexTranslator : ITranslator
             using var response = await Http.Client.PostAsync(url, content, token);
             var body = await response.Content.ReadAsStringAsync(token);
             if (!response.IsSuccessStatusCode)
-                throw new TranslationException($"Yandex 返回 {(int)response.StatusCode}：{body}");
+                throw new TranslationException(Services.Loc.F("Engine.Returned", "Yandex", (int)response.StatusCode, body));
 
             using var doc = JsonDocument.Parse(body);
             var root = doc.RootElement;
             if (root.TryGetProperty("code", out var code) && code.GetInt32() != 200)
-                throw new TranslationException($"Yandex 错误 {code.GetInt32()}：{body}");
+                throw new TranslationException(Services.Loc.F("Engine.Returned", "Yandex", code.GetInt32(), body));
 
             var parts = new List<string>();
             foreach (var item in root.GetProperty("text").EnumerateArray())

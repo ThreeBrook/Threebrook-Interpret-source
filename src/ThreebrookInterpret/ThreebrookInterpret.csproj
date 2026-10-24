@@ -28,6 +28,9 @@
     <Resource Include="Assets\AppIcon-36.png" />
     <Resource Include="Assets\AppIcon-128.png" />
     <Resource Include="Assets\AppIcon.ico" />
+    <!-- 安装程序里显示的许可协议 -->
+    <EmbeddedResource Include="Setup\License.txt" />
+    <EmbeddedResource Include="Setup\License.en.txt" />
     <!-- 字体许可（OFL 1.1 / Apache 2.0）随程序发布 -->
     <None Include="Fonts\licenses\*.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="licenses\%(Filename)%(Extension)" />
   </ItemGroup>

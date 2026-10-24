@@ -8,7 +8,7 @@ namespace ThreebrookInterpret.Views;
 public sealed class ResultItem : INotifyPropertyChanged
 {
     private string _text = "";
-    private string _status = "翻译中…";
+    private string _status = Services.Loc.T("Common.Translating");
     private bool _isError;
 
     public ResultItem(string name) => Name = name;
@@ -31,7 +31,7 @@ public sealed class ResultItem : INotifyPropertyChanged
     {
         IsError = true;
         Text = message;
-        Status = "失败";
+        Status = Services.Loc.T("Translate.Failed");
         OnPropertyChanged(nameof(HasResult));
     }
 

@@ -42,6 +42,8 @@ ICONS = [
     "menu_book", "swap_horiz",
     # 长截图
     "swipe_vertical", "pause", "play_arrow",
+    # 安装程序
+    "lock", "install_desktop", "delete_forever",
 ]
 
 

@@ -23,7 +23,7 @@ public sealed class DeepLTranslator : ITranslator
         {
             var key = _config.ApiKey?.Trim();
             if (string.IsNullOrWhiteSpace(key))
-                throw new TranslationException("未配置 DeepL Auth Key");
+                throw new TranslationException(Services.Loc.T("Engine.DeepLNoKey"));
 
             var host = key.EndsWith(":fx", StringComparison.Ordinal) ? "api-free.deepl.com" : "api.deepl.com";
             var body = new Dictionary<string, object> { ["text"] = new[] { text }, ["target_lang"] = MapTarget(to) };
@@ -39,7 +39,7 @@ public sealed class DeepLTranslator : ITranslator
             using var response = await Http.Client.SendAsync(request, token);
             var json = await response.Content.ReadAsStringAsync(token);
             if (!response.IsSuccessStatusCode)
-                throw new TranslationException($"DeepL 返回 {(int)response.StatusCode}：{json}");
+                throw new TranslationException(Services.Loc.F("Engine.Returned", "DeepL", (int)response.StatusCode, json));
 
             using var doc = JsonDocument.Parse(json);
             return doc.RootElement.GetProperty("translations")[0].GetProperty("text").GetString() ?? "";

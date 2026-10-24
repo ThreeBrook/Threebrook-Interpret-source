@@ -19,6 +19,30 @@ powershell -ExecutionPolicy Bypass -File publish.ps1
 
 程序已在运行时再次打开 exe，会弹出设置窗口。
 
+## 安装包与绿色版
+
+```bash
+powershell -ExecutionPolicy Bypass -File publish.ps1 -Package
+```
+
+在 `dist\package` 生成三个文件（均需 Windows 10/11 x64）：
+
+| 文件 | 说明 |
+|---|---|
+| `ThreebrookInterpret-Setup-<版本>.exe` | 安装包，约 0.9 MB，需要 .NET 10 桌面运行时 |
+| `ThreebrookInterpret-<版本>-Portable.zip` | 绿色版，约 0.4 MB，需要 .NET 10 桌面运行时 |
+| `ThreebrookInterpret-<版本>-Portable-Runtime.zip` | 绿色版，自带运行时，约 67 MB，解压就能用 |
+
+安装包是自制的（参考三溪寻影的安装程序）：安装包就是程序本身，末尾附带许可文件和一段尾标，运行时进入安装向导，界面与软件一致。
+
+- 只给当前用户安装，不需要管理员权限，不联网；默认装到 `%LocalAppData%\Programs\ThreebrookInterpret`，建开始菜单快捷方式，可选桌面快捷方式和开机自启
+- 覆盖安装：先通知正在运行的三溪通译退出；新文件全部写好才替换，出错或中止会撤回，原来的版本照常可用；设置和历史不动
+- 卸载：「设置 › 应用」里卸载，或运行 `ThreebrookInterpret.exe --uninstall`；默认保留设置和历史，勾选后才删除
+- 静默：`Setup.exe --silent [--dir 目录] [--desktop] [--autostart]`，`ThreebrookInterpret.exe --uninstall --silent [--delete-data]`；结果写到 `%TEMP%\ThreebrookInterpret-Setup.log`
+- 测试：加 `--test` 换用另一个 AppId 和名字，不碰开机自启和真实数据；环境变量 `THREEBROOK_SETUP_FAIL_AT=<n>|end` 模拟出错，验证回滚
+
+绿色版的 exe 旁边有一个 `portable` 文件，程序看到它就把所有数据存到旁边的 `data` 文件夹，不写 `%AppData%`，整个文件夹拷走就能接着用。
+
 ## 快捷键（可在设置中修改）
 
 | 快捷键 | 功能 |
@@ -70,13 +94,19 @@ powershell -ExecutionPolicy Bypass -File publish.ps1
 使用 Windows 自带 OCR，离线、不增加体积。默认跟随系统语言（中文系统可识别中英文）。
 识别日语、韩语、泰语等：Windows 设置 → 时间和语言 → 语言 → 添加该语言（勾选"光学字符识别"），然后在设置 → 截图与识别 中选择。
 
+## 界面语言
+
+简体中文 / English，在 设置 → 常规 → 界面语言 切换，立即生效；默认跟随 Windows 显示语言（中文系统用中文，其余用英文）。安装程序沿用软件里选的语言。
+
+界面文字在 `src/ThreebrookInterpret/Localization/Strings.zh.xaml` 和 `Strings.en.xaml`，两个文件的键一一对应：XAML 用 `{DynamicResource S.键}`，代码用 `Loc.T("键")` / `Loc.F("键", 参数)`。新增界面文字时两个文件都要加。
+
 ## 外观
 
 按[三溪外观规范](doc/01-ui/三溪外观规范.md)：溪青强调色、米白 / 墨绿浅深两套主题（默认跟随系统，设置 → 常规 → 外观 可固定），标题用站酷小薇 / Bricolage Grotesque，等宽用 JetBrains Mono，图标用 Material Symbols 线框款。产品色暮紫 `#7460C4`。
 
 ## 数据位置
 
-`%AppData%\ThreebrookInterpret\`
+`%AppData%\ThreebrookInterpret\`（绿色版在程序旁边的 `data\`）
 
 - `settings.json`：配置（API Key、密钥用 Windows DPAPI 加密保存，只有本机同一账户能解开；换电脑或账户后需要重新填写）
 - `history\`：剪贴板历史（只存本机；密码管理器等标记为"不记录"的内容会跳过）
@@ -102,6 +132,7 @@ src/ThreebrookInterpret/
   Translation/           翻译引擎（实现 ITranslator，在 TranslatorFactory 注册）
   Services/              快捷键、划词、截屏、OCR、剪贴板历史、配置、开机自启
   Views/                 翻译窗口、截图遮罩与标注、钉图、剪贴板历史、设置、自绘标题栏
+  Setup/                 安装 / 卸载向导与引擎（安装包格式、回滚、快捷方式、卸载信息）
   Theme/                 浅色 / 深色颜色（由 doc/01-ui 的设计变量生成）、字体与图标、控件样式
   Fonts/ Assets/         裁剪后的字体（含许可）、产品图标
 ```

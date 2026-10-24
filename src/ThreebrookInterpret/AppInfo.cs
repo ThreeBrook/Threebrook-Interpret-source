@@ -7,7 +7,19 @@ namespace ThreebrookInterpret;
 /// </summary>
 public static class AppInfo
 {
-    public const string Name = "三溪通译";
+    public const string ChineseName = "三溪通译";
+
+    /// <summary>中文界面"三溪通译 Threebrook Interpret"，英文界面"Threebrook Interpret"（快捷方式说明、卸载信息）。</summary>
+    public static string FullName => Services.Loc.IsEnglish ? EnglishName : $"{ChineseName} {EnglishName}";
+
+    /// <summary>按界面语言显示的产品名。</summary>
+    public static string Name => Services.Loc.IsEnglish ? EnglishName : ChineseName;
     public const string EnglishName = "Threebrook Interpret";
     public const string Brand = "三溪 Threebrook";
+    public const string ProductUrl = "https://interpret.threebrook.com/";
+    public const string CompanyUrl = "https://www.threebrook.com/";
+
+    /// <summary>三段版本号，例如 0.7.0（取自 csproj 的 Version）。</summary>
+    public static string Version { get; } =
+        typeof(AppInfo).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "0.0.0";
 }

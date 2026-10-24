@@ -29,7 +29,7 @@ public sealed class TencentTranslator : ITranslator
         Http.WithTimeout(Timeout, ct, async token =>
         {
             if (string.IsNullOrWhiteSpace(_config.AppId) || string.IsNullOrWhiteSpace(_config.SecretKey))
-                throw new TranslationException("未配置腾讯云 SecretId 或 SecretKey");
+                throw new TranslationException(Services.Loc.T("Engine.TencentNoKey"));
 
             var payload = JsonSerializer.Serialize(new
             {
@@ -65,7 +65,7 @@ public sealed class TencentTranslator : ITranslator
             using var doc = JsonDocument.Parse(body);
             var result = doc.RootElement.GetProperty("Response");
             if (result.TryGetProperty("Error", out var error))
-                throw new TranslationException($"腾讯翻译错误 {error.GetProperty("Code").GetString()}：{error.GetProperty("Message").GetString()}");
+                throw new TranslationException(Services.Loc.F("Engine.Returned", Services.Loc.T("EngineType.tencent"), error.GetProperty("Code").GetString(), error.GetProperty("Message").GetString()));
             return result.GetProperty("TargetText").GetString() ?? "";
         });
 
