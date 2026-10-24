@@ -6,15 +6,24 @@
 #       ThreebrookInterpret-<版本>-Portable.zip            绿色版（框架依赖，需 .NET 10 桌面运行时）
 #       ThreebrookInterpret-<版本>-Portable-Runtime.zip    绿色版（自带运行时）
 # 安装包 = 程序 exe + 附带文件 zip + 32 字节尾标（见 src\ThreebrookInterpret\Setup\SetupPayload.cs）
-param([switch]$Portable, [switch]$Package)
+# -Package 要求 src 和本脚本没有未提交的改动，免得发出去的安装包（含许可协议）和仓库对不上；临时试包加 -AllowDirty
+param([switch]$Portable, [switch]$Package, [switch]$AllowDirty)
 
 $ErrorActionPreference = 'Stop'
 $project = Join-Path $PSScriptRoot 'src\ThreebrookInterpret\ThreebrookInterpret.csproj'
 
+# 当前提交写进程序的 InformationalVersion（版本号+提交），看 exe 属性就知道是哪次提交打的
+$commit = (git -C $PSScriptRoot rev-parse --short HEAD)
+$dirty = git -C $PSScriptRoot status --porcelain -- src publish.ps1
+if ($dirty) { $commit += '-dirty' }
+if ($Package -and $dirty -and -not $AllowDirty) {
+    throw "src 或 publish.ps1 有未提交的改动，先提交再打包（临时试包加 -AllowDirty）：`n$($dirty -join "`n")"
+}
+
 function Publish-App([string]$output, [bool]$selfContained) {
     $extra = if ($selfContained) { @('-p:EnableCompressionInSingleFile=true', '-p:IncludeNativeLibrariesForSelfExtract=true') } else { @() }
     dotnet publish $project -c Release -r win-x64 --self-contained $(if ($selfContained) { 'true' } else { 'false' }) `
-        -p:PublishSingleFile=true -p:DebugType=none -p:GenerateDocumentationFile=false @extra -o $output
+        -p:PublishSingleFile=true -p:DebugType=none -p:GenerateDocumentationFile=false -p:SourceRevisionId=$commit @extra -o $output
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
@@ -74,5 +83,12 @@ foreach ($kind in @(@{ Src = 'fd'; Zip = "ThreebrookInterpret-$version-Portable.
     Add-ZipFiles $archive $stage 'ThreebrookInterpret/'
     $archive.Dispose(); $file.Dispose()
 }
+
+# 打包记录：哪次提交、许可协议和各文件的 SHA-256，对得上就说明安装包里的协议就是仓库里这一版
+$info = @("Version: $version", "Commit:  $commit", "Built:   $((Get-Date).ToString('yyyy-MM-dd HH:mm:ss'))", '')
+foreach ($file in @(Get-ChildItem "$PSScriptRoot\src\ThreebrookInterpret\Setup\License*.txt") + @(Get-ChildItem $out -File)) {
+    $info += '{0}  {1}' -f (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLower(), $file.Name
+}
+[IO.File]::WriteAllLines("$out\build-info.txt", $info)
 
 Show-Files $out
