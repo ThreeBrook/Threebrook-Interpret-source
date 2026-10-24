@@ -28,9 +28,9 @@
     <Resource Include="Assets\AppIcon-36.png" />
     <Resource Include="Assets\AppIcon-128.png" />
     <Resource Include="Assets\AppIcon.ico" />
-    <!-- 安装程序里显示的许可协议 -->
-    <EmbeddedResource Include="Setup\License.txt" />
-    <EmbeddedResource Include="Setup\License.en.txt" />
+    <!-- 安装程序里显示的许可协议（.en.txt 会被当成英文文化资源放进卫星程序集，所以关掉 WithCulture、写死资源名） -->
+    <EmbeddedResource Include="Setup\License.txt" LogicalName="ThreebrookInterpret.Setup.License.txt" />
+    <EmbeddedResource Include="Setup\License.en.txt" LogicalName="ThreebrookInterpret.Setup.License.en.txt" WithCulture="false" />
     <!-- 字体许可（OFL 1.1 / Apache 2.0）随程序发布 -->
     <None Include="Fonts\licenses\*.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="licenses\%(Filename)%(Extension)" />
   </ItemGroup>
