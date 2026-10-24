@@ -40,6 +40,8 @@ ICONS = [
     "rectangle", "circle", "arrow_outward", "draw", "ink_highlighter", "title", "blur_on", "counter_1", "undo", "redo",
     # 术语表
     "menu_book", "swap_horiz",
+    # 长截图
+    "swipe_vertical", "pause", "play_arrow",
 ]
 
 

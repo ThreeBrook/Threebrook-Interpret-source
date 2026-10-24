@@ -60,4 +60,9 @@
     <!-- 术语表 -->
     <sys:String x:Key="I.Glossary">&#xEA19;</sys:String>
     <sys:String x:Key="I.Swap">&#xE8D4;</sys:String>
+
+    <!-- 长截图 -->
+    <sys:String x:Key="I.LongShot">&#xEB51;</sys:String>
+    <sys:String x:Key="I.Pause">&#xE034;</sys:String>
+    <sys:String x:Key="I.Play">&#xE037;</sys:String>
 </ResourceDictionary>

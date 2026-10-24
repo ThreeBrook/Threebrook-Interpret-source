@@ -27,12 +27,14 @@ public partial class PinWindow : Window
     private double _zoom = 1.0;
 
     /// <param name="x">左上角屏幕物理像素坐标。</param>
-    public PinWindow(BitmapSource image, int x, int y)
+    /// <param name="zoom">初始缩放（长截图比屏幕高时缩小显示）。</param>
+    public PinWindow(BitmapSource image, int x, int y, double zoom = 1.0)
     {
         InitializeComponent();
         _image = image;
         _x = x;
         _y = y;
+        _zoom = Math.Clamp(zoom, MinZoom, MaxZoom);
         PinImage.Source = image;
         _labelTimer.Tick += (_, _) =>
         {

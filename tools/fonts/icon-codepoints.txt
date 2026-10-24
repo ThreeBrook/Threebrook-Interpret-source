@@ -47,3 +47,6 @@ undo                   &#xE166;
 redo                   &#xE15A;
 menu_book              &#xEA19;
 swap_horiz             &#xE8D4;
+swipe_vertical         &#xEB51;
+pause                  &#xE034;
+play_arrow             &#xE037;

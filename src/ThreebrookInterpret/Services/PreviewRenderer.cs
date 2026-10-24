@@ -49,6 +49,10 @@ internal static class PreviewRenderer
 
             RenderElement(ScreenshotToolbar(), outputDirectory, theme, "screenshot-toolbar");
             RenderAnnotation(outputDirectory, theme);
+            var longShot = new LongScreenshotWindow(new System.Drawing.Rectangle(0, 0, 1080, 720));
+            longShot.ShowPreviewState("正在拼接，继续向下滚动…", 4320);
+            Render(longShot, outputDirectory, theme, "long-screenshot");
+            longShot.Close();
             RenderSelection(outputDirectory, theme, "screenshot-narrow", new Rect(200, 60, 340, 200));
             RenderSelection(outputDirectory, theme, "screenshot-wide", new Rect(20, 40, 720, 300));
             RenderSelection(outputDirectory, theme, "screenshot-hover", new Rect(60, 40, 580, 320), hover: true);

@@ -124,6 +124,7 @@
                             <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource ToolIcon}" Text="{StaticResource I.Translate}"/><TextBlock Text="翻译" VerticalAlignment="Center"/></StackPanel>
                         </Button>
                         <Rectangle Width="1" Margin="4,8" Fill="{DynamicResource B.Border}"/>
+                        <Button Style="{StaticResource ToolIconButton}" Content="{StaticResource I.LongShot}" ToolTip="长截图：滚动页面拼接成长图（L）" Click="LongShot_Click"/>
                         <Button Style="{StaticResource ToolIconButton}" Content="{StaticResource I.Pin}" ToolTip="钉在桌面（F3）" Click="Pin_Click"/>
                         <Button Style="{StaticResource ToolIconButton}" Content="{StaticResource I.Save}" ToolTip="保存为图片（Ctrl+S）" Click="Save_Click"/>
                         <Button Style="{StaticResource ToolButton}" Click="Copy_Click" ToolTip="复制到剪贴板（Enter / Ctrl+C / 双击选区）" Foreground="{DynamicResource B.Accent}">

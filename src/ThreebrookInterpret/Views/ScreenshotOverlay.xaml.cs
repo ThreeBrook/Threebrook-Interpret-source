@@ -245,6 +245,8 @@ public partial class ScreenshotOverlay : Window
             Recognize(translate: false);
         else if (e.Key == Key.T)
             Recognize(translate: true);
+        else if (e.Key == Key.L)
+            LongShot();
     }
 
     private void Reset()
@@ -402,6 +404,16 @@ public partial class ScreenshotOverlay : Window
         App.Instance.RecognizeImage(image, translate);
     }
 
+    /// <summary>长截图：收起遮罩，在这块屏幕区域上边滚动边拼接（标注不带入长图）。</summary>
+    private void LongShot()
+    {
+        var pixels = ToPixels(_selection);
+        var region = new System.Drawing.Rectangle(_bounds.Left + pixels.X, _bounds.Top + pixels.Y, pixels.Width, pixels.Height);
+        Close();
+        App.Instance.StartLongScreenshot(region);
+    }
+
+    private void LongShot_Click(object sender, RoutedEventArgs e) => LongShot();
     private void Ocr_Click(object sender, RoutedEventArgs e) => Recognize(translate: false);
     private void Translate_Click(object sender, RoutedEventArgs e) => Recognize(translate: true);
     private void Pin_Click(object sender, RoutedEventArgs e) => Pin();

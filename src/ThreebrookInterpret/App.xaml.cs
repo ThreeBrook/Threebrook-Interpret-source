@@ -238,9 +238,25 @@ public partial class App : Application
 
     public void TranslateText(string text) => _translateWindow?.ShowAtCursor(text);
 
+    private LongScreenshotWindow? _longScreenshot;
+
+    /// <summary>长截图：截图遮罩里框选后点「长截图」进入，region 为屏幕物理像素区域。</summary>
+    public void StartLongScreenshot(System.Drawing.Rectangle region)
+    {
+        if (_longScreenshot != null || region.Width < 20 || region.Height < 40)
+            return;
+        _longScreenshot = new LongScreenshotWindow(region);
+        _longScreenshot.Closed += (_, _) =>
+        {
+            _longScreenshot = null;
+            Dispatcher.BeginInvoke(CollectGarbage, DispatcherPriority.ApplicationIdle);
+        };
+        _longScreenshot.Start();
+    }
+
     private void StartScreenshot(bool translateMode)
     {
-        if (_screenshotOverlay != null)
+        if (_screenshotOverlay != null || _longScreenshot != null)
             return;
 
         var (image, bounds) = ScreenCapture.CaptureVirtualScreen();

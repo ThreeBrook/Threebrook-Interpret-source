@@ -47,6 +47,40 @@ public static class ScreenCapture
         }
     }
 
+    /// <summary>截取屏幕上一块区域（物理像素），返回 BGRX 像素（每行 width*4 字节），长截图逐帧用。</summary>
+    public static byte[] CaptureRegionPixels(Rectangle region)
+    {
+        using var bitmap = new Bitmap(region.Width, region.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+        using (var g = Graphics.FromImage(bitmap))
+        {
+            var target = g.GetHdc();
+            var screen = GetDC(IntPtr.Zero);
+            try
+            {
+                BitBlt(target, 0, 0, region.Width, region.Height, screen, region.Left, region.Top, SRCCOPY | CAPTUREBLT);
+            }
+            finally
+            {
+                ReleaseDC(IntPtr.Zero, screen);
+                g.ReleaseHdc(target);
+            }
+        }
+
+        var stride = region.Width * 4;
+        var pixels = new byte[stride * region.Height];
+        var data = bitmap.LockBits(new Rectangle(0, 0, region.Width, region.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
+        try
+        {
+            for (var y = 0; y < region.Height; y++)
+                Marshal.Copy(data.Scan0 + y * data.Stride, pixels, y * stride, stride);
+        }
+        finally
+        {
+            bitmap.UnlockBits(data);
+        }
+        return pixels;
+    }
+
     private const int SRCCOPY = 0x00CC0020;
     private const int CAPTUREBLT = 0x40000000; // 包含分层（半透明）窗口
 
