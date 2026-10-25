@@ -14,13 +14,13 @@
 
 <img src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white" alt=".NET 10">
 <img src="https://img.shields.io/badge/WPF-界面-512BD4" alt="WPF">
-<img src="https://img.shields.io/badge/Windows_OCR-本机识别-0078D4?logo=windows&logoColor=white" alt="Windows OCR">
+<img src="https://img.shields.io/badge/PaddleOCR-本机识别-2f9e9a" alt="PaddleOCR">
 <img src="https://img.shields.io/badge/DPAPI-密钥加密-2f9e9a" alt="DPAPI">
 <img src="https://img.shields.io/badge/界面文字-中文_%2F_English-2f9e9a" alt="中英文界面">
 
 [它做什么](#它做什么) · [现状](#现状) · [架构](#架构) · [代码地图](#代码地图) · [开发](#在-windows-上开发) · [发布](#发布一个新版本) · [用法速查](#用法速查) · [官网](https://interpret.threebrook.com/)
 
-<img src="doc/images/translate.webp" alt="翻译窗口：一句英文同时用必应、Yandex 和本地大模型翻成中文，结果并排" width="520">
+<img src="doc/images/promo-translate.webp" alt="选中文字，按一下就翻：文档里选中一句英文，翻译窗口里必应、Yandex、DeepL、本地大模型的结果并排" width="760">
 
 </div>
 
@@ -33,20 +33,36 @@
 
 | ⌨️ 输入翻译 `Alt+Q` | 🖱️ 划词翻译 `Alt+D` | ✂️ 截图翻译 `Alt+W` |
 | --- | --- | --- |
-| 打进去回车就翻，中英文自动判断方向。 | 在任何程序里选中文字，按一下就翻（UI Automation 读选区，读不到再模拟复制）。 | 框选屏幕一块区域，Windows 自带 OCR 识别后翻译。 |
+| 打进去回车就翻，中英文自动判断方向。 | 在任何程序里选中文字，按一下就翻（UI Automation 读选区，读不到再模拟复制）。 | 框选屏幕一块区域，内置 PaddleOCR 高精度识别（本机、不联网）后翻译。 |
 
-另外两个快捷键：`Alt+S` 截图（标注、钉图、长截图、识别文字、复制保存），`Alt+H` 剪贴板历史（文字 + 图片，回车粘贴）。五个快捷键都可以在设置里改成任意组合。
+另外两个快捷键：`Alt+S` 截图（标注、钉图、长截图、识别文字、复制保存），`Alt+H` 剪贴板历史（文字 + 图片，回车粘贴）。五个快捷键都可以在设置里改成任意组合。钉在桌面的截图会自动识别文字，直接在图上拖动选字、复制、翻译。
 
 <table>
 <tr>
-<td width="50%"><img src="doc/images/annotate.webp" alt="截图标注示意：框、箭头、文字、荧光笔、圈注、马赛克，下方是真实的标注工具栏"></td>
-<td width="50%"><img src="doc/images/glossary.webp" alt="术语表：三溪对应 Threebrook，周报对应 weekly digest"></td>
+<td width="50%"><img src="doc/images/promo-pin.webp" alt="钉在桌面，直接选字：钉住的截图上选中两行文字，下方弹出复制 / 翻译，旁边是译文"></td>
+<td width="50%"><img src="doc/images/promo-annotate.webp" alt="截图、标注一步到位：框、箭头、序号、文字、马赛克和标注工具栏"></td>
 </tr>
 <tr>
-<td align="center"><sub>截图标注：8 种工具、钉图、长截图（滚动拼接）</sub></td>
-<td align="center"><sub>术语表：双向生效，大模型写进提示词，机器翻译用占位符</sub></td>
+<td align="center"><sub>钉图选字：钉住后自动识别，拖动选取、复制、翻译</sub></td>
+<td align="center"><sub>截图标注：8 种工具，复制、保存、钉图都带标注，还能长截图</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="doc/images/promo-engines.webp" alt="8 种翻译引擎，也能接本地大模型：设置里选中本地大模型，显示接口地址和模型"></td>
+<td width="50%"><img src="doc/images/promo-history.webp" alt="剪贴板历史：复制过的文字记在本机，回车粘贴"></td>
+</tr>
+<tr>
+<td align="center"><sub>8 种引擎 + OpenAI 兼容接口接本地大模型</sub></td>
+<td align="center"><sub>剪贴板历史：文字和图片，Alt+H 呼出、回车粘贴</sub></td>
+</tr>
+<tr>
+<td colspan="2"><img src="doc/images/promo-themes.webp" alt="浅色深色，中英双语：浅色和深色的翻译窗口并排"></td>
+</tr>
+<tr>
+<td colspan="2" align="center"><sub>浅色 / 深色、中文 / 英文，跟随 Windows 自动切换</sub></td>
 </tr>
 </table>
+
+> 这些图用 `ThreebrookInterpret.exe --render-promo <目录>` 生成（真实窗口 + 示例数据），中英文 × 浅深色、带不带文案共 48 张。
 
 **翻译引擎**：必应、Yandex（免 Key，非官方接口，默认开启）；百度、腾讯、有道、Azure、DeepL（官方 API）；OpenAI 兼容接口（本机 Ollama / LM Studio / vLLM，或 DeepSeek 等在线大模型）。可同时开几个，结果并排，最快的先出。
 
@@ -54,7 +70,7 @@
 
 <table>
 <tr><th>项目</th><th>状态</th></tr>
-<tr><td><b>Windows</b></td><td>✅ <b>0.7.0</b>（2026-10-24）：输入 / 划词 / 截图翻译，截图标注、钉图、长截图，剪贴板历史，8 种引擎 + 术语表，API Key DPAPI 加密，Windows OCR，浅色 / 深色，中英文界面，自制安装包和绿色版；开发中：钉图选取文字、PaddleOCR 高精度识别、安装包和绿色版自带运行时（下载即用）</td></tr>
+<tr><td><b>Windows</b></td><td>✅ <b>0.7.0</b>（2026-10-25）：输入 / 划词 / 截图翻译，截图标注、钉图、长截图，剪贴板历史，8 种引擎 + 术语表，API Key DPAPI 加密，浅色 / 深色，中英文界面，钉图选取文字，PaddleOCR 高精度识别，自制安装包和绿色版（都自带运行时，下载即用）</td></tr>
 <tr><td>官网</td><td>✅ interpret.threebrook.com 已做好（中英文：首页、下载、帮助、隐私政策、许可协议），公司主页 threebrook.com 第 5 站“通译小铺”</td></tr>
 <tr><td>代码签名</td><td>⏸ 安装包未签名，别的电脑上 SmartScreen 可能提示“未知发布者”，需要代码签名证书</td></tr>
 <tr><td>其他平台</td><td>✖ 只做 Windows</td></tr>
@@ -84,7 +100,7 @@ flowchart TB
         direction LR
         SEL["划词<br/>SelectionReader"]
         CAP["截屏 · 找窗口"]
-        OCR["Windows OCR"]
+        OCR["文字识别 OcrService<br/>PaddleOCR · Windows OCR"]
         CB["剪贴板监听<br/>ClipboardHistory"]
         CFG["配置 · DPAPI<br/>SettingsStore · SecretProtector"]
     end
@@ -114,7 +130,7 @@ flowchart TB
 ```mermaid
 flowchart LR
     K["Alt+W"] --> S["截屏遮罩<br/>高亮鼠标下的窗口<br/>单击选窗口 · 拖动框选"]
-    S --> O["Windows OCR<br/>按设置的识别语言"]
+    S --> O["文字识别<br/>PaddleOCR（程序旁 ocr\）<br/>没有就用 Windows OCR"]
     O --> G["术语表<br/>换占位符 / 写进提示词"]
     G --> E["已启用的引擎并发请求"]
     E --> W["翻译窗口<br/>结果并排 · 耗时 · 失败原因"]
@@ -138,7 +154,7 @@ tools/
   fonts/build_fonts.py        裁剪站酷小薇 / Bricolage / JetBrains Mono / Material Symbols
   ocr/fetch.ps1               下载高精度识别组件（PaddleOCR 模型 + onnxruntime.dll，校验 SHA256）到 tools/ocr/cache
   IconGen/                    生成产品图标 AppIcon.ico 和预览图
-doc/images/                   本 README 用的界面截图（--render-previews 渲染，示例数据）
+doc/images/                   本 README 用的宣传图（--render-promo 渲染，真实窗口 + 示例数据，缩到 1440×900 的 WebP）
 ```
 
 > [!NOTE]
