@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -79,10 +78,9 @@ public static class OcrService
     }
 }
 
+
 /// <summary>
-/// 高精度识别组件（PaddleOCR 模型 + onnxruntime.dll，约 37 MB）的位置、安装和删除。
-/// 组件不随安装包发布，用户从官网下载组件 zip 后在设置里"从文件安装"，解压到数据目录的 ocr 文件夹；
-/// 程序旁边的 ocr 文件夹（绿色版手动放置）也认。程序本身不联网下载。
+/// 高精度识别组件（PaddleOCR 模型 + onnxruntime.dll，约 37 MB）：发布的安装包和绿色版都把它放在程序旁边的 ocr 文件夹。
 /// </summary>
 public static class OcrComponent
 {
@@ -92,21 +90,13 @@ public static class OcrComponent
     /// <summary>组件里的版本说明文件，第一行是版本。</summary>
     public const string InfoFile = "component.txt";
 
-    public static string InstallDirectory => Path.Combine(SettingsStore.DataDirectory, FolderName);
-
-    /// <summary>onnxruntime.dll 已加载时不能覆盖或删除，先放到这里，下次启动时替换。</summary>
-    private static string PendingDirectory => Path.Combine(SettingsStore.DataDirectory, FolderName + ".new");
-
-    private static string PendingRemoveMarker => Path.Combine(SettingsStore.DataDirectory, FolderName + ".remove");
-
-    /// <summary>开发用：环境变量 THREEBROOK_OCR_DIR 指向组件文件夹（如 tools\ocr\cache）。</summary>
+    /// <summary>开发用：环境变量 THREEBROOK_OCR_DIR 指向组件文件夹（如 tools\ocr\cache），没有就找程序旁边的 ocr。</summary>
     public static string? FindDirectory()
     {
         var candidates = new[]
         {
             Environment.GetEnvironmentVariable("THREEBROOK_OCR_DIR"),
             Path.Combine(AppContext.BaseDirectory, FolderName),
-            InstallDirectory,
         };
         return candidates.FirstOrDefault(dir => !string.IsNullOrEmpty(dir) && RequiredFiles.All(f => File.Exists(Path.Combine(dir, f))));
     }
@@ -120,117 +110,6 @@ public static class OcrComponent
         catch (IOException)
         {
             return null;
-        }
-    }
-
-    /// <summary>启动时处理上次没能完成的替换 / 删除（当时 onnxruntime.dll 正被占用）。</summary>
-    public static void ApplyPendingChanges()
-    {
-        try
-        {
-            if (File.Exists(PendingRemoveMarker))
-            {
-                if (Directory.Exists(InstallDirectory))
-                    Directory.Delete(InstallDirectory, recursive: true);
-                File.Delete(PendingRemoveMarker);
-            }
-            if (Directory.Exists(PendingDirectory))
-            {
-                if (Directory.Exists(InstallDirectory))
-                    Directory.Delete(InstallDirectory, recursive: true);
-                Directory.Move(PendingDirectory, InstallDirectory);
-            }
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            DiagnosticLog.Write("ocr component pending change failed: " + ex.Message, "settings.log");
-        }
-    }
-
-    /// <summary>从组件 zip 安装；返回 true 表示已生效，false 表示要重启程序后生效。zip 不对时抛出 InvalidDataException。</summary>
-    public static bool Install(string zipPath)
-    {
-        var staging = InstallDirectory + ".tmp";
-        if (Directory.Exists(staging))
-            Directory.Delete(staging, recursive: true);
-        try
-        {
-            using (var zip = ZipFile.OpenRead(zipPath))
-            {
-                // 组件 zip 里的文件可能直接在根目录，也可能在一层文件夹里
-                var dll = zip.Entries.FirstOrDefault(e => e.Name.Equals("onnxruntime.dll", StringComparison.OrdinalIgnoreCase))
-                          ?? throw new InvalidDataException(Loc.T("Ocr.NotComponent"));
-                var prefix = dll.FullName[..^dll.Name.Length];
-                foreach (var entry in zip.Entries.Where(e => e.FullName.StartsWith(prefix, StringComparison.Ordinal) && e.Name.Length > 0))
-                {
-                    var target = Path.GetFullPath(Path.Combine(staging, entry.FullName[prefix.Length..]));
-                    if (!target.StartsWith(Path.GetFullPath(staging) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
-                        throw new InvalidDataException(Loc.T("Ocr.NotComponent")); // 不解压到组件文件夹以外
-                    Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-                    entry.ExtractToFile(target, overwrite: true);
-                }
-            }
-            if (!RequiredFiles.All(f => File.Exists(Path.Combine(staging, f))))
-                throw new InvalidDataException(Loc.T("Ocr.NotComponent"));
-
-            PaddleOcr.Unload();
-            if (Directory.Exists(PendingDirectory))
-                Directory.Delete(PendingDirectory, recursive: true);
-            File.Delete(PendingRemoveMarker);
-            if (IsInUse())
-            {
-                Directory.Move(staging, PendingDirectory); // 旧组件的 dll 还在用，旧组件照常用到重启，重启后替换
-                return false;
-            }
-            if (Directory.Exists(InstallDirectory))
-                Directory.Delete(InstallDirectory, recursive: true);
-            Directory.Move(staging, InstallDirectory);
-            return true;
-        }
-        finally
-        {
-            if (Directory.Exists(staging))
-                Directory.Delete(staging, recursive: true);
-        }
-    }
-
-    /// <summary>删除数据目录里的组件；返回 false 表示要重启程序后才能删掉。</summary>
-    public static bool Remove()
-    {
-        PaddleOcr.Unload();
-        if (Directory.Exists(PendingDirectory))
-            Directory.Delete(PendingDirectory, recursive: true);
-        if (IsInUse())
-        {
-            File.WriteAllText(PendingRemoveMarker, "");
-            return false;
-        }
-        if (Directory.Exists(InstallDirectory))
-            Directory.Delete(InstallDirectory, recursive: true);
-        return true;
-    }
-
-    /// <summary>
-    /// onnxruntime.dll 加载后要到程序退出才释放。先试着独占打开它：被占用就整个推迟到重启，
-    /// 免得删掉一半（模型删了、dll 删不掉）让组件坏掉。
-    /// </summary>
-    private static bool IsInUse()
-    {
-        var dll = Path.Combine(InstallDirectory, "onnxruntime.dll");
-        if (!File.Exists(dll))
-            return false;
-        try
-        {
-            using var stream = new FileStream(dll, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-            return false;
-        }
-        catch (IOException)
-        {
-            return true;
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return true;
         }
     }
 }

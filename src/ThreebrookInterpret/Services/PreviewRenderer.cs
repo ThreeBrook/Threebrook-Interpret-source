@@ -79,10 +79,6 @@ internal static class PreviewRenderer
                 Render(setup, outputDirectory, theme, "setup-" + page);
                 setup.Close();
             }
-            var fullSetup = Setup.SetupWindow.CreatePreview(uninstall: false, full: true); // 完整版安装包的欢迎页
-            fullSetup.ShowPreviewPage("welcome");
-            Render(fullSetup, outputDirectory, theme, "setup-welcome-full");
-            fullSetup.Close();
             foreach (var page in new[] { "confirm", "uprogress", "udone" })
             {
                 var setup = Setup.SetupWindow.CreatePreview(uninstall: true);
@@ -126,76 +122,6 @@ internal static class PreviewRenderer
                 report.AppendLine("failed: " + ex);
             }
         }
-        File.WriteAllText(outputPath, report.ToString());
-    }
-
-    /// <summary>
-    /// 组件安装自测：只在绿色版里运行（数据目录就是程序旁的 data，不碰 %AppData%）。
-    /// 从组件 zip 安装 → 用高精度识别认一张合成图 → 删除（dll 已加载，应改为重启后删除）→ 模拟重启时的处理。
-    /// </summary>
-    public static void TestOcrComponent(string zipPath, string outputPath)
-    {
-        var report = new System.Text.StringBuilder();
-        void Step(string name, Func<object?> action)
-        {
-            try
-            {
-                report.AppendLine($"{name}: {action()}");
-            }
-            catch (Exception ex)
-            {
-                report.AppendLine($"{name}: FAILED {ex.GetType().Name}: {ex.Message}");
-            }
-        }
-
-        if (!SettingsStore.IsPortable)
-        {
-            File.WriteAllText(outputPath, "refused: only runs in a portable copy");
-            return;
-        }
-        App.UsePreviewSettings("light");
-        Step("data directory", () => SettingsStore.DataDirectory);
-        Step("startup pending changes", () =>
-        {
-            OcrComponent.ApplyPendingChanges(); // 和正常启动时一样，处理上次推迟的替换 / 删除
-            return string.Join(", ", Directory.GetFileSystemEntries(SettingsStore.DataDirectory).Select(Path.GetFileName));
-        });
-        Step("before install", () => OcrComponent.FindDirectory() ?? "(none)");
-        Step("install bad zip", () =>
-        {
-            var bad = Path.Combine(Path.GetTempPath(), "tb-not-component.zip");
-            using (var zip = System.IO.Compression.ZipFile.Open(bad, System.IO.Compression.ZipArchiveMode.Create))
-                zip.CreateEntry("readme.txt");
-            try
-            {
-                OcrComponent.Install(bad);
-                return "unexpectedly accepted";
-            }
-            catch (InvalidDataException ex)
-            {
-                return "rejected: " + ex.Message;
-            }
-            finally
-            {
-                File.Delete(bad);
-            }
-        });
-        Step("install", () => OcrComponent.Install(zipPath) ? "applied" : "pending restart");
-        Step("found", () => OcrComponent.FindDirectory() + " | version " + OcrComponent.Version(OcrComponent.FindDirectory()!));
-        Step("engine", () => OcrService.UsesPaddle ? "paddle" : "windows");
-        Step("recognize", () =>
-        {
-            var image = new WriteableBitmap(new CroppedBitmap(SyntheticScreen(760, 470), new Int32Rect(60, 40, 420, 190)));
-            image.Freeze();
-            // 这里在界面线程上同步等待，只能用不回到界面线程的 RecognizeLinesAsync（RecognizeAsync 会死锁）
-            var lines = OcrService.RecognizeLinesAsync(image).GetAwaiter().GetResult();
-            return string.Join(" / ", lines.Select(l => $"{OcrService.JoinWords(l.Words)} @{l.Bounds.X:0},{l.Bounds.Y:0},{l.Bounds.Width:0}x{l.Bounds.Height:0}"))
-                   + $"  ({PaddleOcr.LastTiming})";
-        });
-        Step("reinstall while loaded", () => OcrComponent.Install(zipPath) ? "applied" : "pending restart");
-        Step("remove while loaded", () => OcrComponent.Remove() ? "removed" : "pending restart");
-        Step("after remove", () => OcrComponent.FindDirectory() ?? "(none)");
-        Step("engine after remove", () => OcrService.UsesPaddle ? "paddle" : "windows");
         File.WriteAllText(outputPath, report.ToString());
     }
 

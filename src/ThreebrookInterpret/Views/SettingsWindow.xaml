@@ -403,21 +403,9 @@
                                             <ComboBoxItem Content="{DynamicResource S.Settings.OcrEnginePaddle}" Tag="paddle"/>
                                         </ComboBox>
                                     </Grid>
-                                    <!-- 高精度识别组件：装在数据目录，不随安装包附带 -->
-                                    <Grid Margin="76,0,0,6">
-                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <TextBlock x:Name="OcrComponentStatus" VerticalAlignment="Center" TextWrapping="Wrap" FontSize="12.5" Margin="0,0,8,0"/>
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                            <Button Style="{StaticResource Btn.Outline}" Click="InstallOcr_Click">
-                                                <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Install}" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource S.Settings.OcrInstallFromFile}" VerticalAlignment="Center"/></StackPanel>
-                                            </Button>
-                                            <Button x:Name="OcrRemoveButton" Style="{StaticResource Btn.Outline}" Margin="8,0,0,0" Click="RemoveOcr_Click"
-                                                    Content="{DynamicResource S.Common.Delete}"/>
-                                        </StackPanel>
-                                    </Grid>
-                                    <TextBlock Style="{StaticResource Text.Caption}" Margin="76,0,0,2" TextWrapping="Wrap" Text="{DynamicResource S.Settings.OcrComponentHint}"/>
-                                    <Button x:Name="OcrDownloadLink" Style="{StaticResource Link}" Margin="76,0,0,0" HorizontalAlignment="Left" FontSize="12.5"
-                                            Content="{DynamicResource S.Settings.OcrDownload}" Click="OpenLink_Click"/>
+                                    <!-- 高精度识别组件：随程序放在旁边的 ocr 文件夹 -->
+                                    <TextBlock x:Name="OcrComponentStatus" Margin="76,0,0,4" TextWrapping="Wrap" FontSize="12.5"/>
+                                    <TextBlock Style="{StaticResource Text.Caption}" Margin="76,0,0,0" TextWrapping="Wrap" Text="{DynamicResource S.Settings.OcrComponentHint}"/>
                                     <Border Style="{StaticResource RowDivider}" Margin="0,14"/>
                                     <Grid Style="{StaticResource Field}" Margin="0,0,0,8">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="76"/><ColumnDefinition Width="240"/></Grid.ColumnDefinitions>

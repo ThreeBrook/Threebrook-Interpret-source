@@ -39,8 +39,6 @@ public partial class SetupWindow : Window
     internal SetupWindow(SetupPayload payload, SetupContext context) : this(context, uninstall: false)
     {
         _payload = payload;
-        if (payload.Files.Any(f => f.Path.StartsWith(OcrComponent.FolderName + "\\", StringComparison.OrdinalIgnoreCase)))
-            ShowFullEdition();
         _existing = SetupEngine.FindExisting(context);
         DirBox.Text = _existing?.Directory ?? context.DefaultDirectory;
         if (_existing != null)
@@ -426,22 +424,9 @@ public partial class SetupWindow : Window
 
     // —— 界面预览 ——
 
-    /// <summary>完整版安装包（带高精度识别组件）：欢迎页说明识别用的是哪个。</summary>
-    private void ShowFullEdition()
-    {
-        OcrFeatureText.SetResourceReference(TextBlock.TextProperty, "S.Setup.Feature2SubFull");
-        VersionText.Text += "\n" + Loc.T("Setup.FullEdition"); // 左栏窄，单独一行
-    }
-
-    internal static SetupWindow CreatePreview(bool uninstall, bool full = false)
-    {
-        var window = uninstall
-            ? new SetupWindow(@"C:\Users\你\AppData\Local\Programs\ThreebrookInterpret", new SetupContext(false))
-            : new SetupWindow(new SetupContext(false), uninstall: false);
-        if (full)
-            window.ShowFullEdition();
-        return window;
-    }
+    internal static SetupWindow CreatePreview(bool uninstall) => uninstall
+        ? new SetupWindow(@"C:\Users\你\AppData\Local\Programs\ThreebrookInterpret", new SetupContext(false))
+        : new SetupWindow(new SetupContext(false), uninstall: false);
 
     /// <summary>预览用：直接显示某一页（示例数据）。</summary>
     internal void ShowPreviewPage(string page)

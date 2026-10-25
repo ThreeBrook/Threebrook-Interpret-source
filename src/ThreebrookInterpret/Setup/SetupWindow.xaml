@@ -113,7 +113,7 @@
                                     <Border Style="{StaticResource FeatureIcon}"><TextBlock Style="{StaticResource FeatureGlyph}" Text="{StaticResource I.Screenshot}"/></Border>
                                     <StackPanel VerticalAlignment="Center">
                                         <TextBlock Style="{StaticResource FeatureTitle}" Text="{DynamicResource S.Setup.Feature2}"/>
-                                        <TextBlock x:Name="OcrFeatureText" Style="{StaticResource FeatureSub}" Text="{DynamicResource S.Setup.Feature2Sub}"/>
+                                        <TextBlock Style="{StaticResource FeatureSub}" Text="{DynamicResource S.Setup.Feature2Sub}"/>
                                     </StackPanel>
                                 </DockPanel>
                                 <DockPanel>

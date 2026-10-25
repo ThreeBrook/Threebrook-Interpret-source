@@ -10,7 +10,7 @@ This agreement is between you and Threebrook ("we") and covers Threebrook Interp
 2. Translated content and your data
 · The software doesn't collect or upload any usage data and doesn't check for updates automatically. Installing and uninstalling never connect to the internet.
 · Text is sent out only when you use an online translation engine (such as Bing, Yandex, DeepL, Baidu, Youdao, Tencent or Microsoft Azure). It then goes to that provider and is subject to its terms of service and privacy policy. For confidential content, use a local language model or the offline features only.
-· Screenshot text recognition runs on your computer, using either the component built into Windows or the high-accuracy component if you install it. Screenshots themselves are never sent anywhere.
+· Screenshot text recognition runs on your computer, using either the included high-accuracy component or the component built into Windows. Screenshots themselves are never sent anywhere.
 · Settings, the glossary, clipboard history and diagnostic logs are stored on your computer (the installed version uses %AppData%\ThreebrookInterpret; the portable version uses the data folder next to the program). Diagnostic logs don't record any text content.
 · Clipboard history keeps the text and images you copy. Content marked as excluded from history, for example by password managers, is skipped. You can turn history off in Settings.
 · API keys are encrypted with Windows Data Protection, so only the current user on the current computer can read them. If you copy the portable version to another computer, you'll need to enter them again.
@@ -19,7 +19,7 @@ This agreement is between you and Threebrook ("we") and covers Threebrook Interp
 · The names and trademarks of translation services belong to their owners. The software isn't affiliated with them.
 · The free engines (Bing, Yandex) use interfaces from those providers' websites or apps, which may change or stop working at any time. For engines that need an API key, your account, quota and any charges are between you and the provider.
 · The fonts embedded in the software are released under their own licenses (SIL Open Font License 1.1, Apache License 2.0). The full license texts are in the licenses folder next to the program.
-· The optional high-accuracy OCR component contains PaddleOCR models (Apache License 2.0) and ONNX Runtime (MIT License). The full license texts are in the licenses folder of the component package.
+· The included high-accuracy OCR component contains PaddleOCR models (Apache License 2.0) and ONNX Runtime (MIT License). The full license texts are in the ocr\licenses folder next to the program.
 
 4. Disclaimer (please read carefully)
 · The software is provided free of charge and "as is". To the maximum extent permitted by law, we make no warranties of any kind, express or implied, including merchantability, fitness for a particular purpose and non-infringement.

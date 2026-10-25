@@ -6,7 +6,7 @@
 
 <h3>划一下、截一下，马上就懂。</h3>
 
-<p>常驻托盘的 Windows 翻译小工具——C# .NET 10 WPF，单文件发布，程序本体约 750 KB。</p>
+<p>常驻托盘的 Windows 翻译小工具——C# .NET 10 WPF，单文件发布。安装包和绿色版都自带运行时和高精度识别，下载就能用。</p>
 
 <img src="https://img.shields.io/badge/版本-0.7.0-2f9e9a?style=for-the-badge" alt="版本 0.7.0">
 <img src="https://img.shields.io/badge/平台-Windows_10_%2F_11-2f9e9a?style=for-the-badge&logo=windows11&logoColor=white" alt="Windows">
@@ -54,7 +54,7 @@
 
 <table>
 <tr><th>项目</th><th>状态</th></tr>
-<tr><td><b>Windows</b></td><td>✅ <b>0.7.0</b>（2026-10-24）：输入 / 划词 / 截图翻译，截图标注、钉图、长截图，剪贴板历史，8 种引擎 + 术语表，API Key DPAPI 加密，Windows OCR，浅色 / 深色，中英文界面，自制安装包和两种绿色版</td></tr>
+<tr><td><b>Windows</b></td><td>✅ <b>0.7.0</b>（2026-10-24）：输入 / 划词 / 截图翻译，截图标注、钉图、长截图，剪贴板历史，8 种引擎 + 术语表，API Key DPAPI 加密，Windows OCR，浅色 / 深色，中英文界面，自制安装包和绿色版；开发中：钉图选取文字、PaddleOCR 高精度识别、安装包和绿色版自带运行时（下载即用）</td></tr>
 <tr><td>官网</td><td>✅ interpret.threebrook.com 已做好（中英文：首页、下载、帮助、隐私政策、许可协议），公司主页 threebrook.com 第 5 站“通译小铺”</td></tr>
 <tr><td>代码签名</td><td>⏸ 安装包未签名，别的电脑上 SmartScreen 可能提示“未知发布者”，需要代码签名证书</td></tr>
 <tr><td>其他平台</td><td>✖ 只做 Windows</td></tr>
@@ -123,7 +123,7 @@ flowchart LR
 ## 代码地图
 
 ```
-publish.ps1                   发布：单文件 exe、-Portable 自带运行时、-Package 安装包和两种绿色版（各有小 / 完整版）+ 识别组件包
+publish.ps1                   发布：单文件 exe、-Portable 自带运行时、-Package 安装包 + 绿色版（都自带运行时和高精度识别）
 src/ThreebrookInterpret/
   App.xaml.cs                 托盘、快捷键、各功能入口；--render-previews、安装 / 卸载模式分流
   AppInfo.cs                  产品名、网址、版本（内部标识一律 ThreebrookInterpret）
@@ -149,7 +149,7 @@ doc/images/                   本 README 用的界面截图（--render-previews 
 ```powershell
 dotnet build src/ThreebrookInterpret -c Debug                       # 编译（需要 .NET 10 SDK）
 .\publish.ps1                                                        # dist\ThreebrookInterpret.exe（框架依赖，约 750 KB）
-.\publish.ps1 -Package                                               # dist\package：安装包、两种绿色版（各有小 / 完整版）+ 识别组件包 + build-info.txt
+.\publish.ps1 -Package                                               # dist\package：安装包 + 绿色版（约 93 MB，都自带运行时和高精度识别）+ build-info.txt
 ThreebrookInterpret.exe --render-previews <目录>                     # 各窗口 中英文 × 浅深色 渲染成 PNG（屏幕外，不读写用户数据）
 ```
 
@@ -163,7 +163,7 @@ ThreebrookInterpret.exe --render-previews <目录>                     # 各窗�
 ```mermaid
 flowchart LR
     A["改版本号<br/>csproj Version"] --> B["提交<br/>工作区干净"]
-    B --> C["publish.ps1 -Package<br/>安装包、绿色版（小 / 完整版）<br/>识别组件包 · build-info.txt"]
+    B --> C["publish.ps1 -Package<br/>安装包 + 绿色版<br/>build-info.txt"]
     C --> D["--test 静默安装 / 卸载<br/>中英文向导"]
     D --> E["官网 data/interpret<br/>release.json · changelog.json"]
     E --> F["上传 R2<br/>dl.threebrook.com/interpret/版本/"]
@@ -171,7 +171,7 @@ flowchart LR
 ```
 
 1. 改 `src/ThreebrookInterpret/ThreebrookInterpret.csproj` 的 `<Version>`，提交。`-Package` 要求 `src` 和发布脚本没有未提交的改动，免得安装包里的许可协议和仓库对不上（临时试包加 `-AllowDirty`）。
-2. `.\publish.ps1 -Package`，产物和 `build-info.txt`（版本、提交、校验值）在 `dist\package`。识别组件包要先运行一次 `tools\ocr\fetch.ps1`（缓存在 `tools\ocr\cache`，不进仓库），没有缓存时只跳过组件包。
+2. `.\publish.ps1 -Package`，产物和 `build-info.txt`（版本、提交、校验值）在 `dist\package`。第一次要先运行 `tools\ocr\fetch.ps1` 下载高精度识别组件（缓存在 `tools\ocr\cache`，不进仓库），没有缓存时打包会停下来提示。
 3. 用 `--test` 静默安装、覆盖安装、卸载各走一遍，中英文安装向导各看一次。
 4. 官网仓库：`data/interpret/release.json` 写文件名、大小、校验值和下载地址，`changelog.json` 写中英文更新内容；协议有改动时同步 `data/interpret/legal/`。运行 `python tools/gen_interpret_pages.py`。
 5. 安装包上传到 R2（`dl.threebrook.com/interpret/<版本>/`），确认能下载、校验值一致后，提交官网仓库并部署 `interpret` 文件夹。R2 只留最新版。
@@ -217,7 +217,7 @@ flowchart LR
 <summary><b>文字识别、界面语言、数据位置</b></summary>
 
 - OCR 默认用 Windows 自带识别，离线、不增加体积，默认跟随系统语言；日、韩、泰等要在 Windows 语言设置里添加该语言（勾选“光学字符识别”），再在 设置 › 截图与识别 里选择。
-- 高精度识别（可选组件，约 37 MB，zip 约 24 MB）：PaddleOCR PP-OCRv5 mobile + ONNX Runtime，同样本机识别、不联网，中文屏幕小字基本不出错（Windows 自带识别在深色底、小字号上错字很多）。两种拿法：用完整版安装包 `ThreebrookInterpret-Setup-<版本>-Full.exe`（约 25 MB）或完整版绿色版 `…-Portable-Full.zip`（约 25 MB）/ `…-Portable-Runtime-Full.zip`（约 93 MB），组件在程序旁边的 `ocr\`，装好、解压就能用；或者小安装包 / 绿色版的用户从官网下载 `ThreebrookInterpret-OcrPack-<版本>.zip`，在 设置 › 截图与识别 点“从文件安装”，装到数据目录的 `ocr\`。完整版和小安装包互相覆盖安装时，`ocr\` 跟着清单增删。识别引擎选“自动”时装了就用它。速度：几行字约 0.5 秒，整屏 1080p 约 6 秒（2.1GHz 至强 4 线程）。
+- 高精度识别：PaddleOCR PP-OCRv5 mobile + ONNX Runtime（约 37 MB），随安装包和绿色版放在程序旁边的 `ocr\`，同样本机识别、不联网，中文屏幕小字基本不出错（Windows 自带识别在深色底、小字号上错字很多）。识别引擎默认“自动”：有 `ocr\` 就用它，没有就用 Windows 自带识别。速度：几行字约 0.5 秒，整屏 1080p 约 6 秒（2.1GHz 至强 4 线程）。
 - 界面语言：简体中文 / English，设置 › 常规 里切换，立即生效；默认跟随 Windows 显示语言。新增界面文字两个文件都要加，XAML 用 `{DynamicResource S.键}`，代码用 `Loc.T("键")` / `Loc.F("键", 参数)`。
 - 数据：`%AppData%\ThreebrookInterpret\`（绿色版在程序旁边的 `data\`）——`settings.json`（API Key DPAPI 加密）、`history\`（剪贴板历史，默认 500 条 / 30 天）、`error.log`。截图默认保存到 `图片\三溪通译`。
 - 从旧版 ThreeBrookTrans 升级：第一次启动时把 `%AppData%\ThreeBrookTrans` 整体迁移过来，开机自启改指向新程序。

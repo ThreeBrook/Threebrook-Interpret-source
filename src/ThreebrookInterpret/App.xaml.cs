@@ -48,13 +48,10 @@ public partial class App : Application
         }
 
         // 开发用：同一张图分别用 Windows OCR 和高精度识别跑一遍，结果写进文本文件（不读写用户数据）
-        if (e.Args.Length == 3 && e.Args[0] is "--ocr-compare" or "--ocr-component-test")
+        if (e.Args.Length == 3 && e.Args[0] == "--ocr-compare")
         {
             base.OnStartup(e);
-            if (e.Args[0] == "--ocr-compare")
-                PreviewRenderer.CompareOcr(e.Args[1], e.Args[2]);
-            else
-                PreviewRenderer.TestOcrComponent(e.Args[1], e.Args[2]);
+            PreviewRenderer.CompareOcr(e.Args[1], e.Args[2]);
             IsExiting = true;
             Shutdown();
             return;
@@ -92,7 +89,6 @@ public partial class App : Application
 
         if (!SettingsStore.IsPortable)
             LegacyMigration.Run(); // 改名前的数据目录、开机自启项迁移到新名字
-        OcrComponent.ApplyPendingChanges(); // 上次没能替换 / 删除的高精度识别组件（当时 dll 正被占用）
         LoadSettings();
         Loc.Apply(Settings.Language);
         SettingsStore.LocalizeDefaultEngineNames(Settings, Loc.IsEnglish);
