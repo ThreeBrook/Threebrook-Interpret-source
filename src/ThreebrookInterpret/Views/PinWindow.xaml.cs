@@ -453,6 +453,10 @@ public partial class PinWindow : Window
         return SelectedText;
     }
 
+    /// <summary>预览：选中文字的范围（窗口内的坐标），宣传图里把操作条放在它下面。</summary>
+    internal Rect PreviewSelectionBounds =>
+        TextLayer.TransformToAncestor(Root).TransformBounds(SelectedLineBounds().Aggregate(Rect.Empty, Rect.Union));
+
     internal int PreviewWordAt(Point imagePoint) => WordAt(imagePoint);
     internal int PreviewNearestWord(Point imagePoint) => NearestWord(imagePoint);
 

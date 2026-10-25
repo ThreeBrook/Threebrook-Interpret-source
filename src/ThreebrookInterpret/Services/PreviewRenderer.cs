@@ -15,7 +15,7 @@ namespace ThreebrookInterpret.Services;
 /// 用示例数据创建各窗口，放在屏幕外渲染成 PNG（浅色、深色各一套）。
 /// 不需要可见桌面、不操作鼠标键盘，也不读写用户的配置和历史。
 /// </summary>
-internal static class PreviewRenderer
+internal static partial class PreviewRenderer
 {
     public static void Run(string outputDirectory)
     {
@@ -204,7 +204,7 @@ internal static class PreviewRenderer
         }, directory, theme, "pin-actions");
     }
 
-    private static BitmapSource SyntheticScreen(int width, int height)
+    private static BitmapSource SyntheticScreen(int width, int height, double scale = 1)
     {
         var visual = new DrawingVisual();
         using (var dc = visual.RenderOpen())
@@ -214,15 +214,15 @@ internal static class PreviewRenderer
             var face = new Typeface("Microsoft YaHei UI");
             var lines = new[]
             {
-                "项目周会纪要  2026-10-23", "1. 发布时间：下周三 18:00（待确认）", "2. 客户演示改到周四下午", "3. 安装包体积控制在 1 MB 以内",
+                "项目周会纪要  2026-10-23", "1. 发布时间：下周三 18:00（待确认）", "2. 客户演示改到周四下午", "3. 截图识别改用高精度引擎",
                 "4. 截图标注：矩形、箭头、文字、马赛克", "联系人：张三 138-0000-0000", "备注：以上内容仅供内部参考",
             };
             for (var i = 0; i < lines.Length; i++)
                 dc.DrawText(new FormattedText(lines[i], System.Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight, face, 18,
-                    Brushes.Black, 1.0), new Point(80, 60 + i * 42));
+                    Brushes.Black, scale), new Point(80, 60 + i * 42));
             dc.DrawRectangle(new SolidColorBrush(Color.FromRgb(0x2F, 0x7F, 0xC1)), null, new Rect(450, 150, 180, 100));
         }
-        var bitmap = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+        var bitmap = new RenderTargetBitmap((int)(width * scale), (int)(height * scale), 96 * scale, 96 * scale, PixelFormats.Pbgra32); // 宣传图用 2 倍
         bitmap.Render(visual);
         bitmap.Freeze();
         return bitmap;

@@ -151,6 +151,7 @@ dotnet build src/ThreebrookInterpret -c Debug                       # 编译（�
 .\publish.ps1                                                        # dist\ThreebrookInterpret.exe（框架依赖，约 750 KB）
 .\publish.ps1 -Package                                               # dist\package：安装包 + 绿色版（约 93 MB，都自带运行时和高精度识别）+ build-info.txt
 ThreebrookInterpret.exe --render-previews <目录>                     # 各窗口 中英文 × 浅深色 渲染成 PNG（屏幕外，不读写用户数据）
+ThreebrookInterpret.exe --render-promo <目录>                        # 宣传图：6 个场景 × 中英文 × 浅深色，2880×1800，带文案 / 不带文案（-clean）各一张
 ```
 
 - **测安装包一律加 `--test`**：换一个 AppId 和名字，不碰开机自启和真实数据。静默装 `Setup.exe --silent --dir <临时目录> --test`，卸 `ThreebrookInterpret.exe --uninstall --silent --test`；`THREEBROOK_SETUP_FAIL_AT=<n>|end` 模拟出错验证回滚，日志在 `%TEMP%\ThreebrookInterpret-Setup.log`。

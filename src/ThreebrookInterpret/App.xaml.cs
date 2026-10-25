@@ -38,10 +38,13 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         // 开发用：把各窗口按浅色 / 深色渲染成 PNG 后退出，不占用单实例、不读写用户数据
-        if (e.Args.Length == 2 && e.Args[0] == "--render-previews")
+        if (e.Args.Length == 2 && e.Args[0] is "--render-previews" or "--render-promo")
         {
             base.OnStartup(e);
-            PreviewRenderer.Run(e.Args[1]);
+            if (e.Args[0] == "--render-promo")
+                PreviewRenderer.RunPromo(e.Args[1]); // 宣传图：真实窗口摆在品牌背景上，2 倍分辨率
+            else
+                PreviewRenderer.Run(e.Args[1]);
             IsExiting = true;
             Shutdown();
             return;
