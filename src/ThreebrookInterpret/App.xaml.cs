@@ -47,6 +47,19 @@ public partial class App : Application
             return;
         }
 
+        // 开发用：同一张图分别用 Windows OCR 和高精度识别跑一遍，结果写进文本文件（不读写用户数据）
+        if (e.Args.Length == 3 && e.Args[0] is "--ocr-compare" or "--ocr-component-test")
+        {
+            base.OnStartup(e);
+            if (e.Args[0] == "--ocr-compare")
+                PreviewRenderer.CompareOcr(e.Args[1], e.Args[2]);
+            else
+                PreviewRenderer.TestOcrComponent(e.Args[1], e.Args[2]);
+            IsExiting = true;
+            Shutdown();
+            return;
+        }
+
         // 安装包 / 卸载：进入安装模式，不占用单实例、不读写配置、不建托盘
         if (Setup.SetupEntry.TryRun(this, e.Args))
         {
@@ -79,6 +92,7 @@ public partial class App : Application
 
         if (!SettingsStore.IsPortable)
             LegacyMigration.Run(); // 改名前的数据目录、开机自启项迁移到新名字
+        OcrComponent.ApplyPendingChanges(); // 上次没能替换 / 删除的高精度识别组件（当时 dll 正被占用）
         LoadSettings();
         Loc.Apply(Settings.Language);
         SettingsStore.LocalizeDefaultEngineNames(Settings, Loc.IsEnglish);
@@ -300,17 +314,27 @@ public partial class App : Application
     {
         try
         {
-            var text = await WindowsOcr.RecognizeAsync(image, Settings.Screenshot.OcrLanguage);
-            _translateWindow?.ShowAtCursor(PrepareText(text), translate, emptyHint: Loc.T("App.NoTextFound"));
+            if (OcrService.UsesPaddle)
+                _translateWindow?.ShowRecognizing();
+            var text = await OcrService.RecognizeAsync(image);
+            ShowRecognizedText(text, translate);
         }
         catch (Exception ex)
         {
-            // OCR 走 WinRT，HRESULT 会被映射成各种异常类型；都用托盘提示，不弹程序出错对话框
-            _tray?.ShowMessage(Loc.T("App.OcrFailed"), ex.Message, warning: true);
+            ShowOcrError(ex);
+            if (_translateWindow?.IsVisible == true)
+                _translateWindow.ShowAtCursor(null, translate: false, emptyHint: Loc.T("App.OcrFailed")); // 别停在"正在识别"
         }
     }
 
-    private static string? PrepareText(string? text) =>
+    /// <summary>显示已识别的文字（钉图已在后台识别过，不用再识别一遍）；translate 为 true 时直接翻译。</summary>
+    public void ShowRecognizedText(string text, bool translate) =>
+        _translateWindow?.ShowAtCursor(PrepareText(text), translate, emptyHint: Loc.T("App.NoTextFound"));
+
+    // OCR 走 WinRT，HRESULT 会被映射成各种异常类型；都用托盘提示，不弹程序出错对话框
+    public void ShowOcrError(Exception ex) => _tray?.ShowMessage(Loc.T("App.OcrFailed"), ex.Message, warning: true);
+
+    internal static string? PrepareText(string? text) =>
         text != null && Settings.MergeLineBreaks ? TextUtil.MergeLines(text) : text;
 
     private void ToggleHistory()

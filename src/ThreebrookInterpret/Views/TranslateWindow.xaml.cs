@@ -89,6 +89,17 @@ public partial class TranslateWindow : Window
         InputBox.SelectAll();
     }
 
+    /// <summary>高精度识别要零点几秒到几秒：先在鼠标旁显示"正在识别"，识别完再由 ShowAtCursor 填入文字。</summary>
+    public void ShowRecognizing()
+    {
+        Show();
+        WindowPlacement.MoveNearCursor(this);
+        _cts?.Cancel();
+        _results.Clear();
+        InputBox.Clear();
+        SetDirection(Loc.T("Translate.Recognizing"));
+    }
+
     private void StartTranslate()
     {
         var text = InputBox.Text.Trim();

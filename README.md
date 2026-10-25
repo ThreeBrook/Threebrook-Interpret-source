@@ -123,7 +123,7 @@ flowchart LR
 ## 代码地图
 
 ```
-publish.ps1                   发布：单文件 exe、-Portable 自带运行时、-Package 安装包 + 两种绿色版
+publish.ps1                   发布：单文件 exe、-Portable 自带运行时、-Package 安装包和两种绿色版（各有小 / 完整版）+ 识别组件包
 src/ThreebrookInterpret/
   App.xaml.cs                 托盘、快捷键、各功能入口；--render-previews、安装 / 卸载模式分流
   AppInfo.cs                  产品名、网址、版本（内部标识一律 ThreebrookInterpret）
@@ -136,6 +136,7 @@ src/ThreebrookInterpret/
   Fonts/ Assets/              裁剪后的字体（含许可）、产品图标
 tools/
   fonts/build_fonts.py        裁剪站酷小薇 / Bricolage / JetBrains Mono / Material Symbols
+  ocr/fetch.ps1               下载高精度识别组件（PaddleOCR 模型 + onnxruntime.dll，校验 SHA256）到 tools/ocr/cache
   IconGen/                    生成产品图标 AppIcon.ico 和预览图
 doc/images/                   本 README 用的界面截图（--render-previews 渲染，示例数据）
 ```
@@ -148,7 +149,7 @@ doc/images/                   本 README 用的界面截图（--render-previews 
 ```powershell
 dotnet build src/ThreebrookInterpret -c Debug                       # 编译（需要 .NET 10 SDK）
 .\publish.ps1                                                        # dist\ThreebrookInterpret.exe（框架依赖，约 750 KB）
-.\publish.ps1 -Package                                               # dist\package：安装包 + 两种绿色版 + build-info.txt
+.\publish.ps1 -Package                                               # dist\package：安装包、两种绿色版（各有小 / 完整版）+ 识别组件包 + build-info.txt
 ThreebrookInterpret.exe --render-previews <目录>                     # 各窗口 中英文 × 浅深色 渲染成 PNG（屏幕外，不读写用户数据）
 ```
 
@@ -162,7 +163,7 @@ ThreebrookInterpret.exe --render-previews <目录>                     # 各窗�
 ```mermaid
 flowchart LR
     A["改版本号<br/>csproj Version"] --> B["提交<br/>工作区干净"]
-    B --> C["publish.ps1 -Package<br/>安装包 + 两种绿色版<br/>build-info.txt"]
+    B --> C["publish.ps1 -Package<br/>安装包、绿色版（小 / 完整版）<br/>识别组件包 · build-info.txt"]
     C --> D["--test 静默安装 / 卸载<br/>中英文向导"]
     D --> E["官网 data/interpret<br/>release.json · changelog.json"]
     E --> F["上传 R2<br/>dl.threebrook.com/interpret/版本/"]
@@ -170,7 +171,7 @@ flowchart LR
 ```
 
 1. 改 `src/ThreebrookInterpret/ThreebrookInterpret.csproj` 的 `<Version>`，提交。`-Package` 要求 `src` 和发布脚本没有未提交的改动，免得安装包里的许可协议和仓库对不上（临时试包加 `-AllowDirty`）。
-2. `.\publish.ps1 -Package`，产物和 `build-info.txt`（版本、提交、校验值）在 `dist\package`。
+2. `.\publish.ps1 -Package`，产物和 `build-info.txt`（版本、提交、校验值）在 `dist\package`。识别组件包要先运行一次 `tools\ocr\fetch.ps1`（缓存在 `tools\ocr\cache`，不进仓库），没有缓存时只跳过组件包。
 3. 用 `--test` 静默安装、覆盖安装、卸载各走一遍，中英文安装向导各看一次。
 4. 官网仓库：`data/interpret/release.json` 写文件名、大小、校验值和下载地址，`changelog.json` 写中英文更新内容；协议有改动时同步 `data/interpret/legal/`。运行 `python tools/gen_interpret_pages.py`。
 5. 安装包上传到 R2（`dl.threebrook.com/interpret/<版本>/`），确认能下载、校验值一致后，提交官网仓库并部署 `interpret` 文件夹。R2 只留最新版。
@@ -192,6 +193,7 @@ flowchart LR
 - 截图界面：Enter / Ctrl+C 复制，Ctrl+S 保存，F3 钉图，O 识别文字，T 翻译，L 长截图，右键 / Esc 取消。
 - 标注工具（数字键 1–8）：矩形、椭圆、箭头、画笔、荧光笔、文字、马赛克、序号；Ctrl+Z / Ctrl+Y 撤销重做；复制、保存、钉图都带标注，识别文字用原图。
 - 钉图：拖动移动，滚轮缩放，Ctrl+滚轮调透明度，双击 / Esc 关闭，右键更多操作。
+- 钉图选取文字：钉住后在本机自动识别文字，鼠标移到文字上变成 I 形光标，拖动选取（Shift+点击延伸、双击选整行、Ctrl+A 全选），Ctrl+C 或操作条复制、翻译；在文字以外拖动或按住 Ctrl 拖动移动钉图，Esc 先取消选取。
 
 </details>
 
@@ -214,7 +216,8 @@ flowchart LR
 <details>
 <summary><b>文字识别、界面语言、数据位置</b></summary>
 
-- OCR 用 Windows 自带识别，离线、不增加体积，默认跟随系统语言；日、韩、泰等要在 Windows 语言设置里添加该语言（勾选“光学字符识别”），再在 设置 › 截图与识别 里选择。
+- OCR 默认用 Windows 自带识别，离线、不增加体积，默认跟随系统语言；日、韩、泰等要在 Windows 语言设置里添加该语言（勾选“光学字符识别”），再在 设置 › 截图与识别 里选择。
+- 高精度识别（可选组件，约 37 MB，zip 约 24 MB）：PaddleOCR PP-OCRv5 mobile + ONNX Runtime，同样本机识别、不联网，中文屏幕小字基本不出错（Windows 自带识别在深色底、小字号上错字很多）。两种拿法：用完整版安装包 `ThreebrookInterpret-Setup-<版本>-Full.exe`（约 25 MB）或完整版绿色版 `…-Portable-Full.zip`（约 25 MB）/ `…-Portable-Runtime-Full.zip`（约 93 MB），组件在程序旁边的 `ocr\`，装好、解压就能用；或者小安装包 / 绿色版的用户从官网下载 `ThreebrookInterpret-OcrPack-<版本>.zip`，在 设置 › 截图与识别 点“从文件安装”，装到数据目录的 `ocr\`。完整版和小安装包互相覆盖安装时，`ocr\` 跟着清单增删。识别引擎选“自动”时装了就用它。速度：几行字约 0.5 秒，整屏 1080p 约 6 秒（2.1GHz 至强 4 线程）。
 - 界面语言：简体中文 / English，设置 › 常规 里切换，立即生效；默认跟随 Windows 显示语言。新增界面文字两个文件都要加，XAML 用 `{DynamicResource S.键}`，代码用 `Loc.T("键")` / `Loc.F("键", 参数)`。
 - 数据：`%AppData%\ThreebrookInterpret\`（绿色版在程序旁边的 `data\`）——`settings.json`（API Key DPAPI 加密）、`history\`（剪贴板历史，默认 500 条 / 30 天）、`error.log`。截图默认保存到 `图片\三溪通译`。
 - 从旧版 ThreeBrookTrans 升级：第一次启动时把 `%AppData%\ThreeBrookTrans` 整体迁移过来，开机自启改指向新程序。

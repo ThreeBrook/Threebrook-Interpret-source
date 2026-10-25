@@ -7,7 +7,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <!-- WindowsOcr 直接按 vtable 调用 WinRT 接口 -->
+    <!-- WindowsOcr 直接按 vtable 调用 WinRT 接口，OnnxSession 直接按函数表调用 ONNX Runtime C API -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>ThreebrookInterpret</AssemblyName>
     <RootNamespace>ThreebrookInterpret</RootNamespace>

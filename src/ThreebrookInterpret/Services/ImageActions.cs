@@ -17,7 +17,20 @@ public static class ImageActions
         data.SetImage(image);
         // 部分程序（如浏览器、聊天软件）优先读取 PNG 格式
         data.SetData("PNG", new MemoryStream(Encode(image, ".png")));
+        SetClipboard(data);
+    }
 
+    /// <summary>复制钉图上选中的文字。</summary>
+    public static void CopyText(string text)
+    {
+        var data = new DataObject();
+        data.SetText(text);
+        SetClipboard(data);
+    }
+
+    /// <summary>剪贴板可能正被别的程序占用，稍等重试几次。</summary>
+    private static void SetClipboard(DataObject data)
+    {
         for (var i = 0; ; i++)
         {
             try

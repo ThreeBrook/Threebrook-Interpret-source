@@ -120,13 +120,22 @@
     <sys:String x:Key="S.Long.TooFast" xml:space="preserve">Scrolled too fast. Scroll back up a little.</sys:String>
     <sys:String x:Key="S.Long.WindowTitle" xml:space="preserve">Threebrook Interpret Long screenshot</sys:String>
 
+    <sys:String x:Key="S.Ocr.ComponentMissing" xml:space="preserve">The high-accuracy OCR component wasn't found. Install it in Settings → Screenshot and OCR.</sys:String>
     <sys:String x:Key="S.Ocr.MissingLanguage" xml:space="preserve">Text recognition for {0} isn't installed. Add the language in Windows Settings → Time &amp; language → Language (with Optical character recognition).</sys:String>
     <sys:String x:Key="S.Ocr.NoLanguages" xml:space="preserve">Windows has no text recognition language installed. Add one in Windows Settings → Time &amp; language → Language.</sys:String>
 
+    <sys:String x:Key="S.Ocr.NotComponent" xml:space="preserve">This isn't a Threebrook Interpret OCR component package.</sys:String>
     <sys:String x:Key="S.Pin.ActualSize" xml:space="preserve">Actual size</sys:String>
+    <sys:String x:Key="S.Pin.CopyImage" xml:space="preserve">Copy image</sys:String>
+    <sys:String x:Key="S.Pin.CopySelection" xml:space="preserve">Copy selected text</sys:String>
+    <sys:String x:Key="S.Pin.CopySelectionTip" xml:space="preserve">Copy selected text (Ctrl+C)</sys:String>
     <sys:String x:Key="S.Pin.Opacity" xml:space="preserve">Opacity</sys:String>
     <sys:String x:Key="S.Pin.OpacityValue" xml:space="preserve">Opacity {0}</sys:String>
     <sys:String x:Key="S.Pin.Save" xml:space="preserve">Save…</sys:String>
+    <sys:String x:Key="S.Pin.SelectAll" xml:space="preserve">Select all text</sys:String>
+    <sys:String x:Key="S.Pin.TextCopied" xml:space="preserve">Text copied</sys:String>
+    <sys:String x:Key="S.Pin.TextReady" xml:space="preserve">Text is selectable</sys:String>
+    <sys:String x:Key="S.Pin.TranslateSelection" xml:space="preserve">Translate selected text</sys:String>
     <sys:String x:Key="S.Pin.WindowTitle" xml:space="preserve">Threebrook Interpret Pin</sys:String>
 
     <sys:String x:Key="S.Settings.About" xml:space="preserve">About</sys:String>
@@ -193,13 +202,29 @@
     <sys:String x:Key="S.Settings.MoveUp" xml:space="preserve">Move up</sys:String>
     <sys:String x:Key="S.Settings.NoModels" xml:space="preserve">The server returned no models</sys:String>
     <sys:String x:Key="S.Settings.OcrAuto" xml:space="preserve">System language</sys:String>
-    <sys:String x:Key="S.Settings.OcrHint" xml:space="preserve">Uses the text recognition built into Windows: offline, nothing is uploaded. To recognize Japanese, Korean, Thai and others, first add the language in Windows Settings → Time &amp; language → Language (including Optical character recognition); it then appears in this list.</sys:String>
+    <sys:String x:Key="S.Settings.OcrComponentHint" xml:space="preserve">Much more accurate for Chinese, and it also runs on your computer without going online. The component is about 37 MB and isn't included in the installer: download the component package from the website, then choose Install from file.</sys:String>
+    <sys:String x:Key="S.Settings.OcrComponentInstalled" xml:space="preserve">High-accuracy component: installed {0}</sys:String>
+    <sys:String x:Key="S.Settings.OcrComponentMissing" xml:space="preserve">High-accuracy component: not installed</sys:String>
+    <sys:String x:Key="S.Settings.OcrConfirmRemove" xml:space="preserve">Remove the high-accuracy component? Text will then be recognized with the Windows engine.</sys:String>
+    <sys:String x:Key="S.Settings.OcrDownload" xml:space="preserve">Download the component package</sys:String>
+    <sys:String x:Key="S.Settings.OcrEngine" xml:space="preserve">Engine</sys:String>
+    <sys:String x:Key="S.Settings.OcrEngineAuto" xml:space="preserve">Automatic (best installed)</sys:String>
+    <sys:String x:Key="S.Settings.OcrEnginePaddle" xml:space="preserve">High accuracy (PaddleOCR)</sys:String>
+    <sys:String x:Key="S.Settings.OcrEngineWindows" xml:space="preserve">Built into Windows</sys:String>
+    <sys:String x:Key="S.Settings.OcrHint" xml:space="preserve">Applies to the Windows engine only. To recognize Japanese, Korean, Thai and others, first add the language in Windows Settings → Time &amp; language → Language (including Optical character recognition); it then appears in this list.</sys:String>
+    <sys:String x:Key="S.Settings.OcrInstallFailed" xml:space="preserve">Couldn't install: {0}</sys:String>
+    <sys:String x:Key="S.Settings.OcrInstallFromFile" xml:space="preserve">Install from file…</sys:String>
+    <sys:String x:Key="S.Settings.OcrInstalled" xml:space="preserve">The high-accuracy component is installed.</sys:String>
+    <sys:String x:Key="S.Settings.OcrInstalledRestart" xml:space="preserve">The high-accuracy component is installed. Restart the app to start using it.</sys:String>
     <sys:String x:Key="S.Settings.OcrLanguage" xml:space="preserve">Language</sys:String>
+    <sys:String x:Key="S.Settings.OcrRemoveRestart" xml:space="preserve">The component is in use. It will be removed when the app restarts.</sys:String>
+    <sys:String x:Key="S.Settings.OcrZipFilter" xml:space="preserve">OCR component package (*.zip)|*.zip</sys:String>
     <sys:String x:Key="S.Settings.OneModel" xml:space="preserve">Filled in the only model: {0}</sys:String>
     <sys:String x:Key="S.Settings.OpenHistoryFolder" xml:space="preserve">Open history folder</sys:String>
     <sys:String x:Key="S.Settings.OpenInBrowser" xml:space="preserve">Open {0} in your browser</sys:String>
     <sys:String x:Key="S.Settings.PasteOnSelect" xml:space="preserve">Paste after choosing</sys:String>
     <sys:String x:Key="S.Settings.PasteOnSelectHint" xml:space="preserve">Pressing Enter or double-clicking in the history window copies the item and pastes it into the previous window</sys:String>
+    <sys:String x:Key="S.Settings.PinTextHint" xml:space="preserve">Text in pinned images is recognized automatically on your computer. Drag across the text to select it, then copy or translate it. To move the image, drag outside the text or hold Ctrl while dragging.</sys:String>
     <sys:String x:Key="S.Settings.ProductSite" xml:space="preserve">Product</sys:String>
     <sys:String x:Key="S.Settings.Region" xml:space="preserve">Region</sys:String>
     <sys:String x:Key="S.Settings.RegionTip" xml:space="preserve">Tencent defaults to ap-guangzhou; for Azure use the resource region, such as eastasia</sys:String>
@@ -249,6 +274,7 @@
     <sys:String x:Key="S.Setup.Feature1" xml:space="preserve">Translate selections, typing and screenshots</sys:String>
     <sys:String x:Key="S.Setup.Feature2" xml:space="preserve">Screenshots, annotations, pins and long screenshots</sys:String>
     <sys:String x:Key="S.Setup.Feature2Sub" xml:space="preserve">Text recognition uses the component built into Windows and runs locally</sys:String>
+    <sys:String x:Key="S.Setup.Feature2SubFull" xml:space="preserve">Includes the high-accuracy OCR component (PaddleOCR) for better Chinese recognition, also on your computer</sys:String>
     <sys:String x:Key="S.Setup.Feature3" xml:space="preserve">Works with local language models</sys:String>
     <sys:String x:Key="S.Setup.Feature3Sub" xml:space="preserve">Confidential text never leaves your computer; API keys are encrypted locally</sys:String>
     <sys:String x:Key="S.Setup.FeatureInput" xml:space="preserve">typing</sys:String>
@@ -257,6 +283,7 @@
     <sys:String x:Key="S.Setup.Finish" xml:space="preserve">Finish</sys:String>
     <sys:String x:Key="S.Setup.FooterInstall" xml:space="preserve">Offline · No admin rights</sys:String>
     <sys:String x:Key="S.Setup.FooterUninstall" xml:space="preserve">Offline · No admin rights</sys:String>
+    <sys:String x:Key="S.Setup.FullEdition" xml:space="preserve">Full edition</sys:String>
     <sys:String x:Key="S.Setup.FullPathNeeded" xml:space="preserve">Enter a full path, for example {0}</sys:String>
     <sys:String x:Key="S.Setup.Install" xml:space="preserve">Install</sys:String>
     <sys:String x:Key="S.Setup.InstallTo" xml:space="preserve">Install to</sys:String>
@@ -347,6 +374,7 @@
     <sys:String x:Key="S.Translate.Pin" xml:space="preserve">Keep open (don't hide when focus moves away)</sys:String>
     <sys:String x:Key="S.Translate.Placeholder" xml:space="preserve">Type text to translate…</sys:String>
     <sys:String x:Key="S.Translate.Recognized" xml:space="preserve">Text recognized. Press Enter to translate.</sys:String>
+    <sys:String x:Key="S.Translate.Recognizing" xml:space="preserve">Recognizing text…</sys:String>
     <sys:String x:Key="S.Translate.Target" xml:space="preserve">Target language</sys:String>
     <sys:String x:Key="S.Translate.UnknownEngine" xml:space="preserve">Unknown engine type: {0}</sys:String>
 

@@ -491,3 +491,6 @@ doc/01-ui/
 
 # 项目交接说明只留在本机，不进仓库
 CLAUDE.md
+
+# 高精度识别组件的下载缓存（tools/ocr/fetch.ps1 生成）
+tools/ocr/cache/

@@ -4,12 +4,29 @@
         Title="{DynamicResource S.Pin.WindowTitle}" WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True" WindowStartupLocation="Manual"
         FontFamily="{StaticResource F.Body}" UseLayoutRounding="True">
+    <Window.Resources>
+        <Style x:Key="ToolButton" TargetType="Button" BasedOn="{StaticResource Btn.Ghost}">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="9,0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{DynamicResource B.Text}"/>
+        </Style>
+        <Style x:Key="ToolIcon" TargetType="TextBlock" BasedOn="{StaticResource Text.Icon}">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Margin" Value="0,0,5,0"/>
+        </Style>
+    </Window.Resources>
     <Window.ContextMenu>
-        <ContextMenu>
+        <ContextMenu Opened="ContextMenu_Opened">
+            <!-- 选中了文字时才显示这一组 -->
+            <MenuItem x:Name="CopySelectionItem" Header="{DynamicResource S.Pin.CopySelection}" InputGestureText="Ctrl+C" Click="CopySelection_Click"/>
+            <MenuItem x:Name="TranslateSelectionItem" Header="{DynamicResource S.Pin.TranslateSelection}" Click="TranslateSelection_Click"/>
+            <Separator x:Name="SelectionSeparator"/>
+            <MenuItem x:Name="SelectAllItem" Header="{DynamicResource S.Pin.SelectAll}" InputGestureText="Ctrl+A" Click="SelectAll_Click"/>
             <MenuItem Header="{DynamicResource S.Common.RecognizeText}" Click="Ocr_Click"/>
             <MenuItem Header="{DynamicResource S.Common.RecognizeTranslate}" Click="Translate_Click"/>
             <Separator/>
-            <MenuItem Header="{DynamicResource S.Common.Copy}" InputGestureText="Ctrl+C" Click="Copy_Click"/>
+            <MenuItem x:Name="CopyImageItem" Header="{DynamicResource S.Pin.CopyImage}" InputGestureText="Ctrl+C" Click="Copy_Click"/>
             <MenuItem Header="{DynamicResource S.Pin.Save}" InputGestureText="Ctrl+S" Click="Save_Click"/>
             <MenuItem Header="{DynamicResource S.Pin.ActualSize}" InputGestureText="Ctrl+0" Click="ResetZoom_Click"/>
             <MenuItem Header="{DynamicResource S.Pin.Opacity}">
@@ -22,13 +39,33 @@
             <MenuItem Header="{DynamicResource S.Common.Close}" InputGestureText="Esc" Click="Close_Click"/>
         </ContextMenu>
     </Window.ContextMenu>
-    <Grid>
+    <Grid x:Name="Root">
         <Image x:Name="PinImage" Stretch="Fill" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+        <!-- 选中文字的高亮：画布按原图像素大小，随窗口缩放拉伸，单词位置直接用 OCR 给的像素坐标 -->
+        <Viewbox Stretch="Fill" IsHitTestVisible="False">
+            <Canvas x:Name="TextLayer"/>
+        </Viewbox>
         <!-- 溪青细边：和桌面内容区分开，表明这是钉住的截图 -->
         <Border BorderBrush="{DynamicResource B.Brook}" BorderThickness="1" Opacity="0.85" IsHitTestVisible="False"/>
         <Border x:Name="ZoomLabel" Background="{DynamicResource B.Overlay}" CornerRadius="6" Padding="7,2" Margin="6"
                 HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed" IsHitTestVisible="False">
             <TextBlock x:Name="ZoomText" Foreground="White" FontFamily="{StaticResource F.Mono}" FontSize="12"/>
         </Border>
+
+        <!-- 选中文字后的操作条：弹出层可以超出钉图范围，钉图很小时也不会挡住文字 -->
+        <Popup x:Name="TextActions" PlacementTarget="{Binding ElementName=Root}" Placement="Bottom" AllowsTransparency="True"
+               StaysOpen="True" PopupAnimation="None">
+            <Border x:Name="TextActionsBar" Background="{DynamicResource B.Card}" BorderBrush="{DynamicResource B.Border}" BorderThickness="1"
+                    CornerRadius="8" Padding="3" Margin="0,4,8,8" Effect="{DynamicResource WindowShadow}">
+                <StackPanel Orientation="Horizontal">
+                    <Button Style="{StaticResource ToolButton}" Click="CopySelection_Click" ToolTip="{DynamicResource S.Pin.CopySelectionTip}" Foreground="{DynamicResource B.Accent}">
+                        <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource ToolIcon}" Text="{StaticResource I.Copy}"/><TextBlock Text="{DynamicResource S.Common.Copy}" VerticalAlignment="Center" FontWeight="SemiBold"/></StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource ToolButton}" Click="TranslateSelection_Click" ToolTip="{DynamicResource S.Pin.TranslateSelection}">
+                        <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource ToolIcon}" Text="{StaticResource I.Translate}"/><TextBlock Text="{DynamicResource S.Common.Translate}" VerticalAlignment="Center"/></StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
+        </Popup>
     </Grid>
 </Window>

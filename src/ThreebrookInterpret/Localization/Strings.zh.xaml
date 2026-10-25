@@ -120,13 +120,22 @@
     <sys:String x:Key="S.Long.TooFast" xml:space="preserve">滚动太快了，请往回滚一点</sys:String>
     <sys:String x:Key="S.Long.WindowTitle" xml:space="preserve">三溪通译 长截图</sys:String>
 
+    <sys:String x:Key="S.Ocr.ComponentMissing" xml:space="preserve">没有找到高精度识别组件，请在设置 → 截图与识别 中安装。</sys:String>
     <sys:String x:Key="S.Ocr.MissingLanguage" xml:space="preserve">未安装 {0} 的 OCR 语言包，请在 Windows 设置 → 时间和语言 → 语言 中添加该语言（勾选“光学字符识别”）。</sys:String>
     <sys:String x:Key="S.Ocr.NoLanguages" xml:space="preserve">系统没有可用的 OCR 语言包，请在 Windows 设置 → 时间和语言 → 语言 中安装。</sys:String>
 
+    <sys:String x:Key="S.Ocr.NotComponent" xml:space="preserve">这不是三溪通译的识别组件包。</sys:String>
     <sys:String x:Key="S.Pin.ActualSize" xml:space="preserve">原始大小</sys:String>
+    <sys:String x:Key="S.Pin.CopyImage" xml:space="preserve">复制图片</sys:String>
+    <sys:String x:Key="S.Pin.CopySelection" xml:space="preserve">复制选中的文字</sys:String>
+    <sys:String x:Key="S.Pin.CopySelectionTip" xml:space="preserve">复制选中的文字（Ctrl+C）</sys:String>
     <sys:String x:Key="S.Pin.Opacity" xml:space="preserve">透明度</sys:String>
     <sys:String x:Key="S.Pin.OpacityValue" xml:space="preserve">透明度 {0}</sys:String>
     <sys:String x:Key="S.Pin.Save" xml:space="preserve">保存…</sys:String>
+    <sys:String x:Key="S.Pin.SelectAll" xml:space="preserve">选中全部文字</sys:String>
+    <sys:String x:Key="S.Pin.TextCopied" xml:space="preserve">已复制文字</sys:String>
+    <sys:String x:Key="S.Pin.TextReady" xml:space="preserve">可以直接选取文字</sys:String>
+    <sys:String x:Key="S.Pin.TranslateSelection" xml:space="preserve">翻译选中的文字</sys:String>
     <sys:String x:Key="S.Pin.WindowTitle" xml:space="preserve">三溪通译 钉图</sys:String>
 
     <sys:String x:Key="S.Settings.About" xml:space="preserve">关于</sys:String>
@@ -193,13 +202,29 @@
     <sys:String x:Key="S.Settings.MoveUp" xml:space="preserve">上移</sys:String>
     <sys:String x:Key="S.Settings.NoModels" xml:space="preserve">接口没有返回任何模型</sys:String>
     <sys:String x:Key="S.Settings.OcrAuto" xml:space="preserve">跟随系统语言</sys:String>
-    <sys:String x:Key="S.Settings.OcrHint" xml:space="preserve">使用 Windows 自带的文字识别，离线、不上传。识别日语、韩语、泰语等需要先在 Windows 设置 → 时间和语言 → 语言 中添加该语言（含“光学字符识别”），之后会出现在列表里。</sys:String>
+    <sys:String x:Key="S.Settings.OcrComponentHint" xml:space="preserve">中文识别准确得多，同样在本机识别、不联网。组件约 37 MB，不随安装包附带：从官网下载组件包后点“从文件安装”。</sys:String>
+    <sys:String x:Key="S.Settings.OcrComponentInstalled" xml:space="preserve">高精度识别组件：已安装 {0}</sys:String>
+    <sys:String x:Key="S.Settings.OcrComponentMissing" xml:space="preserve">高精度识别组件：未安装</sys:String>
+    <sys:String x:Key="S.Settings.OcrConfirmRemove" xml:space="preserve">删除高精度识别组件？之后改用 Windows 自带识别。</sys:String>
+    <sys:String x:Key="S.Settings.OcrDownload" xml:space="preserve">到官网下载组件包</sys:String>
+    <sys:String x:Key="S.Settings.OcrEngine" xml:space="preserve">识别引擎</sys:String>
+    <sys:String x:Key="S.Settings.OcrEngineAuto" xml:space="preserve">自动（装了高精度组件就用它）</sys:String>
+    <sys:String x:Key="S.Settings.OcrEnginePaddle" xml:space="preserve">高精度（PaddleOCR）</sys:String>
+    <sys:String x:Key="S.Settings.OcrEngineWindows" xml:space="preserve">Windows 自带</sys:String>
+    <sys:String x:Key="S.Settings.OcrHint" xml:space="preserve">只对 Windows 自带识别有效。识别日语、韩语、泰语等需要先在 Windows 设置 → 时间和语言 → 语言 中添加该语言（含“光学字符识别”），之后会出现在列表里。</sys:String>
+    <sys:String x:Key="S.Settings.OcrInstallFailed" xml:space="preserve">安装失败：{0}</sys:String>
+    <sys:String x:Key="S.Settings.OcrInstallFromFile" xml:space="preserve">从文件安装…</sys:String>
+    <sys:String x:Key="S.Settings.OcrInstalled" xml:space="preserve">高精度识别组件已安装。</sys:String>
+    <sys:String x:Key="S.Settings.OcrInstalledRestart" xml:space="preserve">高精度识别组件已安装，重启程序后生效。</sys:String>
     <sys:String x:Key="S.Settings.OcrLanguage" xml:space="preserve">识别语言</sys:String>
+    <sys:String x:Key="S.Settings.OcrRemoveRestart" xml:space="preserve">组件正在使用，重启程序后删除。</sys:String>
+    <sys:String x:Key="S.Settings.OcrZipFilter" xml:space="preserve">识别组件包 (*.zip)|*.zip</sys:String>
     <sys:String x:Key="S.Settings.OneModel" xml:space="preserve">已填入唯一的模型：{0}</sys:String>
     <sys:String x:Key="S.Settings.OpenHistoryFolder" xml:space="preserve">打开历史目录</sys:String>
     <sys:String x:Key="S.Settings.OpenInBrowser" xml:space="preserve">在浏览器中打开 {0}</sys:String>
     <sys:String x:Key="S.Settings.PasteOnSelect" xml:space="preserve">选中后自动粘贴</sys:String>
     <sys:String x:Key="S.Settings.PasteOnSelectHint" xml:space="preserve">在历史窗口按 Enter 或双击时，复制后粘贴到之前的窗口</sys:String>
+    <sys:String x:Key="S.Settings.PinTextHint" xml:space="preserve">钉图会在本机自动识别图上的文字：在文字上拖动即可选取，再复制或翻译。在文字以外的地方拖动，或按住 Ctrl 拖动，可以移动钉图。</sys:String>
     <sys:String x:Key="S.Settings.ProductSite" xml:space="preserve">产品主页</sys:String>
     <sys:String x:Key="S.Settings.Region" xml:space="preserve">区域</sys:String>
     <sys:String x:Key="S.Settings.RegionTip" xml:space="preserve">腾讯默认 ap-guangzhou；Azure 填资源所在区域，如 eastasia</sys:String>
@@ -249,6 +274,7 @@
     <sys:String x:Key="S.Setup.Feature1" xml:space="preserve">划词、输入、截图都能翻</sys:String>
     <sys:String x:Key="S.Setup.Feature2" xml:space="preserve">截图、标注、钉图、长截图</sys:String>
     <sys:String x:Key="S.Setup.Feature2Sub" xml:space="preserve">文字识别用 Windows 自带的组件，在本机完成</sys:String>
+    <sys:String x:Key="S.Setup.Feature2SubFull" xml:space="preserve">含高精度识别组件（PaddleOCR），中文识别更准，同样在本机完成</sys:String>
     <sys:String x:Key="S.Setup.Feature3" xml:space="preserve">可以接本地大模型</sys:String>
     <sys:String x:Key="S.Setup.Feature3Sub" xml:space="preserve">保密内容不出电脑；API Key 在本机加密保存</sys:String>
     <sys:String x:Key="S.Setup.FeatureInput" xml:space="preserve">输入</sys:String>
@@ -257,6 +283,7 @@
     <sys:String x:Key="S.Setup.Finish" xml:space="preserve">完成</sys:String>
     <sys:String x:Key="S.Setup.FooterInstall" xml:space="preserve">安装不联网 · 不需要管理员</sys:String>
     <sys:String x:Key="S.Setup.FooterUninstall" xml:space="preserve">卸载不联网 · 不需要管理员</sys:String>
+    <sys:String x:Key="S.Setup.FullEdition" xml:space="preserve">完整版</sys:String>
     <sys:String x:Key="S.Setup.FullPathNeeded" xml:space="preserve">请填写完整路径，例如 {0}</sys:String>
     <sys:String x:Key="S.Setup.Install" xml:space="preserve">安装</sys:String>
     <sys:String x:Key="S.Setup.InstallTo" xml:space="preserve">安装到</sys:String>
@@ -347,6 +374,7 @@
     <sys:String x:Key="S.Translate.Pin" xml:space="preserve">固定窗口（失去焦点时不隐藏）</sys:String>
     <sys:String x:Key="S.Translate.Placeholder" xml:space="preserve">输入要翻译的文字…</sys:String>
     <sys:String x:Key="S.Translate.Recognized" xml:space="preserve">已识别文字，按 Enter 翻译</sys:String>
+    <sys:String x:Key="S.Translate.Recognizing" xml:space="preserve">正在识别文字…</sys:String>
     <sys:String x:Key="S.Translate.Target" xml:space="preserve">目标语言</sys:String>
     <sys:String x:Key="S.Translate.UnknownEngine" xml:space="preserve">未知的引擎类型：{0}</sys:String>
 

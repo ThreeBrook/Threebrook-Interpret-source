@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -36,6 +37,7 @@ public partial class SettingsWindow : Window
             link.Content = url.TrimEnd('/');
             link.Tag = url;
         }
+        OcrDownloadLink.Tag = AppInfo.ProductUrl;
         ApplyCodeTexts();
 
         var addMenu = new ContextMenu();
@@ -153,6 +155,7 @@ public partial class SettingsWindow : Window
         var ocr = OcrLanguageBox.SelectedValue;
         LoadOcrLanguages();
         OcrLanguageBox.SelectedValue = ocr ?? _settings.Screenshot.OcrLanguage;
+        UpdateOcrComponent();
         TargetBox.Items.Refresh();
         UpdateEngineDetail();
     }
@@ -372,6 +375,54 @@ public partial class SettingsWindow : Window
             SaveDirBox.Text = dialog.FolderName;
             SaveDirBox.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
         }
+    }
+
+    // —— 高精度识别组件 ——
+
+    private void UpdateOcrComponent()
+    {
+        var directory = OcrComponent.FindDirectory();
+        OcrComponentStatus.Text = directory == null
+            ? Loc.T("Settings.OcrComponentMissing")
+            : Loc.F("Settings.OcrComponentInstalled", OcrComponent.Version(directory) ?? "");
+        // 只能删数据目录里装的；程序旁边手动放的 ocr 文件夹由用户自己删
+        OcrRemoveButton.Visibility = directory != null && Path.GetFullPath(directory).TrimEnd('\\')
+            .Equals(Path.GetFullPath(OcrComponent.InstallDirectory).TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)
+            ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void InstallOcr_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog { Filter = Loc.T("Settings.OcrZipFilter") };
+        if (dialog.ShowDialog(this) != true)
+            return;
+        try
+        {
+            var applied = OcrComponent.Install(dialog.FileName);
+            MessageBox.Show(this, Loc.T(applied ? "Settings.OcrInstalled" : "Settings.OcrInstalledRestart"), AppInfo.Name,
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
+        {
+            MessageBox.Show(this, Loc.F("Settings.OcrInstallFailed", ex.Message), AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        UpdateOcrComponent();
+    }
+
+    private void RemoveOcr_Click(object sender, RoutedEventArgs e)
+    {
+        if (MessageBox.Show(this, Loc.T("Settings.OcrConfirmRemove"), AppInfo.Name, MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK)
+            return;
+        try
+        {
+            if (!OcrComponent.Remove())
+                MessageBox.Show(this, Loc.T("Settings.OcrRemoveRestart"), AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            MessageBox.Show(this, ex.Message, AppInfo.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        UpdateOcrComponent();
     }
 
     private void OpenLink_Click(object sender, RoutedEventArgs e) =>

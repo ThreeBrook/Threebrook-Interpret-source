@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -33,9 +34,6 @@ public static unsafe class WindowsOcr
 
     /// <summary>小图放大后再识别，屏幕上的小字号识别率明显更高。</summary>
     private const int UpscaleBelow = 1200;
-
-    /// <summary>两个单词间距小于行高的这个比例时视为同一个单词。</summary>
-    private const float WordGapRatio = 0.2f;
 
     /// <summary>本机已安装的 OCR 语言。</summary>
     public static List<OcrLanguage> GetAvailableLanguages()
@@ -72,20 +70,28 @@ public static unsafe class WindowsOcr
         return result;
     }
 
+    /// <summary>识别出各行和每个单词在原图上的位置。</summary>
     /// <param name="languageTag">"auto" 使用系统用户语言；否则如 "zh-Hans-CN"、"ja"、"en-US"。</param>
-    /// <param name="image">必须已冻结（缩放、转换在后台线程进行）。</param>
-    public static Task<string> RecognizeAsync(BitmapSource image, string languageTag, CancellationToken ct = default)
+    public static Task<List<OcrLine>> RecognizeLinesAsync(BitmapSource image, string languageTag, CancellationToken ct = default)
     {
-        if (!image.IsFrozen)
-        {
-            image = image.Clone();
-            image.Freeze();
-        }
-        return Task.Run(() =>
-        {
-            var pixels = PreparePixels(image, out var width, out var height);
-            return Recognize(pixels, width, height, languageTag, ct);
-        }, ct);
+        image = Frozen(image);
+        return Task.Run(() => Recognize(image, languageTag, ct), ct);
+    }
+
+    /// <summary>缩放、转换在后台线程进行，位图必须冻结。</summary>
+    internal static BitmapSource Frozen(BitmapSource image)
+    {
+        if (image.IsFrozen)
+            return image;
+        image = image.Clone();
+        image.Freeze();
+        return image;
+    }
+
+    private static List<OcrLine> Recognize(BitmapSource image, string languageTag, CancellationToken ct)
+    {
+        var pixels = PreparePixels(image, out var width, out var height, out var scale);
+        return Recognize(pixels, width, height, scale, languageTag, ct);
     }
 
     /// <summary>OCR 引擎能接受的最大边长（通常 10000），超过会报参数错误。</summary>
@@ -103,11 +109,11 @@ public static unsafe class WindowsOcr
         }
     });
 
-    private static byte[] PreparePixels(BitmapSource image, out int width, out int height)
+    private static byte[] PreparePixels(BitmapSource image, out int width, out int height, out double scale)
     {
         // 小图放大 2 倍识别率更高；超过引擎上限的大图（多屏宽截图）按比例缩小
         var longest = Math.Max(image.PixelWidth, image.PixelHeight);
-        var scale = longest < UpscaleBelow ? 2.0 : 1.0;
+        scale = longest < UpscaleBelow ? 2.0 : 1.0;
         if (longest * scale > MaxImageDimension.Value)
             scale = (double)MaxImageDimension.Value / longest;
 
@@ -122,7 +128,8 @@ public static unsafe class WindowsOcr
         return pixels;
     }
 
-    private static string Recognize(byte[] pixels, int width, int height, string languageTag, CancellationToken ct)
+    /// <param name="scale">识别前的缩放比例，单词位置除以它换回原图坐标。</param>
+    private static List<OcrLine> Recognize(byte[] pixels, int width, int height, double scale, string languageTag, CancellationToken ct)
     {
         var engine = CreateEngine(languageTag);
         var bitmap = IntPtr.Zero;
@@ -134,7 +141,7 @@ public static unsafe class WindowsOcr
             Check(Call(engine, 6, bitmap, &operation)); // RecognizeAsync
             WaitForCompletion(operation, ct);
             Check(CallOut(operation, 8, &result)); // IAsyncOperation<OcrResult>.GetResults
-            return BuildText(result);
+            return ReadLines(result, scale);
         }
         finally
         {
@@ -291,10 +298,9 @@ public static unsafe class WindowsOcr
         }
     }
 
-    /// <summary>按行拼接单词；中日韩文字之间不加空格，其他单词之间加空格。</summary>
-    private static string BuildText(IntPtr ocrResult)
+    private static List<OcrLine> ReadLines(IntPtr ocrResult, double scale)
     {
-        var text = new StringBuilder();
+        var result = new List<OcrLine>();
         IntPtr linesVector;
         Check(CallOut(ocrResult, 6, &linesVector)); // get_Lines
         var lines = new List<IntPtr>();
@@ -309,31 +315,16 @@ public static unsafe class WindowsOcr
                 try
                 {
                     words = VectorItems(wordsVector);
-                    var items = new List<(string Text, OcrRect Box)>();
+                    var items = new List<OcrWord>(words.Count);
                     foreach (var word in words)
                     {
                         OcrRect box;
                         ((delegate* unmanaged[Stdcall]<IntPtr, OcrRect*, int>)(*(void***)word)[6])(word, &box); // get_BoundingRect
-                        items.Add((GetString(word, 7), box)); // get_Text
+                        items.Add(new OcrWord(GetString(word, 7), // get_Text
+                            new Rect(box.X / scale, box.Y / scale, box.Width / scale, box.Height / scale)));
                     }
-
-                    // OCR 有时把一个英文单词切成几段（等宽字体常见），按实际间距决定是否加空格
-                    var lineHeight = items.Count > 0 ? items.Max(i => i.Box.Height) : 0;
-                    var lineText = new StringBuilder();
-                    for (var i = 0; i < items.Count; i++)
-                    {
-                        var w = items[i].Text;
-                        if (i > 0 && w.Length > 0 && lineText.Length > 0 && !TextUtil.IsCjk(lineText[^1]) && !TextUtil.IsCjk(w[0]))
-                        {
-                            var gap = items[i].Box.X - (items[i - 1].Box.X + items[i - 1].Box.Width);
-                            if (gap > lineHeight * WordGapRatio)
-                                lineText.Append(' ');
-                        }
-                        lineText.Append(w);
-                    }
-                    if (text.Length > 0)
-                        text.Append('\n');
-                    text.Append(lineText);
+                    if (items.Count > 0)
+                        result.Add(new OcrLine(items));
                 }
                 finally
                 {
@@ -347,7 +338,7 @@ public static unsafe class WindowsOcr
             lines.ForEach(Release);
             Marshal.Release(linesVector);
         }
-        return text.ToString();
+        return result;
     }
 
     // —— WinRT 基础设施 ——

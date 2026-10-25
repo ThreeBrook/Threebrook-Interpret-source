@@ -100,7 +100,10 @@ public sealed class ScreenshotSettings
     /// <summary>png / jpg</summary>
     public string ImageFormat { get; set; } = "png";
 
-    /// <summary>OCR 语言："auto" 跟随系统，或如 "zh-Hans-CN"、"en-US"、"ja"（需安装对应 Windows 语言包）。</summary>
+    /// <summary>识别引擎：auto（装了高精度识别组件就用 PaddleOCR，否则 Windows 自带）/ windows / paddle。</summary>
+    public string OcrEngine { get; set; } = "auto";
+
+    /// <summary>OCR 语言（只对 Windows 自带识别有效）："auto" 跟随系统，或如 "zh-Hans-CN"、"en-US"、"ja"（需安装对应 Windows 语言包）。</summary>
     public string OcrLanguage { get; set; } = "auto";
 }
 

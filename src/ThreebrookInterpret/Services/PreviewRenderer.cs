@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -50,6 +52,13 @@ internal static class PreviewRenderer
             {
                 settings.NavList.SelectedIndex = i;
                 Render(settings, outputDirectory, theme, "settings-" + pages[i], keepOpen: i < pages.Length - 1);
+                if (pages[i] == "screenshot")
+                {
+                    // 文字识别卡片在下半页，滚到底再出一张
+                    settings.PageScroller.ScrollToEnd();
+                    Render(settings, outputDirectory, theme, "settings-screenshot-ocr", keepOpen: true);
+                    settings.PageScroller.ScrollToHome();
+                }
             }
 
             RenderElement(ScreenshotToolbar(), outputDirectory, theme, "screenshot-toolbar");
@@ -61,6 +70,7 @@ internal static class PreviewRenderer
             RenderSelection(outputDirectory, theme, "screenshot-narrow", new Rect(200, 60, 340, 200));
             RenderSelection(outputDirectory, theme, "screenshot-wide", new Rect(20, 40, 720, 300));
             RenderSelection(outputDirectory, theme, "screenshot-hover", new Rect(60, 40, 580, 320), hover: true);
+            RenderPin(outputDirectory, theme);
 
             foreach (var page in new[] { "welcome", "options", "license", "progress", "done", "error", "cancelled" })
             {
@@ -69,6 +79,10 @@ internal static class PreviewRenderer
                 Render(setup, outputDirectory, theme, "setup-" + page);
                 setup.Close();
             }
+            var fullSetup = Setup.SetupWindow.CreatePreview(uninstall: false, full: true); // 完整版安装包的欢迎页
+            fullSetup.ShowPreviewPage("welcome");
+            Render(fullSetup, outputDirectory, theme, "setup-welcome-full");
+            fullSetup.Close();
             foreach (var page in new[] { "confirm", "uprogress", "udone" })
             {
                 var setup = Setup.SetupWindow.CreatePreview(uninstall: true);
@@ -77,6 +91,112 @@ internal static class PreviewRenderer
                 setup.Close();
             }
         }
+    }
+
+    /// <summary>
+    /// 识别对比：Windows OCR 与高精度识别（组件位置用环境变量 THREEBROOK_OCR_DIR 指定）各识别一次，
+    /// 输出文字、耗时和每个字的位置。用默认配置，不读用户的 settings.json。
+    /// </summary>
+    public static void CompareOcr(string imagePath, string outputPath)
+    {
+        App.UsePreviewSettings("light");
+        var image = BitmapFrame.Create(new Uri(Path.GetFullPath(imagePath)), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+        image.Freeze();
+        var report = new System.Text.StringBuilder();
+        foreach (var engine in new[] { "windows", "paddle" })
+        {
+            App.Settings.Screenshot.OcrEngine = engine;
+            report.AppendLine($"== {engine}");
+            try
+            {
+                for (var run = 0; run < 2; run++) // 第二次不含加载模型的时间
+                {
+                    var watch = System.Diagnostics.Stopwatch.StartNew();
+                    var lines = OcrService.RecognizeLinesAsync(image).GetAwaiter().GetResult();
+                    report.AppendLine($"-- run {run + 1}: {watch.ElapsedMilliseconds} ms, {lines.Count} lines{(engine == "paddle" ? " (" + PaddleOcr.LastTiming + ")" : "")}");
+                    if (run == 1)
+                        continue;
+                    report.AppendLine(OcrService.ToText(lines));
+                    foreach (var line in lines)
+                        report.AppendLine("   " + string.Join(" ", line.Words.Select(w => $"{w.Text}@{w.Box.X:0}-{w.Box.Right:0}{(w.SpaceBefore == true ? "+sp" : "")}")));
+                }
+            }
+            catch (Exception ex)
+            {
+                report.AppendLine("failed: " + ex);
+            }
+        }
+        File.WriteAllText(outputPath, report.ToString());
+    }
+
+    /// <summary>
+    /// 组件安装自测：只在绿色版里运行（数据目录就是程序旁的 data，不碰 %AppData%）。
+    /// 从组件 zip 安装 → 用高精度识别认一张合成图 → 删除（dll 已加载，应改为重启后删除）→ 模拟重启时的处理。
+    /// </summary>
+    public static void TestOcrComponent(string zipPath, string outputPath)
+    {
+        var report = new System.Text.StringBuilder();
+        void Step(string name, Func<object?> action)
+        {
+            try
+            {
+                report.AppendLine($"{name}: {action()}");
+            }
+            catch (Exception ex)
+            {
+                report.AppendLine($"{name}: FAILED {ex.GetType().Name}: {ex.Message}");
+            }
+        }
+
+        if (!SettingsStore.IsPortable)
+        {
+            File.WriteAllText(outputPath, "refused: only runs in a portable copy");
+            return;
+        }
+        App.UsePreviewSettings("light");
+        Step("data directory", () => SettingsStore.DataDirectory);
+        Step("startup pending changes", () =>
+        {
+            OcrComponent.ApplyPendingChanges(); // 和正常启动时一样，处理上次推迟的替换 / 删除
+            return string.Join(", ", Directory.GetFileSystemEntries(SettingsStore.DataDirectory).Select(Path.GetFileName));
+        });
+        Step("before install", () => OcrComponent.FindDirectory() ?? "(none)");
+        Step("install bad zip", () =>
+        {
+            var bad = Path.Combine(Path.GetTempPath(), "tb-not-component.zip");
+            using (var zip = System.IO.Compression.ZipFile.Open(bad, System.IO.Compression.ZipArchiveMode.Create))
+                zip.CreateEntry("readme.txt");
+            try
+            {
+                OcrComponent.Install(bad);
+                return "unexpectedly accepted";
+            }
+            catch (InvalidDataException ex)
+            {
+                return "rejected: " + ex.Message;
+            }
+            finally
+            {
+                File.Delete(bad);
+            }
+        });
+        Step("install", () => OcrComponent.Install(zipPath) ? "applied" : "pending restart");
+        Step("found", () => OcrComponent.FindDirectory() + " | version " + OcrComponent.Version(OcrComponent.FindDirectory()!));
+        Step("engine", () => OcrService.UsesPaddle ? "paddle" : "windows");
+        Step("recognize", () =>
+        {
+            var image = new WriteableBitmap(new CroppedBitmap(SyntheticScreen(760, 470), new Int32Rect(60, 40, 420, 190)));
+            image.Freeze();
+            // 这里在界面线程上同步等待，只能用不回到界面线程的 RecognizeLinesAsync（RecognizeAsync 会死锁）
+            var lines = OcrService.RecognizeLinesAsync(image).GetAwaiter().GetResult();
+            return string.Join(" / ", lines.Select(l => $"{OcrService.JoinWords(l.Words)} @{l.Bounds.X:0},{l.Bounds.Y:0},{l.Bounds.Width:0}x{l.Bounds.Height:0}"))
+                   + $"  ({PaddleOcr.LastTiming})";
+        });
+        Step("reinstall while loaded", () => OcrComponent.Install(zipPath) ? "applied" : "pending restart");
+        Step("remove while loaded", () => OcrComponent.Remove() ? "removed" : "pending restart");
+        Step("after remove", () => OcrComponent.FindDirectory() ?? "(none)");
+        Step("engine after remove", () => OcrService.UsesPaddle ? "paddle" : "windows");
+        File.WriteAllText(outputPath, report.ToString());
     }
 
     /// <summary>在一张合成的"屏幕"上演示全部标注工具：输出遮罩界面和导出结果。</summary>
@@ -112,6 +232,50 @@ internal static class PreviewRenderer
         DoEvents();
         Save(overlay, directory, theme, name);
         overlay.Close();
+    }
+
+    /// <summary>
+    /// 钉图选取文字：在合成截图上真正跑一遍 Windows OCR，选中第 2 行后半到第 3 行前半，
+    /// 输出钉图和操作条，并把识别结果、选中文字、命中测试写进 pin-ocr.txt 方便核对。
+    /// </summary>
+    private static void RenderPin(string directory, string theme)
+    {
+        var image = new WriteableBitmap(new CroppedBitmap(SyntheticScreen(760, 470), new Int32Rect(60, 40, 420, 190)));
+        image.Freeze();
+        var report = new System.Text.StringBuilder();
+        List<OcrLine> lines;
+        try
+        {
+            lines = WindowsOcr.RecognizeLinesAsync(image, "auto").GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            File.WriteAllText(Path.Combine(directory, $"{theme}-pin-ocr.txt"), "OCR failed: " + ex.Message);
+            return;
+        }
+        foreach (var line in lines)
+            report.AppendLine($"{line.Bounds}  {OcrService.JoinWords(line.Words)}  [{string.Join("|", line.Words.Select(w => w.Text))}]");
+
+        var pin = new PinWindow(image, -30000, -30000) { PreviewMode = true };
+        // 第 2 行第 3 个词到第 3 行第 4 个词
+        var from = lines.Count > 1 ? lines[0].Words.Count + 2 : 0;
+        var to = lines.Count > 2 ? lines[0].Words.Count + lines[1].Words.Count + 3 : 3;
+        var selected = pin.ShowPreviewSelection(lines, from, to);
+        report.AppendLine().AppendLine($"selected [{from}, {to}]:").AppendLine(selected);
+        report.AppendLine().AppendLine("hit tests (image px):");
+        foreach (var point in new[] { new Point(30, 30), new Point(100, 64), new Point(5, 5), new Point(410, 180), new Point(100, 52) })
+            report.AppendLine($"  {point}: wordAt={pin.PreviewWordAt(point)} nearest={pin.PreviewNearestWord(point)}");
+        File.WriteAllText(Path.Combine(directory, $"{theme}-pin-ocr.txt"), report.ToString());
+
+        Render(pin, directory, theme, "pin-select", keepOpen: true);
+        var bar = pin.DetachTextActions();
+        pin.Close();
+        RenderElement(new System.Windows.Controls.Border
+        {
+            Child = bar,
+            Background = new SolidColorBrush(Color.FromRgb(0x5A, 0x6B, 0x68)),
+            Padding = new Thickness(12),
+        }, directory, theme, "pin-actions");
     }
 
     private static BitmapSource SyntheticScreen(int width, int height)
