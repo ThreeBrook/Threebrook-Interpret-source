@@ -45,8 +45,10 @@ Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
 $version = ([xml](Get-Content $project -Encoding UTF8)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
 $build = Join-Path $PSScriptRoot 'dist\build'
 $out = Join-Path $PSScriptRoot 'dist\package'
-foreach ($dir in @($build, $out)) { if (Test-Path $dir) { Remove-Item $dir -Recurse -Force } }
+if (Test-Path $build) { Remove-Item $build -Recurse -Force }
 New-Item -ItemType Directory -Force $out | Out-Null
+# dist\package 只删上次打包生成的文件；别的（比如解压在这里试用的绿色版，旁边有它的 data 数据）一律不动
+Get-ChildItem $out -File | Where-Object { $_.Name -like 'ThreebrookInterpret-*' -or $_.Name -eq 'build-info.txt' } | Remove-Item -Force
 
 Publish-App "$build\fd" $false
 Publish-App "$build\sc" $true
