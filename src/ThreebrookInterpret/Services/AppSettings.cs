@@ -24,6 +24,7 @@ public sealed class AppSettings
     public ScreenshotSettings Screenshot { get; set; } = new();
 
     public HistorySettings History { get; set; } = new();
+    public TranslationHistorySettings TranslationHistory { get; set; } = new();
 
     /// <summary>术语表：固定专业词的译法。</summary>
     public bool GlossaryEnabled { get; set; } = true;
@@ -75,6 +76,13 @@ public sealed class HistorySettings
 
     /// <summary>在历史窗口里回车 / 双击时，复制后自动粘贴到之前的窗口。</summary>
     public bool PasteOnSelect { get; set; } = true;
+}
+
+public sealed class TranslationHistorySettings
+{
+    public bool Enabled { get; set; } = true;
+    public int MaxItems { get; set; } = 500;
+    public int MaxDays { get; set; } = 90;
 }
 
 /// <summary>
@@ -202,6 +210,7 @@ public static class SettingsStore
         settings.Hotkeys ??= new HotkeySettings();
         settings.Screenshot ??= new ScreenshotSettings();
         settings.History ??= new HistorySettings();
+        settings.TranslationHistory ??= new TranslationHistorySettings();
         settings.Engines ??= AppSettings.CreateDefault().Engines;
         settings.Engines.RemoveAll(e => e == null || string.IsNullOrWhiteSpace(e.Type));
         settings.Glossary ??= new List<GlossaryEntry>();

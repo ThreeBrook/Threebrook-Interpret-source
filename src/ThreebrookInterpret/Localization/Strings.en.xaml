@@ -182,6 +182,7 @@
     <sys:String x:Key="S.Settings.HistoryEnable" xml:space="preserve">Keep clipboard history</sys:String>
     <sys:String x:Key="S.Settings.HistoryHint" xml:space="preserve">History is stored only in the history folder of the local data folder and never uploaded. Content marked as private, such as from password managers, is skipped.</sys:String>
     <sys:String x:Key="S.Settings.HistoryImages" xml:space="preserve">Images</sys:String>
+    <sys:String x:Key="S.Settings.HistoryPage" xml:space="preserve">History</sys:String>
     <sys:String x:Key="S.Settings.HistoryText" xml:space="preserve">Text</sys:String>
     <sys:String x:Key="S.Settings.Hotkeys" xml:space="preserve">Shortcuts</sys:String>
     <sys:String x:Key="S.Settings.HotkeysHint" xml:space="preserve">Click a box and press the new key combination. Press Backspace to clear it; a cleared action has no shortcut.</sys:String>
@@ -231,6 +232,8 @@
     <sys:String x:Key="S.Settings.TestEngine" xml:space="preserve">Test</sys:String>
     <sys:String x:Key="S.Settings.Timeout" xml:space="preserve">Timeout</sys:String>
     <sys:String x:Key="S.Settings.Title" xml:space="preserve">Settings</sys:String>
+    <sys:String x:Key="S.Settings.TransHistoryEnable" xml:space="preserve">Keep translation history</sys:String>
+    <sys:String x:Key="S.Settings.TransHistoryHint" xml:space="preserve">Source text and translations are kept on your computer. Open them from the history button in the translate window or from the tray menu.</sys:String>
     <sys:String x:Key="S.Settings.Version" xml:space="preserve">Version {0}</sys:String>
     <sys:String x:Key="S.Settings.Websites" xml:space="preserve">Websites</sys:String>
     <sys:String x:Key="S.Settings.WindowTitle" xml:space="preserve">Threebrook Interpret Settings</sys:String>
@@ -351,6 +354,18 @@
     <sys:String x:Key="S.Time.MinutesAgo" xml:space="preserve">{0} min ago</sys:String>
     <sys:String x:Key="S.Time.Yesterday" xml:space="preserve">Yesterday {0}</sys:String>
 
+    <sys:String x:Key="S.TransHistory.Clear" xml:space="preserve">Clear translation history</sys:String>
+    <sys:String x:Key="S.TransHistory.ConfirmClear" xml:space="preserve">Clear all translation history?</sys:String>
+    <sys:String x:Key="S.TransHistory.CopyResult" xml:space="preserve">Copy translation</sys:String>
+    <sys:String x:Key="S.TransHistory.Disabled" xml:space="preserve">Translation history is off. Turn it on in Settings › History.</sys:String>
+    <sys:String x:Key="S.TransHistory.Empty" xml:space="preserve">Nothing here yet</sys:String>
+    <sys:String x:Key="S.TransHistory.EmptyHint" xml:space="preserve">Your translations will appear here. They stay on your computer.</sys:String>
+    <sys:String x:Key="S.TransHistory.HintBack" xml:space="preserve"> back · </sys:String>
+    <sys:String x:Key="S.TransHistory.HintCopy" xml:space="preserve"> copy translation · </sys:String>
+    <sys:String x:Key="S.TransHistory.HintOpen" xml:space="preserve"> open · </sys:String>
+    <sys:String x:Key="S.TransHistory.Open" xml:space="preserve">Open</sys:String>
+    <sys:String x:Key="S.TransHistory.Search" xml:space="preserve">Search text or translations…</sys:String>
+    <sys:String x:Key="S.TransHistory.Title" xml:space="preserve">Translation history</sys:String>
     <sys:String x:Key="S.Translate.CopyResult" xml:space="preserve">Copy translation</sys:String>
     <sys:String x:Key="S.Translate.Failed" xml:space="preserve">Failed</sys:String>
     <sys:String x:Key="S.Translate.HideEsc" xml:space="preserve">Hide (Esc)</sys:String>

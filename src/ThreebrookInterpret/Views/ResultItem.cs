@@ -27,6 +27,14 @@ public sealed class ResultItem : INotifyPropertyChanged
         OnPropertyChanged(nameof(HasResult));
     }
 
+    /// <summary>从翻译历史打开的译文：状态处显示当时翻译的时间。</summary>
+    public static ResultItem Restored(string name, string text, DateTime time)
+    {
+        var item = new ResultItem(name) { Text = text };
+        item.Status = (string)new RelativeTimeConverter().Convert(time, typeof(string), null!, System.Globalization.CultureInfo.CurrentCulture);
+        return item;
+    }
+
     public void Fail(string message)
     {
         IsError = true;

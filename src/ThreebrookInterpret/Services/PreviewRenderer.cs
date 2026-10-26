@@ -39,6 +39,7 @@ internal static partial class PreviewRenderer
                 Result("本地模型", "会议已改期至周五下午，因为客户正在出差。", 0.3),
                 Failed("DeepL", "DeepL 返回 403：Forbidden"));
             Render(translate, outputDirectory, theme, "translate");
+            RenderTranslationHistory(outputDirectory, theme);
 
             var history = ClipboardHistory.CreatePreview();
             history.Entries.Add(new HistoryEntry { Text = "qwen3.8-27b", Time = DateTime.Now.AddMinutes(-3) });
@@ -123,6 +124,33 @@ internal static partial class PreviewRenderer
             }
         }
         File.WriteAllText(outputPath, report.ToString());
+    }
+
+    /// <summary>翻译窗口的历史列表（示例记录，不读本机历史），再打开其中一条看还原的译文。</summary>
+    private static void RenderTranslationHistory(string directory, string theme)
+    {
+        var history = TranslationHistory.CreatePreview();
+        var samples = new (string Source, string Target, (string, string)[] Results, TimeSpan Age)[]
+        {
+            ("The meeting has been moved to Friday afternoon because the client is traveling.", "zh",
+                [("必应翻译", "会议已改到星期五下午，因为客户在出差。"), ("本地大模型", "会议已改期至周五下午，因为客户正在出差。")], TimeSpan.FromMinutes(2)),
+            ("由于客户出差，会议改到周五下午。", "en", [("Bing", "Because the client is on a business trip, the meeting has been moved to Friday afternoon.")], TimeSpan.FromMinutes(40)),
+            ("Please bring the latest draft of the proposal.", "zh", [("Yandex", "请带上提案的最新草稿。")], TimeSpan.FromHours(5)),
+            ("截图识别改用高精度引擎", "en", [("DeepL", "Screenshot recognition switches to the high-accuracy engine")], TimeSpan.FromDays(1)),
+            ("weekly digest", "zh", [("必应翻译", "周报")], TimeSpan.FromDays(3)),
+        };
+        foreach (var sample in samples.Reverse())
+        {
+            history.Add(sample.Source, sample.Target, sample.Results);
+            history.Entries[0].Time = DateTime.Now - sample.Age;
+        }
+
+        var window = new TranslateWindow(history);
+        window.ShowHistoryPreview(open: false);
+        Render(window, directory, theme, "translate-history", keepOpen: true);
+        window.ShowHistoryPreview(open: true);
+        Render(window, directory, theme, "translate-history-open");
+        window.Close();
     }
 
     /// <summary>在一张合成的"屏幕"上演示全部标注工具：输出遮罩界面和导出结果。</summary>

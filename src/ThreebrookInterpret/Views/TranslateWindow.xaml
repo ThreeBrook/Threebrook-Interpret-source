@@ -7,6 +7,15 @@
         ShowInTaskbar="False" Topmost="True"
         FontFamily="{StaticResource F.Body}" FontSize="13" Foreground="{DynamicResource B.Text}"
         UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
+    <Window.Resources>
+        <v:RelativeTimeConverter x:Key="RelativeTime"/>
+        <ContextMenu x:Key="RecordMenu">
+            <MenuItem Header="{DynamicResource S.TransHistory.Open}" InputGestureText="Enter" Click="OpenRecord_Click"/>
+            <MenuItem Header="{DynamicResource S.TransHistory.CopyResult}" InputGestureText="Ctrl+C" Click="CopyRecord_Click"/>
+            <Separator/>
+            <MenuItem Header="{DynamicResource S.Common.Delete}" InputGestureText="Delete" Click="DeleteRecord_Click"/>
+        </ContextMenu>
+    </Window.Resources>
 
     <!-- 外层留 12 像素给窗口阴影；阴影层与内容层分开，避免文字被效果渲染成位图 -->
     <Grid Margin="12">
@@ -20,12 +29,93 @@
                         <ComboBox x:Name="TargetBox" Width="140" Height="28" FontSize="12.5" Margin="0,0,4,0"
                                   DisplayMemberPath="DisplayName" SelectedValuePath="Code" ToolTip="{DynamicResource S.Translate.Target}"
                                   SelectionChanged="TargetBox_SelectionChanged"/>
+                        <ToggleButton x:Name="HistoryButton" Style="{StaticResource Btn.Icon}" Content="{StaticResource I.History}"
+                                      ToolTip="{DynamicResource S.TransHistory.Title}" Checked="HistoryButton_Changed" Unchecked="HistoryButton_Changed"/>
                         <ToggleButton x:Name="PinButton" Style="{StaticResource Btn.Icon}" Content="{StaticResource I.Pin}"
                                       ToolTip="{DynamicResource S.Translate.Pin}"/>
                     </StackPanel>
                 </Grid>
 
-                <StackPanel Margin="16,2,16,16">
+                <!-- 翻译历史：点标题栏的历史按钮，和下面的翻译区互换 -->
+                <DockPanel x:Name="HistoryPanel" DockPanel.Dock="Top" Height="470" Margin="16,2,16,14" Visibility="Collapsed">
+                    <Grid DockPanel.Dock="Top">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBox x:Name="HistorySearch" Height="38" Padding="34,0,12,0" TextChanged="HistorySearch_TextChanged"/>
+                        <TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Search}" FontSize="18" Margin="11,0,0,0"
+                                   HorizontalAlignment="Left" Foreground="{DynamicResource B.TextMuted}" IsHitTestVisible="False"/>
+                        <TextBlock x:Name="HistoryPlaceholder" Text="{DynamicResource S.TransHistory.Search}" Margin="35,0,0,0" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource B.TextMuted}" IsHitTestVisible="False"/>
+                        <Button Grid.Column="1" Style="{StaticResource Btn.Icon}" Content="{StaticResource I.Delete}" Margin="6,0,0,0"
+                                ToolTip="{DynamicResource S.TransHistory.Clear}" Click="ClearHistory_Click"/>
+                    </Grid>
+                    <TextBlock DockPanel.Dock="Bottom" Margin="2,8,0,0" FontSize="12" Foreground="{DynamicResource B.TextMuted}">
+                        <Run Text="Enter" FontFamily="{StaticResource F.Mono}"/><Run Text="{DynamicResource S.TransHistory.HintOpen}"/><Run
+                             Text="Ctrl+C" FontFamily="{StaticResource F.Mono}"/><Run Text="{DynamicResource S.TransHistory.HintCopy}"/><Run
+                             Text="Esc" FontFamily="{StaticResource F.Mono}"/><Run Text="{DynamicResource S.TransHistory.HintBack}"/><Run
+                             Text="Delete" FontFamily="{StaticResource F.Mono}"/><Run Text="{DynamicResource S.History.HintDelete}"/>
+                    </TextBlock>
+                    <Grid Margin="0,8,0,0">
+                        <ListBox x:Name="HistoryList" Margin="-6,0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                                 VirtualizingPanel.ScrollUnit="Pixel" MouseDoubleClick="HistoryList_MouseDoubleClick">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="ContextMenu" Value="{StaticResource RecordMenu}"/>
+                                    <Setter Property="Margin" Value="6,4"/>
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Border x:Name="Bd" Background="{DynamicResource B.Card}" BorderBrush="{DynamicResource B.Border}"
+                                                        BorderThickness="1" CornerRadius="10" Padding="12,9">
+                                                    <ContentPresenter/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource B.ChipBorder}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource B.AccentSoft}"/>
+                                                        <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource B.Accent}"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Source}" TextWrapping="Wrap" MaxHeight="40" TextTrimming="CharacterEllipsis"
+                                                   LineHeight="20" Foreground="{DynamicResource B.Text}"/>
+                                        <TextBlock Text="{Binding Preview}" TextWrapping="Wrap" MaxHeight="40" TextTrimming="CharacterEllipsis"
+                                                   LineHeight="20" Margin="0,4,0,0" Foreground="{DynamicResource B.TextSub}"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                            <TextBlock Text="{Binding Time, Converter={StaticResource RelativeTime}}" FontSize="11.5"
+                                                       Foreground="{DynamicResource B.TextMuted}" VerticalAlignment="Center"/>
+                                            <TextBlock FontSize="11.5" Margin="8,0,0,0" Foreground="{DynamicResource B.Accent}" VerticalAlignment="Center">
+                                                <Run Text="→ "/><Run Text="{Binding TargetName, Mode=OneWay}"/>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <!-- 空状态：图标 44 + 标题字体 -->
+                        <StackPanel x:Name="HistoryEmpty" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed">
+                            <TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.History}" FontSize="44"
+                                       Foreground="{DynamicResource B.TextMuted}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource S.TransHistory.Empty}" FontFamily="{StaticResource F.DisplayZh}" FontSize="20" Margin="0,10,0,4"
+                                       Foreground="{DynamicResource B.Text}" HorizontalAlignment="Center"/>
+                            <TextBlock x:Name="HistoryEmptyHint" Text="{DynamicResource S.TransHistory.EmptyHint}" Style="{StaticResource Text.Caption}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </DockPanel>
+
+                <StackPanel x:Name="TranslatePanel" Margin="16,2,16,16">
                     <Grid>
                         <TextBox x:Name="InputBox" MinHeight="84" MaxHeight="220" Padding="12,10" FontSize="14"
                                  AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top"

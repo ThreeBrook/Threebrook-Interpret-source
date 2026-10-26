@@ -11,7 +11,7 @@ This agreement is between you and Threebrook ("we") and covers Threebrook Interp
 · The software doesn't collect or upload any usage data and doesn't check for updates automatically. Installing and uninstalling never connect to the internet.
 · Text is sent out only when you use an online translation engine (such as Bing, Yandex, DeepL, Baidu, Youdao, Tencent or Microsoft Azure). It then goes to that provider and is subject to its terms of service and privacy policy. For confidential content, use a local language model or the offline features only.
 · Screenshot text recognition runs on your computer, using either the included high-accuracy component or the component built into Windows. Screenshots themselves are never sent anywhere.
-· Settings, the glossary, clipboard history and diagnostic logs are stored on your computer (the installed version uses %AppData%\ThreebrookInterpret; the portable version uses the data folder next to the program). Diagnostic logs don't record any text content.
+· Settings, the glossary, clipboard history, translation history and diagnostic logs are stored on your computer (the installed version uses %AppData%\ThreebrookInterpret; the portable version uses the data folder next to the program). Diagnostic logs don't record any text content.
 · Clipboard history keeps the text and images you copy. Content marked as excluded from history, for example by password managers, is skipped. You can turn history off in Settings.
 · API keys are encrypted with Windows Data Protection, so only the current user on the current computer can read them. If you copy the portable version to another computer, you'll need to enter them again.
 

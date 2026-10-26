@@ -210,6 +210,7 @@ flowchart LR
 - 截图界面：Enter / Ctrl+C 复制，Ctrl+S 保存，F3 钉图，O 识别文字，T 翻译，L 长截图，右键 / Esc 取消。
 - 标注工具（数字键 1–8）：矩形、椭圆、箭头、画笔、荧光笔、文字、马赛克、序号；Ctrl+Z / Ctrl+Y 撤销重做；复制、保存、钉图都带标注，识别文字用原图。
 - 钉图：拖动移动，滚轮缩放，Ctrl+滚轮调透明度，双击 / Esc 关闭，右键更多操作。
+- 翻译历史：翻译窗口标题栏的历史按钮（或托盘菜单“翻译历史”）打开，可搜索原文和译文；Enter 打开（原文和当时的译文放回窗口，不重新翻译），Ctrl+C 复制译文，Delete 删除，Esc 返回。默认 500 条 / 90 天，设置 › 历史记录 里可关闭或清空。
 - 钉图选取文字：钉住后在本机自动识别文字，鼠标移到文字上变成 I 形光标，拖动选取（Shift+点击延伸、双击选整行、Ctrl+A 全选），Ctrl+C 或操作条复制、翻译；在文字以外拖动或按住 Ctrl 拖动移动钉图，Esc 先取消选取。
 
 </details>
@@ -236,7 +237,7 @@ flowchart LR
 - OCR 默认用 Windows 自带识别，离线、不增加体积，默认跟随系统语言；日、韩、泰等要在 Windows 语言设置里添加该语言（勾选“光学字符识别”），再在 设置 › 截图与识别 里选择。
 - 高精度识别：PaddleOCR PP-OCRv5 mobile + ONNX Runtime（约 37 MB），随安装包和绿色版放在程序旁边的 `ocr\`，同样本机识别、不联网，中文屏幕小字基本不出错（Windows 自带识别在深色底、小字号上错字很多）。识别引擎默认“自动”：有 `ocr\` 就用它，没有就用 Windows 自带识别。速度：几行字约 0.5 秒，整屏 1080p 约 6 秒（2.1GHz 至强 4 线程）。
 - 界面语言：简体中文 / English，设置 › 常规 里切换，立即生效；默认跟随 Windows 显示语言。新增界面文字两个文件都要加，XAML 用 `{DynamicResource S.键}`，代码用 `Loc.T("键")` / `Loc.F("键", 参数)`。
-- 数据：`%AppData%\ThreebrookInterpret\`（绿色版在程序旁边的 `data\`）——`settings.json`（API Key DPAPI 加密）、`history\`（剪贴板历史，默认 500 条 / 30 天）、`error.log`。截图默认保存到 `图片\三溪通译`。
+- 数据：`%AppData%\ThreebrookInterpret\`（绿色版在程序旁边的 `data\`）——`settings.json`（API Key DPAPI 加密）、`history\`（剪贴板历史，默认 500 条 / 30 天）、`translations.json`（翻译历史）、`error.log`。截图默认保存到 `图片\三溪通译`。
 - 从旧版 ThreeBrookTrans 升级：第一次启动时把 `%AppData%\ThreeBrookTrans` 整体迁移过来，开机自启改指向新程序。
 
 </details>

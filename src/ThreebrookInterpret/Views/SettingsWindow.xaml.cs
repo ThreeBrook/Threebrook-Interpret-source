@@ -403,6 +403,12 @@ public partial class SettingsWindow : Window
             App.Instance.ClearHistory();
     }
 
+    private void ClearTranslationHistory_Click(object sender, RoutedEventArgs e)
+    {
+        if (MessageBox.Show(this, Loc.T("TransHistory.ConfirmClear"), AppInfo.Name, MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
+            App.Instance.ClearTranslationHistory();
+    }
+
     /// <summary>设置窗口是非模态的，IsCancel 不会自动关闭，需要手动关闭（编辑的是副本，直接丢弃）。</summary>
     private void Cancel_Click(object sender, RoutedEventArgs e) => Close();
 

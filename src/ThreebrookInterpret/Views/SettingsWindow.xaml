@@ -64,7 +64,7 @@
                     <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Translate}"/><TextBlock Text="{DynamicResource S.Settings.Engines}" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
                     <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Glossary}"/><TextBlock Text="{DynamicResource S.Settings.Glossary}" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
                     <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Screenshot}"/><TextBlock Text="{DynamicResource S.Settings.Screenshot}" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
-                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.History}"/><TextBlock Text="{DynamicResource S.Common.ClipboardHistory}" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
+                    <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.History}"/><TextBlock Text="{DynamicResource S.Settings.HistoryPage}" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
                     <ListBoxItem><StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource NavIcon}" Text="{StaticResource I.Info}"/><TextBlock Text="{DynamicResource S.Settings.About}" VerticalAlignment="Center"/></StackPanel></ListBoxItem>
                 </ListBox>
 
@@ -423,7 +423,8 @@
 
                         <!-- ===== 剪贴板历史 ===== -->
                         <StackPanel x:Name="PageHistory" Visibility="Collapsed">
-                            <TextBlock Text="{DynamicResource S.Common.ClipboardHistory}" Style="{StaticResource PageTitle}"/>
+                            <TextBlock Text="{DynamicResource S.Settings.HistoryPage}" Style="{StaticResource PageTitle}"/>
+                            <TextBlock Text="{DynamicResource S.Common.ClipboardHistory}" Style="{StaticResource Text.CardTitle}" Margin="2,0,0,10"/>
                             <Border Style="{StaticResource Card}" Padding="20,4" DataContext="{Binding History}">
                                 <StackPanel>
                                     <Grid Style="{StaticResource Row}">
@@ -485,6 +486,44 @@
                                 </Button>
                                 <Button Style="{StaticResource Btn.Danger}" Margin="8,0,0,0" Click="ClearHistory_Click">
                                     <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Delete}" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource S.Settings.ClearHistory}" VerticalAlignment="Center"/></StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                            <!-- 翻译历史：翻译窗口标题栏的历史按钮、托盘菜单打开 -->
+                            <TextBlock Text="{DynamicResource S.TransHistory.Title}" Style="{StaticResource Text.CardTitle}" Margin="2,20,0,10"/>
+                            <Border Style="{StaticResource Card}" Padding="20,4" DataContext="{Binding TranslationHistory}">
+                                <StackPanel>
+                                    <Grid Style="{StaticResource Row}">
+<Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center" Margin="0,8,16,8">
+                                            <TextBlock Text="{DynamicResource S.Settings.TransHistoryEnable}" Style="{StaticResource RowLabel}"/>
+                                            <TextBlock Text="{DynamicResource S.Settings.TransHistoryHint}" Style="{StaticResource Text.Caption}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                        <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding Enabled}" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Style="{StaticResource RowDivider}"/>
+                                    <Grid Style="{StaticResource Row}">
+<Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="{DynamicResource S.Settings.MaxItems}" Style="{StaticResource RowLabel}"/>
+                                        <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <TextBox Width="80" FontFamily="{StaticResource F.Mono}" Text="{Binding MaxItems}"/>
+                                            <TextBlock Text="{DynamicResource S.Settings.Items}" Style="{StaticResource FieldLabel}" Margin="8,0,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Border Style="{StaticResource RowDivider}"/>
+                                    <Grid Style="{StaticResource Row}">
+<Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="{DynamicResource S.Settings.MaxDays}" Style="{StaticResource RowLabel}"/>
+                                        <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <TextBox Width="80" FontFamily="{StaticResource F.Mono}" Text="{Binding MaxDays}"/>
+                                            <TextBlock Text="{DynamicResource S.Settings.Days}" Style="{StaticResource FieldLabel}" Margin="8,0,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                            <StackPanel Orientation="Horizontal" Margin="0,16,0,8">
+                                <Button Style="{StaticResource Btn.Danger}" Click="ClearTranslationHistory_Click">
+                                    <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Text.Icon}" Text="{StaticResource I.Delete}" Margin="0,0,6,0"/><TextBlock Text="{DynamicResource S.TransHistory.Clear}" VerticalAlignment="Center"/></StackPanel>
                                 </Button>
                             </StackPanel>
                         </StackPanel>

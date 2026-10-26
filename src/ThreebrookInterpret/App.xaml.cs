@@ -30,6 +30,7 @@ public partial class App : Application
     private HotkeyManager? _hotkeys;
     private TranslateWindow? _translateWindow;
     private ClipboardHistory? _history;
+    private TranslationHistory? _translations;
     private HistoryWindow? _historyWindow;
     private SettingsWindow? _settingsWindow;
     private ScreenshotOverlay? _screenshotOverlay;
@@ -98,7 +99,8 @@ public partial class App : Application
         ThemeManager.Initialize();
         // 规范 §5：提示气泡悬停 0.4 秒后出现
         ToolTipService.InitialShowDelayProperty.OverrideMetadata(typeof(FrameworkElement), new FrameworkPropertyMetadata(400));
-        _translateWindow = new TranslateWindow();
+        _translations = new TranslationHistory();
+        _translateWindow = new TranslateWindow(_translations);
         _history = new ClipboardHistory();
 
         _tray = new TrayIcon();
@@ -115,6 +117,7 @@ public partial class App : Application
             StartScreenshot(translateMode: true);
         };
         _tray.HistoryRequested += ToggleHistory;
+        _tray.TranslationHistoryRequested += () => _translateWindow.ShowHistory();
         _tray.SettingsRequested += ShowSettings;
         _tray.OpenSettingsFileRequested += () => Process.Start("notepad.exe", $"\"{SettingsStore.SettingsPath}\"");
         _tray.ReloadSettingsRequested += ReloadSettings;
@@ -199,6 +202,7 @@ public partial class App : Application
         SettingsStore.LocalizeDefaultEngineNames(Settings, Loc.IsEnglish);
         _translateWindow?.LoadTargets();
         _history?.Trim();
+        _translations?.Trim();
         RegisterHotkeys();
     }
 
@@ -346,6 +350,8 @@ public partial class App : Application
 
     public void ClearHistory() => _history?.Clear();
 
+    public void ClearTranslationHistory() => _translations?.Clear();
+
     // —— 退出与异常 ——
 
     private void ExitApp()
@@ -353,6 +359,7 @@ public partial class App : Application
         IsExiting = true;
         _hotkeys?.Dispose();
         _history?.Dispose();
+        _translations?.Dispose();
         _tray?.Dispose();
         Shutdown();
     }

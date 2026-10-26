@@ -182,6 +182,7 @@
     <sys:String x:Key="S.Settings.HistoryEnable" xml:space="preserve">记录剪贴板历史</sys:String>
     <sys:String x:Key="S.Settings.HistoryHint" xml:space="preserve">历史只保存在本机数据目录的 history 文件夹，不上传。密码管理器等标记为“不记录”的内容会自动跳过。</sys:String>
     <sys:String x:Key="S.Settings.HistoryImages" xml:space="preserve">记录图片</sys:String>
+    <sys:String x:Key="S.Settings.HistoryPage" xml:space="preserve">历史记录</sys:String>
     <sys:String x:Key="S.Settings.HistoryText" xml:space="preserve">记录文字</sys:String>
     <sys:String x:Key="S.Settings.Hotkeys" xml:space="preserve">快捷键</sys:String>
     <sys:String x:Key="S.Settings.HotkeysHint" xml:space="preserve">点击输入框后直接按下新的组合键；按 Backspace 清除，清除后该功能不注册快捷键。</sys:String>
@@ -231,6 +232,8 @@
     <sys:String x:Key="S.Settings.TestEngine" xml:space="preserve">测试翻译</sys:String>
     <sys:String x:Key="S.Settings.Timeout" xml:space="preserve">超时</sys:String>
     <sys:String x:Key="S.Settings.Title" xml:space="preserve">设置</sys:String>
+    <sys:String x:Key="S.Settings.TransHistoryEnable" xml:space="preserve">记录翻译历史</sys:String>
+    <sys:String x:Key="S.Settings.TransHistoryHint" xml:space="preserve">原文和译文保存在本机，在翻译窗口标题栏的历史按钮或托盘菜单里查看</sys:String>
     <sys:String x:Key="S.Settings.Version" xml:space="preserve">版本 {0}</sys:String>
     <sys:String x:Key="S.Settings.Websites" xml:space="preserve">网站</sys:String>
     <sys:String x:Key="S.Settings.WindowTitle" xml:space="preserve">三溪通译 设置</sys:String>
@@ -351,6 +354,18 @@
     <sys:String x:Key="S.Time.MinutesAgo" xml:space="preserve">{0} 分钟前</sys:String>
     <sys:String x:Key="S.Time.Yesterday" xml:space="preserve">昨天 {0}</sys:String>
 
+    <sys:String x:Key="S.TransHistory.Clear" xml:space="preserve">清空翻译历史</sys:String>
+    <sys:String x:Key="S.TransHistory.ConfirmClear" xml:space="preserve">确定清空全部翻译历史吗？</sys:String>
+    <sys:String x:Key="S.TransHistory.CopyResult" xml:space="preserve">复制译文</sys:String>
+    <sys:String x:Key="S.TransHistory.Disabled" xml:space="preserve">翻译历史已关闭，可以在 设置 › 历史记录 里打开</sys:String>
+    <sys:String x:Key="S.TransHistory.Empty" xml:space="preserve">还没有记录</sys:String>
+    <sys:String x:Key="S.TransHistory.EmptyHint" xml:space="preserve">翻译过的内容会记在这里，只保存在本机</sys:String>
+    <sys:String x:Key="S.TransHistory.HintBack" xml:space="preserve"> 返回 · </sys:String>
+    <sys:String x:Key="S.TransHistory.HintCopy" xml:space="preserve"> 复制译文 · </sys:String>
+    <sys:String x:Key="S.TransHistory.HintOpen" xml:space="preserve"> 打开 · </sys:String>
+    <sys:String x:Key="S.TransHistory.Open" xml:space="preserve">打开</sys:String>
+    <sys:String x:Key="S.TransHistory.Search" xml:space="preserve">搜索原文或译文…</sys:String>
+    <sys:String x:Key="S.TransHistory.Title" xml:space="preserve">翻译历史</sys:String>
     <sys:String x:Key="S.Translate.CopyResult" xml:space="preserve">复制译文</sys:String>
     <sys:String x:Key="S.Translate.Failed" xml:space="preserve">失败</sys:String>
     <sys:String x:Key="S.Translate.HideEsc" xml:space="preserve">隐藏（Esc）</sys:String>
