@@ -8,7 +8,7 @@
 
 <p>常驻托盘的 Windows 翻译小工具——C# .NET 10 WPF，单文件发布。安装包和绿色版都自带运行时和高精度识别，下载就能用。</p>
 
-<img src="https://img.shields.io/badge/版本-0.7.0-2f9e9a?style=for-the-badge" alt="版本 0.7.0">
+<img src="https://img.shields.io/badge/版本-0.7.1-2f9e9a?style=for-the-badge" alt="版本 0.7.1">
 <img src="https://img.shields.io/badge/平台-Windows_10_%2F_11-2f9e9a?style=for-the-badge&logo=windows11&logoColor=white" alt="Windows">
 <img src="https://img.shields.io/badge/价格-免费-7460C4?style=for-the-badge" alt="免费">
 
@@ -70,7 +70,7 @@
 
 <table>
 <tr><th>项目</th><th>状态</th></tr>
-<tr><td><b>Windows</b></td><td>✅ <b>0.7.0</b>（2026-10-25）：输入 / 划词 / 截图翻译，截图标注、钉图、长截图，剪贴板历史，8 种引擎 + 术语表，API Key DPAPI 加密，浅色 / 深色，中英文界面，钉图选取文字，PaddleOCR 高精度识别，自制安装包和绿色版（都自带运行时，下载即用）</td></tr>
+<tr><td><b>Windows</b></td><td>✅ <b>0.7.1</b>（2026-10-26）：输入 / 划词 / 截图翻译，截图标注、钉图、长截图，剪贴板历史，翻译历史，8 种引擎 + 术语表，API Key DPAPI 加密，浅色 / 深色，中英文界面，钉图选取文字，PaddleOCR 高精度识别，自制安装包和绿色版（都自带运行时，下载即用）</td></tr>
 <tr><td>官网</td><td>✅ interpret.threebrook.com 已做好（中英文：首页、下载、帮助、隐私政策、许可协议），公司主页 threebrook.com 第 5 站“通译小铺”</td></tr>
 <tr><td>代码签名</td><td>⏸ 安装包未签名，别的电脑上 SmartScreen 可能提示“未知发布者”，需要代码签名证书</td></tr>
 <tr><td>其他平台</td><td>✖ 只做 Windows</td></tr>

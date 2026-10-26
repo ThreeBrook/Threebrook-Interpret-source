@@ -15,7 +15,7 @@
     <AssemblyTitle>三溪通译 Threebrook Interpret</AssemblyTitle>
     <Company>三溪 Threebrook</Company>
     <Copyright>© 2026 三溪 Threebrook</Copyright>
-    <Version>0.7.0</Version>
+    <Version>0.7.1</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- WPF 应用通过 manifest 声明 PerMonitorV2，WinForms 的 DPI 建议不适用 -->
     <NoWarn>$(NoWarn);WFAC010;WFO0003</NoWarn>
