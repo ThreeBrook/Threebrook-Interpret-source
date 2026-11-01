@@ -235,7 +235,7 @@ flowchart LR
 <summary><b>文字识别、界面语言、数据位置</b></summary>
 
 - OCR 默认用 Windows 自带识别，离线、不增加体积，默认跟随系统语言；日、韩、泰等要在 Windows 语言设置里添加该语言（勾选“光学字符识别”），再在 设置 › 截图与识别 里选择。
-- 高精度识别：PaddleOCR PP-OCRv5 mobile + ONNX Runtime（约 37 MB），随安装包和绿色版放在程序旁边的 `ocr\`，同样本机识别、不联网，中文屏幕小字基本不出错（Windows 自带识别在深色底、小字号上错字很多）。识别引擎默认“自动”：有 `ocr\` 就用它，没有就用 Windows 自带识别。速度：几行字约 0.5 秒，整屏 1080p 约 6 秒（2.1GHz 至强 4 线程）。
+- 高精度识别：PaddleOCR PP-OCRv6 small + ONNX Runtime（约 47 MB），随安装包和绿色版放在程序旁边的 `ocr\`，同样本机识别、不联网，中文屏幕小字基本不出错（Windows 自带识别在深色底、小字号上错字很多）。识别引擎默认“自动”：有 `ocr\` 就用它，没有就用 Windows 自带识别。速度：几行字约 0.5 秒，整屏 1080p 约 6 秒（2.1GHz 至强 4 线程）。
 - 界面语言：简体中文 / English，设置 › 常规 里切换，立即生效；默认跟随 Windows 显示语言。新增界面文字两个文件都要加，XAML 用 `{DynamicResource S.键}`，代码用 `Loc.T("键")` / `Loc.F("键", 参数)`。
 - 数据：`%AppData%\ThreebrookInterpret\`（绿色版在程序旁边的 `data\`）——`settings.json`（API Key DPAPI 加密）、`history\`（剪贴板历史，默认 500 条 / 30 天）、`translations.json`（翻译历史）、`error.log`。截图默认保存到 `图片\三溪通译`。
 - 从旧版 ThreeBrookTrans 升级：第一次启动时把 `%AppData%\ThreeBrookTrans` 整体迁移过来，开机自启改指向新程序。

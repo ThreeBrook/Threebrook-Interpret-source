@@ -40,7 +40,7 @@ if (-not $Package) {
 
 # 高精度识别组件要先下载好：发布的两个版本都带它
 $ocrCache = Join-Path $PSScriptRoot 'tools\ocr\cache'
-$ocrFiles = @('onnxruntime.dll', 'det.onnx', 'rec.onnx', 'ppocrv5_dict.txt', 'LICENSE-onnxruntime.txt', 'ThirdPartyNotices-onnxruntime.txt')
+$ocrFiles = @('onnxruntime.dll', 'det.onnx', 'rec.onnx', 'dict.txt', 'LICENSE-onnxruntime.txt', 'ThirdPartyNotices-onnxruntime.txt')
 $missing = $ocrFiles | Where-Object { -not (Test-Path (Join-Path $ocrCache $_)) }
 if ($missing) { throw "缺少高精度识别组件的文件（$($missing -join '、')），先运行 tools\ocr\fetch.ps1" }
 
@@ -64,9 +64,9 @@ Copy-Item "$ocrCache\LICENSE-onnxruntime.txt", "$ocrCache\ThirdPartyNotices-onnx
 Copy-Item "$PSScriptRoot\src\ThreebrookInterpret\Fonts\licenses\LICENSE-MaterialSymbols.txt" "$ocr\licenses\LICENSE-PaddleOCR.txt"
 $ortVersion = (Get-Item "$ocr\onnxruntime.dll").VersionInfo.ProductVersion
 [IO.File]::WriteAllLines("$ocr\component.txt", @(
-    "PP-OCRv5 mobile",
+    "PP-OCRv6 small",
     "三溪通译高精度识别组件 / Threebrook Interpret high-accuracy OCR component",
-    "模型 Models: PaddleOCR PP-OCRv5 mobile det + rec (PaddlePaddle Authors, Apache License 2.0; ONNX by RapidAI/RapidOCR v3.10.0)",
+    "模型 Models: PaddleOCR PP-OCRv6 small det + rec (PaddlePaddle Authors, Apache License 2.0; official ONNX from huggingface.co/PaddlePaddle)",
     "运行库 Runtime: ONNX Runtime $ortVersion (Microsoft, MIT License)"
 ), (New-Object Text.UTF8Encoding($true)))
 

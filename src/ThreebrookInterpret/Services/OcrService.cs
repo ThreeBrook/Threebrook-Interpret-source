@@ -80,12 +80,12 @@ public static class OcrService
 
 
 /// <summary>
-/// 高精度识别组件（PaddleOCR 模型 + onnxruntime.dll，约 37 MB）：发布的安装包和绿色版都把它放在程序旁边的 ocr 文件夹。
+/// 高精度识别组件（PaddleOCR 模型 + onnxruntime.dll，约 47 MB）：发布的安装包和绿色版都把它放在程序旁边的 ocr 文件夹。
 /// </summary>
 public static class OcrComponent
 {
     public const string FolderName = "ocr";
-    public static readonly string[] RequiredFiles = ["onnxruntime.dll", "det.onnx", "rec.onnx", "ppocrv5_dict.txt"];
+    public static readonly string[] RequiredFiles = ["onnxruntime.dll", "det.onnx", "rec.onnx", "dict.txt"];
 
     /// <summary>组件里的版本说明文件，第一行是版本。</summary>
     public const string InfoFile = "component.txt";

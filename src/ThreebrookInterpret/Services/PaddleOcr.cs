@@ -11,7 +11,7 @@ using System.Windows.Media.Imaging;
 namespace ThreebrookInterpret.Services;
 
 /// <summary>
-/// 高精度识别：PaddleOCR PP-OCRv5 mobile（检测 + 识别两个 ONNX 模型）跑在 ONNX Runtime CPU 上，本机完成。
+/// 高精度识别：PaddleOCR PP-OCRv6 small（检测 + 识别两个 ONNX 模型）跑在 ONNX Runtime CPU 上，本机完成。
 /// 截图里的文字都是横排，所以检测结果按水平矩形处理（不做旋转框、方向分类），省掉 OpenCV。
 /// 识别模型是 CTC 输出，每个字落在哪几个时间步就能换算出它在行里的横向位置，钉图上逐字选取靠这个。
 /// 参数取 PaddleOCR / RapidOCR 的默认值。
@@ -20,7 +20,8 @@ public static class PaddleOcr
 {
     // 检测（DB）：短边放大到 736，长边不超过 2000，边长取 32 的倍数
     private const int DetMinSide = 736, DetMaxSide = 2000;
-    private const float DetThreshold = 0.3f, DetBoxThreshold = 0.5f, UnclipRatio = 1.6f;
+    // 阈值取 PP-OCRv6_small_det 的 inference.yml（v5 是 0.3 / 0.5 / 1.6）
+    private const float DetThreshold = 0.2f, DetBoxThreshold = 0.45f, UnclipRatio = 1.4f;
     private const int MinBoxSize = 3;
     private static readonly float[] DetMean = [0.485f, 0.456f, 0.406f], DetStd = [0.229f, 0.224f, 0.225f];
 
@@ -109,7 +110,7 @@ public static class PaddleOcr
         var threads = Math.Clamp(Environment.ProcessorCount / 2, 1, 4);
         _det = new OnnxSession(Path.Combine(directory, "det.onnx"), threads);
         _rec = new OnnxSession(Path.Combine(directory, "rec.onnx"), threads);
-        _dictionary = File.ReadAllLines(Path.Combine(directory, "ppocrv5_dict.txt"));
+        _dictionary = File.ReadAllLines(Path.Combine(directory, "dict.txt"));
     }
 
     // —— 检测 ——
