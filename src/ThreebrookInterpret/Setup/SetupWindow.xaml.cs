@@ -272,7 +272,7 @@ public partial class SetupWindow : Window
             HotkeyList.ItemsSource = new[]
             {
                 (Loc.T("Common.InputTranslate"), _hotkeys.InputTranslate), (Loc.T("Common.SelectionTranslate"), _hotkeys.SelectionTranslate), (Loc.T("Common.Screenshot"), _hotkeys.Screenshot),
-                (Loc.T("Common.ScreenshotTranslate"), _hotkeys.ScreenshotTranslate), (Loc.T("Common.ClipboardHistory"), _hotkeys.History),
+                (Loc.T("Common.ScreenshotTranslate"), _hotkeys.ScreenshotTranslate), (Loc.T("Common.History"), _hotkeys.History),
             }.Where(h => !string.IsNullOrWhiteSpace(h.Item2)).Select(h => new KeyValuePair<string, string>(h.Item1, h.Item2)).ToList();
             ShowPage(DonePage, Loc.T("Setup.DoneTitle"), Loc.T("Setup.DoneDesc"),
                 Loc.T("Setup.DoneTip"), 3);
@@ -458,7 +458,7 @@ public partial class SetupWindow : Window
                 HotkeyList.ItemsSource = new[]
                 {
                     new KeyValuePair<string, string>(Loc.T("Common.InputTranslate"), "Alt+Q"), new(Loc.T("Common.SelectionTranslate"), "Alt+D"), new(Loc.T("Common.Screenshot"), "Alt+S"),
-                    new(Loc.T("Common.ScreenshotTranslate"), "Alt+W"), new(Loc.T("Common.ClipboardHistory"), "Alt+H"),
+                    new(Loc.T("Common.ScreenshotTranslate"), "Alt+W"), new(Loc.T("Common.History"), "Alt+H"),
                 };
                 ShowPage(DonePage, Loc.T("Setup.DoneTitle"), Loc.T("Setup.DoneDesc"),
                     Loc.T("Setup.DoneTip"), 3);

@@ -117,7 +117,6 @@ public partial class App : Application
             StartScreenshot(translateMode: true);
         };
         _tray.HistoryRequested += ToggleHistory;
-        _tray.TranslationHistoryRequested += () => _translateWindow.ShowHistory();
         _tray.SettingsRequested += ShowSettings;
         _tray.OpenSettingsFileRequested += () => Process.Start("notepad.exe", $"\"{SettingsStore.SettingsPath}\"");
         _tray.ReloadSettingsRequested += ReloadSettings;
@@ -253,7 +252,7 @@ public partial class App : Application
         Register(Loc.T("Common.SelectionTranslate"), hotkeys.SelectionTranslate, TranslateSelection);
         Register(Loc.T("Common.Screenshot"), hotkeys.Screenshot, () => StartScreenshot(translateMode: false));
         Register(Loc.T("Common.ScreenshotTranslate"), hotkeys.ScreenshotTranslate, () => StartScreenshot(translateMode: true));
-        Register(Loc.T("Common.ClipboardHistory"), hotkeys.History, ToggleHistory);
+        Register(Loc.T("Common.History"), hotkeys.History, ToggleHistory);
 
         if (failed.Count > 0)
             _tray.ShowMessage(Loc.T("App.HotkeyFailedTitle"), Loc.F("App.HotkeyFailedText", string.Join(Loc.T("App.HotkeySeparator"), failed)), warning: true);
@@ -331,8 +330,9 @@ public partial class App : Application
     }
 
     /// <summary>显示已识别的文字（钉图已在后台识别过，不用再识别一遍）；translate 为 true 时直接翻译。</summary>
+    /// <remarks>识别结果已按版面排好、按设置接好折行（OcrService.ToText），这里不再用 PrepareText 合并。</remarks>
     public void ShowRecognizedText(string text, bool translate) =>
-        _translateWindow?.ShowAtCursor(PrepareText(text), translate, emptyHint: Loc.T("App.NoTextFound"));
+        _translateWindow?.ShowAtCursor(text, translate, emptyHint: Loc.T("App.NoTextFound"));
 
     // OCR 走 WinRT，HRESULT 会被映射成各种异常类型；都用托盘提示，不弹程序出错对话框
     public void ShowOcrError(Exception ex) => _tray?.ShowMessage(Loc.T("App.OcrFailed"), ex.Message, warning: true);
@@ -340,12 +340,19 @@ public partial class App : Application
     internal static string? PrepareText(string? text) =>
         text != null && Settings.MergeLineBreaks ? TextUtil.MergeLines(text) : text;
 
-    private void ToggleHistory()
+    private void ToggleHistory() => GetHistoryWindow()?.Toggle();
+
+    /// <summary>翻译窗口的历史按钮、托盘菜单"翻译历史"：打开历史窗口的"翻译"页。</summary>
+    public void ShowTranslationHistory() => GetHistoryWindow()?.ShowTranslations();
+
+    /// <summary>历史窗口里打开一条翻译记录：原文和当时的译文放回翻译窗口。</summary>
+    public void OpenTranslationRecord(TranslationRecord record) => _translateWindow?.ShowRecord(record);
+
+    private HistoryWindow? GetHistoryWindow()
     {
         if (_history == null)
-            return;
-        _historyWindow ??= new HistoryWindow(_history);
-        _historyWindow.Toggle();
+            return null;
+        return _historyWindow ??= new HistoryWindow(_history, _translations);
     }
 
     public void ClearHistory() => _history?.Clear();

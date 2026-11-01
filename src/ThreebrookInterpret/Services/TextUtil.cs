@@ -29,20 +29,29 @@ public static class TextUtil
                 continue;
             }
 
-            var prev = result[^1];
             if (paragraphBreak)
-                result.Append("\n\n");
-            else if (IsSentenceEnd(prev) || IsListItem(line))
-                result.Append('\n');
-            else if (prev == '-' && result.Length > 1 && char.IsLetter(result[^2]) && char.IsLower(line[0]))
-                result.Length--; // "trans-\nlation" → "translation"
-            else if (!IsCjk(prev) && !IsCjk(line[0]))
-                result.Append(' ');
-
-            result.Append(line);
+                result.Append("\n\n").Append(line);
+            else if (IsSentenceEnd(result[^1]) || IsListItem(line))
+                result.Append('\n').Append(line);
+            else
+                AppendWrapped(result, line);
             paragraphBreak = false;
         }
         return result.ToString();
+    }
+
+    /// <summary>接上折行：英文行尾连字符断词时去掉连字符；中日韩文字直接拼接，其他加空格。</summary>
+    public static void AppendWrapped(StringBuilder text, string line)
+    {
+        if (text.Length > 0 && line.Length > 0)
+        {
+            var prev = text[^1];
+            if (prev == '-' && text.Length > 1 && char.IsLetter(text[^2]) && char.IsLower(line[0]))
+                text.Length--; // "trans-\nlation" → "translation"
+            else if (!IsCjk(prev) && !IsCjk(line[0]) && !char.IsWhiteSpace(prev))
+                text.Append(' ');
+        }
+        text.Append(line);
     }
 
     public static bool IsCjk(char c) =>
@@ -50,8 +59,12 @@ public static class TextUtil
 
     private static bool IsSentenceEnd(char c) => c is '.' or '!' or '?' or ':' or ';' or '。' or '！' or '？' or '：' or '；' or '…';
 
-    private static bool IsListItem(string line)
+    /// <summary>以项目符号或"1." "2)" "3、"开头的列表项，前面不接到上一行。</summary>
+    public static bool IsListItem(string line)
     {
+        line = line.TrimStart();
+        if (line.Length == 0)
+            return false;
         if (line[0] is '•' or '·' or '-' or '*' or '●' or '■' or '◆')
             return true;
         var i = 0;

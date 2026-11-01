@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,9 +15,12 @@ public partial class HistoryWindow : Window
 {
     private readonly ClipboardHistory _history;
     private readonly ICollectionView _view;
+    private readonly TranslationHistory? _translations;
+    private readonly ICollectionView? _transView;
     private IntPtr _previousWindow;
 
-    public HistoryWindow(ClipboardHistory history)
+    /// <param name="translations">翻译历史（"翻译"页）；界面预览不传时只有剪贴板页。</param>
+    public HistoryWindow(ClipboardHistory history, TranslationHistory? translations = null)
     {
         InitializeComponent();
         _history = history;
@@ -24,9 +28,22 @@ public partial class HistoryWindow : Window
         _view.Filter = Filter;
         List.ItemsSource = _view;
         history.Entries.CollectionChanged += (_, _) => UpdateCount();
+        _translations = translations;
+        if (translations != null)
+        {
+            _transView = CollectionViewSource.GetDefaultView(translations.Entries);
+            _transView.Filter = item => MatchesSearch((TranslationRecord)item);
+            TransList.ItemsSource = _transView;
+            translations.Entries.CollectionChanged += (_, _) => UpdateCount();
+        }
+        else
+        {
+            TabTranslation.Visibility = Visibility.Collapsed;
+        }
         UpdateCount();
     }
 
+    /// <summary>Alt+H：已在前台则隐藏，否则在鼠标旁显示（停在上次看的那一页）。</summary>
     public void Toggle()
     {
         if (IsVisible && IsActive)
@@ -34,9 +51,21 @@ public partial class HistoryWindow : Window
             Hide();
             return;
         }
+        ShowNearCursor();
+    }
 
+    /// <summary>翻译窗口的历史按钮、托盘菜单"翻译历史"：打开"翻译"页。</summary>
+    public void ShowTranslations()
+    {
+        TabTranslation.IsChecked = true;
+        ShowNearCursor();
+    }
+
+    private void ShowNearCursor()
+    {
         _previousWindow = PasteTarget();
         _view.Refresh(); // 刷新相对时间
+        _transView?.Refresh();
         Show();
         WindowPlacement.MoveNearCursor(this);
         Activate();
@@ -44,6 +73,10 @@ public partial class HistoryWindow : Window
         SearchBox.SelectAll();
         SelectFirst();
     }
+
+    private bool OnTranslationTab => TabTranslation.IsChecked == true;
+
+    private ListBox ActiveList => OnTranslationTab ? TransList : List;
 
     private bool Filter(object item)
     {
@@ -54,21 +87,99 @@ public partial class HistoryWindow : Window
         return keyword.Length == 0 || !entry.IsImage && entry.Text!.Contains(keyword, StringComparison.OrdinalIgnoreCase);
     }
 
+    private bool MatchesSearch(TranslationRecord record)
+    {
+        var keyword = SearchBox.Text.Trim();
+        return keyword.Length == 0
+               || record.Source.Contains(keyword, StringComparison.OrdinalIgnoreCase)
+               || record.Results.Any(r => r.Text.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+    }
+
     private void UpdateCount()
     {
-        CountText.Text = _history.Entries.Count.ToString();
-        EmptyText.Visibility = List.Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        if (CountText == null)
+            return; // InitializeComponent 期间
+        CountText.Text = (OnTranslationTab ? _translations?.Entries.Count ?? 0 : _history.Entries.Count).ToString();
+        EmptyText.Visibility = ActiveList.Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        // 空状态随当前页；翻译历史关闭时提示去设置里打开
+        EmptyIcon.SetResourceReference(TextBlock.TextProperty, OnTranslationTab ? "I.Translate" : "I.Paste");
+        EmptyHintText.SetResourceReference(TextBlock.TextProperty, !OnTranslationTab ? "S.History.EmptyHint"
+            : App.Settings.TranslationHistory.Enabled ? "S.TransHistory.EmptyHint" : "S.TransHistory.Disabled");
     }
 
     private void SelectFirst()
     {
-        if (List.Items.Count > 0)
+        var list = ActiveList;
+        if (list.Items.Count > 0)
         {
-            List.SelectedIndex = 0;
-            List.ScrollIntoView(List.SelectedItem);
+            list.SelectedIndex = 0;
+            list.ScrollIntoView(list.SelectedItem);
         }
         UpdateCount();
     }
+
+    /// <summary>切换 剪贴板 / 翻译 页：换列表、筛选按钮、搜索提示和底部提示。</summary>
+    private void Tab_Checked(object sender, RoutedEventArgs e)
+    {
+        if (TransList == null)
+            return; // InitializeComponent 期间
+        var translation = OnTranslationTab;
+        List.Visibility = translation ? Visibility.Collapsed : Visibility.Visible;
+        TransList.Visibility = translation ? Visibility.Visible : Visibility.Collapsed;
+        KindChips.Visibility = translation ? Visibility.Collapsed : Visibility.Visible;
+        ClipboardHint.Visibility = translation ? Visibility.Collapsed : Visibility.Visible;
+        TranslationHint.Visibility = translation ? Visibility.Visible : Visibility.Collapsed;
+        SearchPlaceholder.SetResourceReference(TextBlock.TextProperty, translation ? "S.TransHistory.Search" : "S.History.Search");
+        (translation ? _transView : _view)?.Refresh();
+        SelectFirst();
+        SearchBox.Focus();
+    }
+
+    // —— 翻译历史 ——
+
+    private TranslationRecord? SelectedRecord => TransList.SelectedItem as TranslationRecord;
+
+    private static TranslationRecord? RecordOf(object sender) => (sender as FrameworkElement)?.DataContext as TranslationRecord;
+
+    /// <summary>打开一条翻译记录：原文和当时的译文放回翻译窗口（不重新翻译）。</summary>
+    private void OpenRecord(TranslationRecord? record)
+    {
+        if (record == null)
+            return;
+        Hide();
+        if (OpenRecordOverride != null)
+            OpenRecordOverride(record);
+        else
+            App.Instance.OpenTranslationRecord(record);
+    }
+
+    /// <summary>界面预览 / 自测：打开的记录交给它，不经过 App 的翻译窗口。</summary>
+    internal Action<TranslationRecord>? OpenRecordOverride { get; init; }
+
+    private void CopyRecord(TranslationRecord? record)
+    {
+        if (record == null || record.Preview.Length == 0)
+            return;
+        ImageActions.CopyText(record.Preview);
+        Hide();
+    }
+
+    private void DeleteRecord(TranslationRecord? record)
+    {
+        if (record == null || _translations == null)
+            return;
+        var index = TransList.SelectedIndex;
+        _translations.Delete(record);
+        if (TransList.Items.Count > 0)
+            TransList.SelectedIndex = Math.Min(index, TransList.Items.Count - 1);
+    }
+
+    private void OpenRecord_Click(object sender, RoutedEventArgs e) => OpenRecord(RecordOf(sender));
+    private void CopyRecord_Click(object sender, RoutedEventArgs e) => CopyRecord(RecordOf(sender));
+    private void DeleteRecord_Click(object sender, RoutedEventArgs e) => DeleteRecord(RecordOf(sender));
+
+    private void RecordItem_Click(object sender, MouseButtonEventArgs e) =>
+        OpenRecord(((ListBoxItem)sender).DataContext as TranslationRecord);
 
     private HistoryEntry? Selected => List.SelectedItem as HistoryEntry;
 
@@ -154,13 +265,19 @@ public partial class HistoryWindow : Window
         }
     }
 
+    /// <summary>清空当前这一页。</summary>
     private void Clear_Click(object sender, RoutedEventArgs e)
     {
+        var translation = OnTranslationTab;
         Topmost = false;
-        var confirm = MessageBox.Show(this, Loc.T("History.ConfirmClear"), AppInfo.Name,
+        var confirm = MessageBox.Show(this, Loc.T(translation ? "TransHistory.ConfirmClear" : "History.ConfirmClear"), AppInfo.Name,
             MessageBoxButton.OKCancel, MessageBoxImage.Question);
         Topmost = true;
-        if (confirm == MessageBoxResult.OK)
+        if (confirm != MessageBoxResult.OK)
+            return;
+        if (translation)
+            _translations?.Clear();
+        else
             _history.Clear();
     }
 
@@ -171,24 +288,34 @@ public partial class HistoryWindow : Window
         base.OnPreviewKeyDown(e);
         var ctrl = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
         var inSearch = SearchBox.IsKeyboardFocused;
+        var list = ActiveList;
 
         switch (e.Key)
         {
             case Key.Escape:
                 Hide();
                 break;
+            case Key.Enter when OnTranslationTab:
+                OpenRecord(SelectedRecord);
+                break;
             case Key.Enter:
                 Paste(Selected);
                 break;
-            case Key.Down or Key.Up when inSearch && List.Items.Count > 0:
-                List.SelectedIndex = Math.Clamp(List.SelectedIndex + (e.Key == Key.Down ? 1 : -1), 0, List.Items.Count - 1);
-                List.ScrollIntoView(List.SelectedItem);
+            case Key.Down or Key.Up when inSearch && list.Items.Count > 0:
+                list.SelectedIndex = Math.Clamp(list.SelectedIndex + (e.Key == Key.Down ? 1 : -1), 0, list.Items.Count - 1);
+                list.ScrollIntoView(list.SelectedItem);
                 break;
             case Key.Delete when !inSearch || SearchBox.Text.Length == 0:
-                Delete(Selected);
+                if (OnTranslationTab)
+                    DeleteRecord(SelectedRecord);
+                else
+                    Delete(Selected);
                 break;
             case Key.C when ctrl && (!inSearch || SearchBox.SelectionLength == 0):
-                CopyOnly(Selected);
+                if (OnTranslationTab)
+                    CopyRecord(SelectedRecord);
+                else
+                    CopyOnly(Selected);
                 break;
             default:
                 return;
@@ -206,8 +333,33 @@ public partial class HistoryWindow : Window
     {
         SearchPlaceholder.Visibility = SearchBox.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
         _view.Refresh();
+        _transView?.Refresh();
         SelectFirst();
     }
+
+    // —— 自测（不动真实鼠标键盘） ——
+
+    /// <summary>照真实按键的路由发一次按键（先 PreviewKeyDown 再 KeyDown）。</summary>
+    internal void SimulateKey(Key key)
+    {
+        var target = Keyboard.FocusedElement as UIElement ?? this;
+        var source = PresentationSource.FromVisual(this)!;
+        var preview = new KeyEventArgs(Keyboard.PrimaryDevice, source, 0, key) { RoutedEvent = Keyboard.PreviewKeyDownEvent };
+        target.RaiseEvent(preview);
+        if (!preview.Handled)
+            target.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, source, 0, key) { RoutedEvent = Keyboard.KeyDownEvent });
+    }
+
+    /// <summary>在翻译页第 index 条上发一次左键抬起（单击打开走的就是这个事件）。</summary>
+    internal void SimulateRecordClick(int index)
+    {
+        TransList.UpdateLayout();
+        if (TransList.ItemContainerGenerator.ContainerFromIndex(index) is ListBoxItem item)
+            item.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left) { RoutedEvent = PreviewMouseLeftButtonUpEvent });
+    }
+
+    /// <summary>预览：打开翻译页（不移动、不激活窗口）。</summary>
+    internal void ShowTranslationTabPreview() => TabTranslation.IsChecked = true;
 
     private void Kind_Checked(object sender, RoutedEventArgs e)
     {

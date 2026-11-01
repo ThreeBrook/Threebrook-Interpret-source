@@ -114,6 +114,9 @@ internal static partial class PreviewRenderer
                     if (run == 1)
                         continue;
                     report.AppendLine(OcrService.ToText(lines));
+                    // 打开"合并换行"时的结果；行首缩进，打分脚本会跳过
+                    foreach (var merged in OcrService.ToText(lines, mergeWrapped: true).Split('\n'))
+                        report.AppendLine("   merged| " + merged);
                     foreach (var line in lines)
                         report.AppendLine("   " + string.Join(" ", line.Words.Select(w => $"{w.Text}@{w.Box.X:0}-{w.Box.Right:0}{(w.SpaceBefore == true ? "+sp" : "")}")));
                 }
@@ -145,12 +148,28 @@ internal static partial class PreviewRenderer
             history.Entries[0].Time = DateTime.Now - sample.Age;
         }
 
-        var window = new TranslateWindow(history);
-        window.ShowHistoryPreview(open: false);
-        Render(window, directory, theme, "translate-history", keepOpen: true);
-        window.ShowHistoryPreview(open: true);
-        Render(window, directory, theme, "translate-history-open");
-        window.Close();
+        // Alt+H 历史窗口的"翻译"页；打开的记录放进一个屏幕外的翻译窗口（不显示到真实屏幕上）
+        var translate = new TranslateWindow(history);
+        var historyWindow = new HistoryWindow(ClipboardHistory.CreatePreview(), history) { OpenRecordOverride = translate.LoadRecord };
+        historyWindow.ShowTranslationTabPreview();
+        Render(historyWindow, directory, theme, "history-translations", keepOpen: true);
+
+        // 自测：照真实事件路由按 ↓ + Enter、单击第 3 条，记下翻译窗口里的内容（不动真实鼠标键盘）
+        var report = new System.Text.StringBuilder();
+        historyWindow.Activate();
+        historyWindow.SimulateKey(System.Windows.Input.Key.Down);
+        historyWindow.SimulateKey(System.Windows.Input.Key.Enter);
+        DoEvents();
+        report.AppendLine("Down + Enter: " + translate.DescribeState());
+        historyWindow.Show();
+        DoEvents();
+        historyWindow.SimulateRecordClick(2);
+        DoEvents();
+        report.AppendLine("click #3:     " + translate.DescribeState());
+        File.WriteAllText(Path.Combine(directory, $"{theme}-history-translations-test.txt"), report.ToString());
+        historyWindow.Close();
+        Render(translate, directory, theme, "translate-restored");
+        translate.Close();
     }
 
     /// <summary>在一张合成的"屏幕"上演示全部标注工具：输出遮罩界面和导出结果。</summary>

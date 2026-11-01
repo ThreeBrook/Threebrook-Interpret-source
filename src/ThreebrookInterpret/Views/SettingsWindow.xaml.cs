@@ -429,7 +429,7 @@ public partial class SettingsWindow : Window
         {
             (Loc.T("Common.InputTranslate"), _settings.Hotkeys.InputTranslate), (Loc.T("Common.SelectionTranslate"), _settings.Hotkeys.SelectionTranslate),
             (Loc.T("Common.Screenshot"), _settings.Hotkeys.Screenshot), (Loc.T("Common.ScreenshotTranslate"), _settings.Hotkeys.ScreenshotTranslate),
-            (Loc.T("Common.ClipboardHistory"), _settings.Hotkeys.History),
+            (Loc.T("Common.History"), _settings.Hotkeys.History),
         };
         var duplicate = hotkeys.Where(h => !string.IsNullOrWhiteSpace(h.Gesture))
             .GroupBy(h => HotkeyManager.Normalize(h.Gesture)).FirstOrDefault(g => g.Count() > 1);

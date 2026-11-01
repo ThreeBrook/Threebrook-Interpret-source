@@ -265,8 +265,9 @@ public partial class PinWindow : Window
         }
     }
 
-    /// <summary>选中的文字：同一行按 OCR 规则拼接单词，行间换行。</summary>
-    internal string SelectedText => string.Join('\n', SelectedLines().Select(OcrService.JoinWords));
+    /// <summary>选中的文字：和识别全文一样按版面排（表格列用 Tab），"合并换行"打开时接上折行。</summary>
+    internal string SelectedText =>
+        OcrService.ToText(SelectedLines().Select(words => new OcrLine(words)), App.Settings.MergeLineBreaks);
 
     /// <summary>操作条放在选区下方（下面放不下时系统会放到上方）。</summary>
     private void ShowTextActions()
@@ -283,7 +284,7 @@ public partial class PinWindow : Window
     {
         if (!HasSelection)
             return;
-        ImageActions.CopyText(App.PrepareText(SelectedText) ?? "");
+        ImageActions.CopyText(SelectedText);
         ShowLabel(Loc.T("Pin.TextCopied"));
     }
 
@@ -426,7 +427,7 @@ public partial class PinWindow : Window
     private void ShowAllText(bool translate)
     {
         if (_words.Count > 0)
-            App.Instance.ShowRecognizedText(OcrService.ToText(_lines), translate);
+            App.Instance.ShowRecognizedText(OcrService.ToText(_lines, App.Settings.MergeLineBreaks), translate);
         else
             App.Instance.RecognizeImage(_image, translate);
     }

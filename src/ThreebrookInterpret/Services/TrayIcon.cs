@@ -14,7 +14,6 @@ public sealed class TrayIcon : IDisposable
     private readonly ToolStripMenuItem _screenshotItem;
     private readonly ToolStripMenuItem _screenshotTranslateItem;
     private readonly ToolStripMenuItem _historyItem;
-    private readonly ToolStripMenuItem _translationHistoryItem;
     private readonly ToolStripMenuItem _settingsItem;
     private readonly ToolStripMenuItem _advancedItem;
     private readonly ToolStripMenuItem _exitItem;
@@ -23,7 +22,6 @@ public sealed class TrayIcon : IDisposable
     public event Action? ScreenshotRequested;
     public event Action? ScreenshotTranslateRequested;
     public event Action? HistoryRequested;
-    public event Action? TranslationHistoryRequested;
     public event Action? SettingsRequested;
     public event Action? OpenSettingsFileRequested;
     public event Action? ReloadSettingsRequested;
@@ -46,7 +44,6 @@ public sealed class TrayIcon : IDisposable
         _screenshotItem = new ToolStripMenuItem("", null, (_, _) => ScreenshotRequested?.Invoke());
         _screenshotTranslateItem = new ToolStripMenuItem("", null, (_, _) => ScreenshotTranslateRequested?.Invoke());
         _historyItem = new ToolStripMenuItem("", null, (_, _) => HistoryRequested?.Invoke());
-        _translationHistoryItem = new ToolStripMenuItem("", null, (_, _) => TranslationHistoryRequested?.Invoke());
 
         var advanced = _advancedItem = new ToolStripMenuItem("");
         advanced.DropDownItems.Add("", null, (_, _) => OpenSettingsFileRequested?.Invoke());
@@ -57,7 +54,7 @@ public sealed class TrayIcon : IDisposable
 
         menu.Items.AddRange(new ToolStripItem[]
         {
-            _inputItem, _selectionItem, _screenshotItem, _screenshotTranslateItem, _historyItem, _translationHistoryItem,
+            _inputItem, _selectionItem, _screenshotItem, _screenshotTranslateItem, _historyItem,
             new ToolStripSeparator(),
             _settingsItem,
             advanced,
@@ -99,8 +96,7 @@ public sealed class TrayIcon : IDisposable
         _selectionItem.Text = Loc.T("Tray.SelectionHint");
         _screenshotItem.Text = Loc.T("Common.Screenshot");
         _screenshotTranslateItem.Text = Loc.T("Common.ScreenshotTranslate");
-        _historyItem.Text = Loc.T("Common.ClipboardHistory");
-        _translationHistoryItem.Text = Loc.T("TransHistory.Title");
+        _historyItem.Text = Loc.T("Common.History"); // 剪贴板历史和翻译历史在同一个窗口（Alt+H）
         _settingsItem.Text = Loc.T("Tray.Settings");
         _advancedItem.Text = Loc.T("Tray.Advanced");
         _advancedItem.DropDownItems[0].Text = Loc.T("Tray.OpenSettingsFile");
