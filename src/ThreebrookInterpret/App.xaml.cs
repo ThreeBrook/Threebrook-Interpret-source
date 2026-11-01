@@ -93,6 +93,7 @@ public partial class App : Application
 
         if (!SettingsStore.IsPortable)
             LegacyMigration.Run(); // 改名前的数据目录、开机自启项迁移到新名字
+        Setup.SetupEngine.RemoveStaleOldFiles(AppContext.BaseDirectory); // 上次安装被占用没删成的旧文件
         LoadSettings();
         Loc.Apply(Settings.Language);
         SettingsStore.LocalizeDefaultEngineNames(Settings, Loc.IsEnglish);

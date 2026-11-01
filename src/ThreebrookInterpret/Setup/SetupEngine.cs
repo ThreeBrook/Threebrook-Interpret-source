@@ -169,7 +169,7 @@ internal static class SetupEngine
 
         // 3. 提交：删旧文件，删上一版有、这一版没有的文件，再登记
         foreach (var target in replaced)
-            TryDelete(target + OldSuffix);
+            DeleteWithRetry(target + OldSuffix);
         var previous = ReadManifest(directory);
         var current = payload.Files.Select(f => f.Path).ToList();
         foreach (var stale in previous.Except(current, StringComparer.OrdinalIgnoreCase))
@@ -399,6 +399,42 @@ internal static class SetupEngine
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
             }
+        }
+    }
+
+    /// <summary>
+    /// 换下来的旧文件：刚写完的新程序常被杀毒软件扫描，旧文件也可能还被系统映射着，
+    /// 删不掉时稍等重试（最多约 2 秒）；还是删不掉就留给程序下次启动时清（RemoveStaleOldFiles）。
+    /// </summary>
+    private static void DeleteWithRetry(string path)
+    {
+        for (var i = 0; i < 20 && File.Exists(path); i++)
+        {
+            try
+            {
+                File.Delete(path);
+                return;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                Thread.Sleep(100);
+            }
+        }
+    }
+
+    /// <summary>程序启动时清掉上次安装没删成的旧文件（.tbs-old，正式文件还在才删）。</summary>
+    public static void RemoveStaleOldFiles(string directory)
+    {
+        try
+        {
+            foreach (var file in Directory.EnumerateFiles(directory, "*" + OldSuffix, SearchOption.AllDirectories).ToList())
+            {
+                if (File.Exists(file[..^OldSuffix.Length]))
+                    TryDelete(file);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
         }
     }
 
