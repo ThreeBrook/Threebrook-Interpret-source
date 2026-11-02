@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -21,6 +22,7 @@ namespace ThreebrookInterpret.Views;
 /// 尺寸按物理像素设置，100% 时与原屏幕像素一一对应。
 /// 钉住后在后台识别文字，识别完鼠标移到文字上变成 I 形光标，拖动选取文字后可复制、翻译；
 /// 在文字以外的地方拖动（或按住 Ctrl 在任意位置拖动）移动钉图。
+/// 原位翻译（T）：按段落翻译后盖住原文、在图上显示译文，再按 T 切回原文。
 /// </summary>
 public partial class PinWindow : Window
 {
@@ -39,22 +41,34 @@ public partial class PinWindow : Window
     private readonly List<(int Line, OcrWord Word)> _words = [];
     private int _anchor = -1, _selStart = -1, _selEnd = -1;
     private bool _selecting;
+    private Task<List<OcrLine>>? _ocrTask;
+
+    // —— 原位翻译 ——
+    // _regions 有值表示已翻译好；显示译文时不能选取文字，复制、保存的是带译文的图
+    private List<TextRegion>? _regions;
+    private string _engineName = "";
+    private bool _translating;
+    private readonly bool _translateOnOpen;
 
     /// <summary>界面预览用：不在后台识别，由预览代码直接给出识别结果。</summary>
     internal bool PreviewMode { get; init; }
 
     /// <param name="x">左上角屏幕物理像素坐标。</param>
     /// <param name="zoom">初始缩放（长截图比屏幕高时缩小显示）。</param>
-    public PinWindow(BitmapSource image, int x, int y, double zoom = 1.0)
+    /// <param name="translate">打开后直接原位翻译（截图工具栏的"原位翻译"）。</param>
+    public PinWindow(BitmapSource image, int x, int y, double zoom = 1.0, bool translate = false)
     {
         InitializeComponent();
         _image = image;
         _x = x;
         _y = y;
         _zoom = Math.Clamp(zoom, MinZoom, MaxZoom);
+        _translateOnOpen = translate;
         PinImage.Source = image;
         TextLayer.Width = image.PixelWidth;
         TextLayer.Height = image.PixelHeight;
+        TranslationLayer.Width = image.PixelWidth;
+        TranslationLayer.Height = image.PixelHeight;
         _labelTimer.Tick += (_, _) =>
         {
             _labelTimer.Stop();
@@ -72,6 +86,8 @@ public partial class PinWindow : Window
                 return;
             Activate();
             RecognizeText();
+            if (_translateOnOpen)
+                TranslateInPlace();
         };
         // 操作条是独立的弹出层，切到别的窗口时先收起，回来再显示
         Deactivated += (_, _) => TextActions.IsOpen = false;
@@ -115,11 +131,15 @@ public partial class PinWindow : Window
         ShowLabel(Loc.F("Pin.OpacityValue", Opacity.ToString("P0")));
     }
 
-    private void ShowLabel(string text)
+    /// <param name="seconds">显示多久；0 表示一直显示，直到下一条提示（"正在翻译"）。</param>
+    private void ShowLabel(string text, double seconds = 1)
     {
         ZoomText.Text = text;
         ZoomLabel.Visibility = Visibility.Visible;
         _labelTimer.Stop();
+        if (seconds <= 0)
+            return;
+        _labelTimer.Interval = TimeSpan.FromSeconds(seconds);
         _labelTimer.Start();
     }
 
@@ -129,9 +149,10 @@ public partial class PinWindow : Window
     {
         try
         {
-            var lines = await OcrService.RecognizeLinesAsync(_image, _ocrCancel.Token);
+            _ocrTask = OcrService.RecognizeLinesAsync(_image, _ocrCancel.Token);
+            var lines = await _ocrTask;
             SetLines(lines);
-            if (_words.Count > 0)
+            if (_words.Count > 0 && !_translating && _regions == null)
             {
                 ShowLabel(Loc.T("Pin.TextReady"));
                 UpdateCursor(Mouse.GetPosition(TextLayer));
@@ -142,6 +163,106 @@ public partial class PinWindow : Window
             // 后台识别只是附加功能：没装 OCR 语言、钉图已关闭等情况都不打扰，钉图照常可用；
             // 右键"识别文字"会重新识别并给出错误提示
         }
+    }
+
+    // —— 原位翻译 ——
+
+    private bool ShowingTranslation => TranslationLayer.Visibility == Visibility.Visible;
+
+    /// <summary>T 键、右键菜单、右上角按钮：没翻译过就翻译，翻译过就在原文和译文之间切换。</summary>
+    private void ToggleTranslation()
+    {
+        if (_translating)
+            return;
+        if (_regions == null)
+            TranslateInPlace();
+        else
+            ShowTranslation(!ShowingTranslation);
+    }
+
+    private async void TranslateInPlace()
+    {
+        _translating = true;
+        try
+        {
+            // 后台识别还没完就等它；之前识别失败了再识别一次
+            ShowLabel(Loc.T("Pin.Recognizing"), 0);
+            if (_ocrTask == null || _ocrTask.IsFaulted)
+                _ocrTask = OcrService.RecognizeLinesAsync(_image, _ocrCancel.Token);
+            List<OcrLine> lines;
+            try
+            {
+                lines = await _ocrTask;
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                ShowLabel(Loc.T("App.OcrFailed"), 3);
+                App.Instance.ShowOcrError(ex);
+                return;
+            }
+            var regions = ImageTranslation.Regions(lines);
+            if (regions.Count == 0)
+            {
+                ShowLabel(Loc.T("App.NoTextFound"), 2);
+                return;
+            }
+
+            ShowLabel(Loc.T("Pin.Translating"), 0);
+            _engineName = await ImageTranslation.TranslateAsync(regions, _ocrCancel.Token);
+            _regions = regions;
+            TranslationOverlay.Draw(TranslationLayer, _image, regions, FontFamily);
+            ShowTranslation(true);
+            ShowLabel(Loc.F("Pin.TranslatedBy", _engineName), 2);
+        }
+        catch (OperationCanceledException)
+        {
+            // 钉图已关闭
+        }
+        catch (Exception ex)
+        {
+            var message = ex is Translation.TranslationException ? ex.Message : $"{ex.GetType().Name}: {ex.Message}";
+            ShowLabel(Loc.F("Pin.TranslateFailed", message.Length > 80 ? message[..80] + "…" : message), 5);
+        }
+        finally
+        {
+            _translating = false;
+        }
+    }
+
+    private void ShowTranslation(bool show)
+    {
+        ClearSelection();
+        TranslationLayer.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        TogglePanel.Visibility = _regions != null ? Visibility.Visible : Visibility.Collapsed;
+        ToggleText.Text = Loc.T(show ? "Pin.Original" : "Pin.Translation");
+        UpdateCursor(Mouse.GetPosition(TextLayer));
+    }
+
+    /// <summary>译文按块排列，块与块之间换行（复制译文用）；不用翻译的块（数字等）照原文。</summary>
+    private string TranslatedText =>
+        string.Join("\n", (_regions ?? []).Select(r => string.IsNullOrWhiteSpace(r.Translation) ? r.Text : r.Translation));
+
+    /// <summary>当前看到的图：显示译文时把译文层合成进去（复制、保存用）。</summary>
+    private BitmapSource CurrentImage()
+    {
+        if (!ShowingTranslation)
+            return _image;
+        int width = _image.PixelWidth, height = _image.PixelHeight;
+        var visual = new DrawingVisual();
+        using (var dc = visual.RenderOpen())
+        {
+            dc.DrawImage(_image, new Rect(0, 0, width, height));
+            dc.DrawRectangle(new VisualBrush(TranslationLayer)
+            {
+                Stretch = Stretch.Fill,
+                ViewboxUnits = BrushMappingMode.Absolute,
+                Viewbox = new Rect(0, 0, width, height),
+            }, null, new Rect(0, 0, width, height));
+        }
+        var bitmap = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+        bitmap.Render(visual);
+        bitmap.Freeze();
+        return bitmap;
     }
 
     private void SetLines(List<OcrLine> lines)
@@ -159,6 +280,8 @@ public partial class PinWindow : Window
     /// <summary>鼠标下面的单词（放宽到行间距），不在文字上返回 -1。</summary>
     private int WordAt(Point p)
     {
+        if (ShowingTranslation)
+            return -1; // 显示译文时原文被盖住，不能选取
         for (var i = 0; i < _lines.Count; i++)
         {
             var bounds = _lines[i].Bounds;
@@ -392,12 +515,14 @@ public partial class PinWindow : Window
             if (HasSelection)
                 CopySelection();
             else
-                ImageActions.Copy(_image);
+                ImageActions.Copy(CurrentImage());
         }
         else if (ctrl && e.Key == Key.A)
             SelectAll();
         else if (ctrl && e.Key == Key.S)
-            ImageActions.Save(_image, this);
+            ImageActions.Save(CurrentImage(), this);
+        else if (!ctrl && e.Key == Key.T)
+            ToggleTranslation();
         else if (ctrl && e.Key is Key.D0 or Key.NumPad0)
             SetZoom(1.0);
         else if (e.Key is Key.LeftCtrl or Key.RightCtrl)
@@ -418,6 +543,9 @@ public partial class PinWindow : Window
         SelectAllItem.Visibility = _words.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         // 选中文字时 Ctrl+C 复制文字，复制图片就不再标快捷键
         CopyImageItem.InputGestureText = HasSelection ? "" : "Ctrl+C";
+        InPlaceItem.Header = Loc.T(_regions == null ? "Pin.TranslateInPlace" : ShowingTranslation ? "Pin.ShowOriginal" : "Pin.ShowTranslation");
+        InPlaceItem.IsEnabled = !_translating;
+        CopyTranslationItem.Visibility = _regions != null ? Visibility.Visible : Visibility.Collapsed;
     }
 
     // 已在后台识别过就直接用结果，没识别出来（还在识别、识别失败）再重新识别
@@ -435,8 +563,15 @@ public partial class PinWindow : Window
     private void CopySelection_Click(object sender, RoutedEventArgs e) => CopySelection();
     private void TranslateSelection_Click(object sender, RoutedEventArgs e) => TranslateSelection();
     private void SelectAll_Click(object sender, RoutedEventArgs e) => SelectAll();
-    private void Copy_Click(object sender, RoutedEventArgs e) => ImageActions.Copy(_image);
-    private void Save_Click(object sender, RoutedEventArgs e) => ImageActions.Save(_image, this);
+    private void Copy_Click(object sender, RoutedEventArgs e) => ImageActions.Copy(CurrentImage());
+    private void Save_Click(object sender, RoutedEventArgs e) => ImageActions.Save(CurrentImage(), this);
+    private void InPlace_Click(object sender, RoutedEventArgs e) => ToggleTranslation();
+
+    private void CopyTranslation_Click(object sender, RoutedEventArgs e)
+    {
+        ImageActions.CopyText(TranslatedText);
+        ShowLabel(Loc.T("Pin.TranslationCopied"));
+    }
     private void ResetZoom_Click(object sender, RoutedEventArgs e) => SetZoom(1.0);
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
@@ -457,6 +592,21 @@ public partial class PinWindow : Window
     /// <summary>预览：选中文字的范围（窗口内的坐标），宣传图里把操作条放在它下面。</summary>
     internal Rect PreviewSelectionBounds =>
         TextLayer.TransformToAncestor(Root).TransformBounds(SelectedLineBounds().Aggregate(Rect.Empty, Rect.Union));
+
+    /// <summary>预览：用给定的识别结果和译文（按块给出，不联网）显示原位翻译。</summary>
+    internal List<TextRegion> ShowPreviewTranslation(List<OcrLine> lines, Func<TextRegion, string?> translate)
+    {
+        SetLines(lines);
+        _regions = ImageTranslation.Regions(lines);
+        foreach (var region in _regions)
+            region.Translation = translate(region);
+        TranslationOverlay.Draw(TranslationLayer, _image, _regions, FontFamily);
+        ShowTranslation(true);
+        return _regions;
+    }
+
+    internal BitmapSource PreviewCurrentImage() => CurrentImage();
+    internal string PreviewTranslatedText => TranslatedText;
 
     internal int PreviewWordAt(Point imagePoint) => WordAt(imagePoint);
     internal int PreviewNearestWord(Point imagePoint) => NearestWord(imagePoint);

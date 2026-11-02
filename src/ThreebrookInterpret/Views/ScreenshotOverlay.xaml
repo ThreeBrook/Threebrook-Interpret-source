@@ -125,6 +125,9 @@
                         </Button>
                         <Rectangle Width="1" Margin="4,8" Fill="{DynamicResource B.Border}"/>
                         <Button Style="{StaticResource ToolIconButton}" Content="{StaticResource I.LongShot}" ToolTip="{DynamicResource S.Shot.Long}" Click="LongShot_Click"/>
+                        <Button Style="{StaticResource ToolButton}" Click="PinTranslate_Click" ToolTip="{DynamicResource S.Shot.PinTranslate}">
+                            <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource ToolIcon}" Text="{StaticResource I.Image}"/><TextBlock Text="{DynamicResource S.Shot.PinTranslateLabel}" VerticalAlignment="Center"/></StackPanel>
+                        </Button>
                         <Button Style="{StaticResource ToolIconButton}" Content="{StaticResource I.Pin}" ToolTip="{DynamicResource S.Shot.Pin}" Click="Pin_Click"/>
                         <Button Style="{StaticResource ToolIconButton}" Content="{StaticResource I.Save}" ToolTip="{DynamicResource S.Shot.Save}" Click="Save_Click"/>
                         <Button Style="{StaticResource ToolButton}" Click="Copy_Click" ToolTip="{DynamicResource S.Shot.Copy}" Foreground="{DynamicResource B.Accent}">

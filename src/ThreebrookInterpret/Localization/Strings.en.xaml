@@ -131,13 +131,25 @@
     <sys:String x:Key="S.Pin.CopyImage" xml:space="preserve">Copy image</sys:String>
     <sys:String x:Key="S.Pin.CopySelection" xml:space="preserve">Copy selected text</sys:String>
     <sys:String x:Key="S.Pin.CopySelectionTip" xml:space="preserve">Copy selected text (Ctrl+C)</sys:String>
+    <sys:String x:Key="S.Pin.CopyTranslation" xml:space="preserve">Copy translation</sys:String>
     <sys:String x:Key="S.Pin.Opacity" xml:space="preserve">Opacity</sys:String>
     <sys:String x:Key="S.Pin.OpacityValue" xml:space="preserve">Opacity {0}</sys:String>
+    <sys:String x:Key="S.Pin.Original" xml:space="preserve">Original</sys:String>
+    <sys:String x:Key="S.Pin.Recognizing" xml:space="preserve">Recognizing text…</sys:String>
     <sys:String x:Key="S.Pin.Save" xml:space="preserve">Save…</sys:String>
     <sys:String x:Key="S.Pin.SelectAll" xml:space="preserve">Select all text</sys:String>
+    <sys:String x:Key="S.Pin.ShowOriginal" xml:space="preserve">Show original</sys:String>
+    <sys:String x:Key="S.Pin.ShowTranslation" xml:space="preserve">Show translation</sys:String>
     <sys:String x:Key="S.Pin.TextCopied" xml:space="preserve">Text copied</sys:String>
     <sys:String x:Key="S.Pin.TextReady" xml:space="preserve">Text is selectable</sys:String>
+    <sys:String x:Key="S.Pin.ToggleTip" xml:space="preserve">Switch original / translation (T)</sys:String>
+    <sys:String x:Key="S.Pin.TranslatedBy" xml:space="preserve">By {0} · T for original</sys:String>
+    <sys:String x:Key="S.Pin.TranslateFailed" xml:space="preserve">Translation failed: {0}</sys:String>
+    <sys:String x:Key="S.Pin.TranslateInPlace" xml:space="preserve">Translate in place</sys:String>
     <sys:String x:Key="S.Pin.TranslateSelection" xml:space="preserve">Translate selected text</sys:String>
+    <sys:String x:Key="S.Pin.Translating" xml:space="preserve">Translating…</sys:String>
+    <sys:String x:Key="S.Pin.Translation" xml:space="preserve">Translation</sys:String>
+    <sys:String x:Key="S.Pin.TranslationCopied" xml:space="preserve">Translation copied</sys:String>
     <sys:String x:Key="S.Pin.WindowTitle" xml:space="preserve">Threebrook Interpret Pin</sys:String>
 
     <sys:String x:Key="S.Settings.About" xml:space="preserve">About</sys:String>
@@ -341,6 +353,8 @@
     <sys:String x:Key="S.Shot.OcrTranslate" xml:space="preserve">Recognize and translate (T)</sys:String>
     <sys:String x:Key="S.Shot.Pen" xml:space="preserve">Pen (4)</sys:String>
     <sys:String x:Key="S.Shot.Pin" xml:space="preserve">Pin to desktop (F3)</sys:String>
+    <sys:String x:Key="S.Shot.PinTranslate" xml:space="preserve">Translate in place: pin it and show the translation on the image (I)</sys:String>
+    <sys:String x:Key="S.Shot.PinTranslateLabel" xml:space="preserve">In place</sys:String>
     <sys:String x:Key="S.Shot.Rect" xml:space="preserve">Rectangle (1; hold Shift for a square)</sys:String>
     <sys:String x:Key="S.Shot.Redo" xml:space="preserve">Redo (Ctrl+Y)</sys:String>
     <sys:String x:Key="S.Shot.SampleText" xml:space="preserve">Change to Friday</sys:String>

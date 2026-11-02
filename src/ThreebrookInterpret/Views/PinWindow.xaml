@@ -25,6 +25,8 @@
             <MenuItem x:Name="SelectAllItem" Header="{DynamicResource S.Pin.SelectAll}" InputGestureText="Ctrl+A" Click="SelectAll_Click"/>
             <MenuItem Header="{DynamicResource S.Common.RecognizeText}" Click="Ocr_Click"/>
             <MenuItem Header="{DynamicResource S.Common.RecognizeTranslate}" Click="Translate_Click"/>
+            <MenuItem x:Name="InPlaceItem" Header="{DynamicResource S.Pin.TranslateInPlace}" InputGestureText="T" Click="InPlace_Click"/>
+            <MenuItem x:Name="CopyTranslationItem" Header="{DynamicResource S.Pin.CopyTranslation}" Click="CopyTranslation_Click"/>
             <Separator/>
             <MenuItem x:Name="CopyImageItem" Header="{DynamicResource S.Pin.CopyImage}" InputGestureText="Ctrl+C" Click="Copy_Click"/>
             <MenuItem Header="{DynamicResource S.Pin.Save}" InputGestureText="Ctrl+S" Click="Save_Click"/>
@@ -41,6 +43,10 @@
     </Window.ContextMenu>
     <Grid x:Name="Root">
         <Image x:Name="PinImage" Stretch="Fill" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+        <!-- 原位翻译：盖住原文、画上译文，坐标同样是原图像素 -->
+        <Viewbox Stretch="Fill" IsHitTestVisible="False">
+            <Canvas x:Name="TranslationLayer" Visibility="Collapsed"/>
+        </Viewbox>
         <!-- 选中文字的高亮：画布按原图像素大小，随窗口缩放拉伸，单词位置直接用 OCR 给的像素坐标 -->
         <Viewbox Stretch="Fill" IsHitTestVisible="False">
             <Canvas x:Name="TextLayer"/>
@@ -50,6 +56,26 @@
         <Border x:Name="ZoomLabel" Background="{DynamicResource B.Overlay}" CornerRadius="6" Padding="7,2" Margin="6"
                 HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed" IsHitTestVisible="False">
             <TextBlock x:Name="ZoomText" Foreground="White" FontFamily="{StaticResource F.Mono}" FontSize="12"/>
+        </Border>
+        <!-- 翻译好之后右上角的原文 / 译文切换，鼠标移到钉图上才显示，不挡内容 -->
+        <Border x:Name="TogglePanel" Background="{DynamicResource B.Card}" BorderBrush="{DynamicResource B.Border}" BorderThickness="1"
+                CornerRadius="7" Padding="1" Margin="5" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Opacity" Value="0"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                            <Setter Property="Opacity" Value="0.94"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <Button Style="{StaticResource ToolButton}" Height="24" Padding="7,0" FontSize="12" ToolTip="{DynamicResource S.Pin.ToggleTip}" Click="InPlace_Click">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource ToolIcon}" FontSize="14" Text="{StaticResource I.Translate}"/>
+                    <TextBlock x:Name="ToggleText" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
         </Border>
 
         <!-- 选中文字后的操作条：弹出层可以超出钉图范围，钉图很小时也不会挡住文字 -->

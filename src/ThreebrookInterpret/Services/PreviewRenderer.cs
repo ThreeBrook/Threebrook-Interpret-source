@@ -72,6 +72,7 @@ internal static partial class PreviewRenderer
             RenderSelection(outputDirectory, theme, "screenshot-wide", new Rect(20, 40, 720, 300));
             RenderSelection(outputDirectory, theme, "screenshot-hover", new Rect(60, 40, 580, 320), hover: true);
             RenderPin(outputDirectory, theme);
+            RenderPinTranslation(outputDirectory, theme);
 
             foreach (var page in new[] { "welcome", "options", "license", "progress", "done", "error", "cancelled" })
             {
@@ -249,6 +250,105 @@ internal static partial class PreviewRenderer
             Background = new SolidColorBrush(Color.FromRgb(0x5A, 0x6B, 0x68)),
             Padding = new Thickness(12),
         }, directory, theme, "pin-actions");
+    }
+
+    /// <summary>钉图原位翻译：示例截图用 Windows OCR 识别，译文按块给出（不联网）。</summary>
+    private static void RenderPinTranslation(string directory, string theme)
+    {
+        var image = new WriteableBitmap(new CroppedBitmap(SyntheticScreen(760, 470), new Int32Rect(60, 40, 620, 330)));
+        image.Freeze();
+        List<OcrLine> lines;
+        try
+        {
+            lines = WindowsOcr.RecognizeLinesAsync(image, "auto").GetAwaiter().GetResult();
+        }
+        catch (Exception)
+        {
+            return; // 没装中文 OCR 语言时跳过，RenderPin 已写出错误
+        }
+        // 示例图每行一块，译文按从上到下的顺序给（Windows OCR 偶尔认错字，不按原文匹配）
+        var samples = new Queue<string>([
+            "Weekly project meeting notes  2026-10-23",
+            "1. Release: next Wednesday 18:00 (to be confirmed)",
+            "2. Client demo moved to Thursday afternoon",
+            "3. Screenshot OCR now uses the high-accuracy engine",
+            "4. Annotations: rectangles, arrows, text, mosaic",
+            "Contact: Zhang San 138-0000-0000",
+            "Note: for internal reference only",
+        ]);
+        var pin = new PinWindow(image, -30000, -30000) { PreviewMode = true };
+        var regions = pin.ShowPreviewTranslation(lines, r => samples.TryDequeue(out var text) ? text : r.Text);
+        var report = new System.Text.StringBuilder();
+        foreach (var region in regions)
+            report.AppendLine($"{region.Bounds}  lines={region.Lines.Count}  {region.Text}  =>  {region.Translation}");
+        report.AppendLine().AppendLine("copied translation:").AppendLine(pin.PreviewTranslatedText);
+        File.WriteAllText(Path.Combine(directory, $"{theme}-pin-translate.txt"), report.ToString());
+        Render(pin, directory, theme, "pin-translate", keepOpen: true);
+        SaveBitmap(pin.PreviewCurrentImage(), directory, theme, "pin-translate-composed");
+        pin.Close();
+    }
+
+    /// <summary>
+    /// 开发用：真实走一遍原位翻译（识别 → 引擎翻译 → 盖上译文），存成 PNG 和文字报告。
+    /// engine 为 bing / yandex，或 openai（地址、模型取环境变量 THREEBROOK_LLM_URL / THREEBROOK_LLM_MODEL）。不读写用户数据。
+    /// </summary>
+    public static void TranslateImage(string imagePath, string outputPath, string engine, string target)
+    {
+        App.UsePreviewSettings("light");
+        App.Settings.TargetLanguage = target;
+        var config = App.Settings.Engines.First(e => e.Type == engine);
+        if (engine == "openai")
+        {
+            config.BaseUrl = Environment.GetEnvironmentVariable("THREEBROOK_LLM_URL");
+            config.Model = Environment.GetEnvironmentVariable("THREEBROOK_LLM_MODEL");
+            config.DisableThinking = true;
+        }
+        foreach (var e in App.Settings.Engines)
+            e.Enabled = e == config;
+        ThemeManager.Apply("light");
+
+        var image = BitmapFrame.Create(new Uri(Path.GetFullPath(imagePath)), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+        image.Freeze();
+        var report = new System.Text.StringBuilder();
+        try
+        {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            var lines = Wait(OcrService.RecognizeLinesAsync(image));
+            var ocrMs = watch.ElapsedMilliseconds;
+            var regions = ImageTranslation.Regions(lines);
+            watch.Restart();
+            var name = Wait(ImageTranslation.TranslateAsync(regions, default));
+            report.AppendLine($"ocr {ocrMs} ms ({(OcrService.UsesPaddle ? "paddle" : "windows")}), {lines.Count} lines, {regions.Count} regions; {name} {watch.ElapsedMilliseconds} ms");
+            foreach (var region in regions)
+                report.AppendLine($"[{region.Bounds.X:0},{region.Bounds.Y:0} {region.Bounds.Width:0}x{region.Bounds.Height:0}] x{region.Lines.Count}  {region.Text}\n    => {region.Translation}");
+
+            var translations = regions.ToDictionary(r => r.Bounds, r => r.Translation);
+            var pin = new PinWindow(image, -30000, -30000) { PreviewMode = true };
+            pin.ShowPreviewTranslation(lines, r => translations.GetValueOrDefault(r.Bounds));
+            pin.Left = pin.Top = -30000;
+            pin.ShowActivated = false;
+            pin.Show();
+            DoEvents();
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(pin.PreviewCurrentImage()));
+            using (var file = File.Create(outputPath))
+                encoder.Save(file);
+            pin.Close();
+        }
+        catch (Exception ex)
+        {
+            report.AppendLine("failed: " + ex);
+        }
+        File.WriteAllText(Path.ChangeExtension(outputPath, ".txt"), report.ToString());
+    }
+
+    /// <summary>在界面线程上等异步任务完成（边等边处理消息，否则回到界面线程的后续代码会死锁）。</summary>
+    private static T Wait<T>(System.Threading.Tasks.Task<T> task)
+    {
+        var frame = new DispatcherFrame();
+        task.ContinueWith(_ => frame.Continue = false, System.Threading.Tasks.TaskScheduler.Default);
+        Dispatcher.PushFrame(frame);
+        return task.GetAwaiter().GetResult();
     }
 
     private static BitmapSource SyntheticScreen(int width, int height, double scale = 1)

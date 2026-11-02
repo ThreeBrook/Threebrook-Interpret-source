@@ -131,13 +131,25 @@
     <sys:String x:Key="S.Pin.CopyImage" xml:space="preserve">复制图片</sys:String>
     <sys:String x:Key="S.Pin.CopySelection" xml:space="preserve">复制选中的文字</sys:String>
     <sys:String x:Key="S.Pin.CopySelectionTip" xml:space="preserve">复制选中的文字（Ctrl+C）</sys:String>
+    <sys:String x:Key="S.Pin.CopyTranslation" xml:space="preserve">复制译文</sys:String>
     <sys:String x:Key="S.Pin.Opacity" xml:space="preserve">透明度</sys:String>
     <sys:String x:Key="S.Pin.OpacityValue" xml:space="preserve">透明度 {0}</sys:String>
+    <sys:String x:Key="S.Pin.Original" xml:space="preserve">原文</sys:String>
+    <sys:String x:Key="S.Pin.Recognizing" xml:space="preserve">正在识别文字…</sys:String>
     <sys:String x:Key="S.Pin.Save" xml:space="preserve">保存…</sys:String>
     <sys:String x:Key="S.Pin.SelectAll" xml:space="preserve">选中全部文字</sys:String>
+    <sys:String x:Key="S.Pin.ShowOriginal" xml:space="preserve">显示原文</sys:String>
+    <sys:String x:Key="S.Pin.ShowTranslation" xml:space="preserve">显示译文</sys:String>
     <sys:String x:Key="S.Pin.TextCopied" xml:space="preserve">已复制文字</sys:String>
     <sys:String x:Key="S.Pin.TextReady" xml:space="preserve">可以直接选取文字</sys:String>
+    <sys:String x:Key="S.Pin.ToggleTip" xml:space="preserve">切换原文 / 译文（T）</sys:String>
+    <sys:String x:Key="S.Pin.TranslatedBy" xml:space="preserve">{0} 译 · T 切换原文</sys:String>
+    <sys:String x:Key="S.Pin.TranslateFailed" xml:space="preserve">翻译失败：{0}</sys:String>
+    <sys:String x:Key="S.Pin.TranslateInPlace" xml:space="preserve">原位翻译</sys:String>
     <sys:String x:Key="S.Pin.TranslateSelection" xml:space="preserve">翻译选中的文字</sys:String>
+    <sys:String x:Key="S.Pin.Translating" xml:space="preserve">正在翻译…</sys:String>
+    <sys:String x:Key="S.Pin.Translation" xml:space="preserve">译文</sys:String>
+    <sys:String x:Key="S.Pin.TranslationCopied" xml:space="preserve">已复制译文</sys:String>
     <sys:String x:Key="S.Pin.WindowTitle" xml:space="preserve">三溪通译 钉图</sys:String>
 
     <sys:String x:Key="S.Settings.About" xml:space="preserve">关于</sys:String>
@@ -341,6 +353,8 @@
     <sys:String x:Key="S.Shot.OcrTranslate" xml:space="preserve">识别并翻译（T）</sys:String>
     <sys:String x:Key="S.Shot.Pen" xml:space="preserve">画笔（4）</sys:String>
     <sys:String x:Key="S.Shot.Pin" xml:space="preserve">钉在桌面（F3）</sys:String>
+    <sys:String x:Key="S.Shot.PinTranslate" xml:space="preserve">原位翻译：钉在桌面，直接在图上显示译文（I）</sys:String>
+    <sys:String x:Key="S.Shot.PinTranslateLabel" xml:space="preserve">原位翻译</sys:String>
     <sys:String x:Key="S.Shot.Rect" xml:space="preserve">矩形（1，按住 Shift 画正方形）</sys:String>
     <sys:String x:Key="S.Shot.Redo" xml:space="preserve">重做（Ctrl+Y）</sys:String>
     <sys:String x:Key="S.Shot.SampleText" xml:space="preserve">这里改成周五</sys:String>

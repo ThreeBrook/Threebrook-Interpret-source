@@ -61,6 +61,16 @@ public partial class App : Application
             return;
         }
 
+        // 开发用：原位翻译走一遍真实流程（识别 → 引擎 → 盖上译文），结果存成 PNG（不读写用户数据）
+        if (e.Args.Length is 3 or 4 or 5 && e.Args[0] == "--translate-image")
+        {
+            base.OnStartup(e);
+            PreviewRenderer.TranslateImage(e.Args[1], e.Args[2], e.Args.Length > 3 ? e.Args[3] : "bing", e.Args.Length > 4 ? e.Args[4] : "auto");
+            IsExiting = true;
+            Shutdown();
+            return;
+        }
+
         // 安装包 / 卸载：进入安装模式，不占用单实例、不读写配置、不建托盘
         if (Setup.SetupEntry.TryRun(this, e.Args))
         {

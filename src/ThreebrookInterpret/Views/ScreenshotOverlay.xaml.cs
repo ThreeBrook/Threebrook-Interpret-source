@@ -241,6 +241,8 @@ public partial class ScreenshotOverlay : Window
             Save();
         else if (e.Key == Key.F3)
             Pin();
+        else if (e.Key == Key.I)
+            Pin(translate: true);
         else if (e.Key == Key.O)
             Recognize(translate: false);
         else if (e.Key == Key.T)
@@ -390,10 +392,11 @@ public partial class ScreenshotOverlay : Window
             Topmost = true;
     }
 
-    private void Pin()
+    /// <param name="translate">原位翻译：钉住后直接在图上显示译文。</param>
+    private void Pin(bool translate = false)
     {
         var image = Compose(out var pixels);
-        new PinWindow(image, _bounds.Left + pixels.X, _bounds.Top + pixels.Y).Show();
+        new PinWindow(image, _bounds.Left + pixels.X, _bounds.Top + pixels.Y, translate: translate).Show();
         Close();
     }
 
@@ -417,6 +420,7 @@ public partial class ScreenshotOverlay : Window
     private void Ocr_Click(object sender, RoutedEventArgs e) => Recognize(translate: false);
     private void Translate_Click(object sender, RoutedEventArgs e) => Recognize(translate: true);
     private void Pin_Click(object sender, RoutedEventArgs e) => Pin();
+    private void PinTranslate_Click(object sender, RoutedEventArgs e) => Pin(translate: true);
     private void Copy_Click(object sender, RoutedEventArgs e) => Copy();
     private void Save_Click(object sender, RoutedEventArgs e) => Save();
     private void Cancel_Click(object sender, RoutedEventArgs e) => Close();
