@@ -39,26 +39,28 @@
 
 <table>
 <tr>
+<td width="50%"><img src="doc/images/promo-inplace.webp" alt="截图翻译，原位显示：英文版本说明钉在桌面，前面一张的译文直接盖在原文位置，表格逐格翻成中文"></td>
 <td width="50%"><img src="doc/images/promo-pin.webp" alt="钉在桌面，直接选字：钉住的截图上选中两行文字，下方弹出复制 / 翻译，旁边是译文"></td>
-<td width="50%"><img src="doc/images/promo-annotate.webp" alt="截图、标注一步到位：框、箭头、序号、文字、马赛克和标注工具栏"></td>
 </tr>
 <tr>
+<td align="center"><sub>原位翻译：译文直接盖在原文位置，保留排版和颜色，T 切换原文</sub></td>
 <td align="center"><sub>钉图选字：钉住后自动识别，拖动选取、复制、翻译</sub></td>
-<td align="center"><sub>截图标注：8 种工具，复制、保存、钉图都带标注，还能长截图</sub></td>
 </tr>
 <tr>
+<td width="50%"><img src="doc/images/promo-annotate.webp" alt="截图、标注一步到位：框、箭头、序号、文字、马赛克和标注工具栏"></td>
 <td width="50%"><img src="doc/images/promo-engines.webp" alt="8 种翻译引擎，也能接本地大模型：设置里选中本地大模型，显示接口地址和模型"></td>
-<td width="50%"><img src="doc/images/promo-history.webp" alt="剪贴板历史：复制过的文字记在本机，回车粘贴"></td>
 </tr>
 <tr>
+<td align="center"><sub>截图标注：8 种工具，复制、保存、钉图都带标注，还能长截图</sub></td>
 <td align="center"><sub>8 种引擎 + OpenAI 兼容接口接本地大模型</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="doc/images/promo-history.webp" alt="剪贴板历史：复制过的文字记在本机，回车粘贴"></td>
+<td width="50%"><img src="doc/images/promo-themes.webp" alt="浅色深色，中英双语：浅色和深色的翻译窗口并排"></td>
+</tr>
+<tr>
 <td align="center"><sub>剪贴板历史：文字和图片，Alt+H 呼出、回车粘贴</sub></td>
-</tr>
-<tr>
-<td colspan="2"><img src="doc/images/promo-themes.webp" alt="浅色深色，中英双语：浅色和深色的翻译窗口并排"></td>
-</tr>
-<tr>
-<td colspan="2" align="center"><sub>浅色 / 深色、中文 / 英文，跟随 Windows 自动切换</sub></td>
+<td align="center"><sub>浅色 / 深色、中文 / 英文，跟随 Windows 自动切换</sub></td>
 </tr>
 </table>
 

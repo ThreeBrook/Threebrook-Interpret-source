@@ -38,14 +38,14 @@ internal static class TranslationOverlay
             var height = region.LineHeight;
             var pad = Math.Max(2, height * 0.15);
             var area = region.Bounds;
-            area.Inflate(pad, pad);
+            area.Inflate(pad * 1.6, pad); // 左右多留一点：识别框常比字形窄一两个像素，盖不全会留下笔画边
             var background = pixels.Background(area);
             var foreground = pixels.Foreground(region.Lines, background);
 
             // 只有一行的块（标签、按钮文字）译文常比原文长：允许向右伸到下一块或图片边缘
             var width = area.Width;
             if (region.Lines.Count == 1)
-                width = Math.Max(width, pixels.ClearRight(area, background, RoomToRight(region, translated, image.PixelWidth)) - area.Left);
+                width = Math.Max(width, pixels.ClearRight(area, region.Bounds, background, RoomToRight(region, translated, image.PixelWidth)) - area.Left);
 
             var text = new TextBlock
             {
@@ -167,9 +167,10 @@ internal static class TranslationOverlay
         }
 
         /// <summary>从 area 右边往右，到 limit 为止背景色一直不变的位置（遇到别的文字、图形、分栏的底色就停）。</summary>
-        public double ClearRight(Rect area, Color background, double limit)
+        /// <remarks>只看文字行中间的几条：上下边缘贴着表格分隔线时不算挡住。</remarks>
+        public double ClearRight(Rect area, Rect text, Color background, double limit)
         {
-            var rows = new[] { area.Top + 1, area.Top + area.Height / 2, area.Bottom - 1 };
+            var rows = new[] { text.Top + text.Height * 0.25, text.Top + text.Height / 2, text.Bottom - text.Height * 0.25 };
             var x = (int)Math.Ceiling(area.Right);
             for (; x < limit; x++)
                 if (rows.Any(y => !Near(At(x, (int)y), background)))

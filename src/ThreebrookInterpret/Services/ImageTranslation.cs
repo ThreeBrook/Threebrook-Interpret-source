@@ -94,7 +94,9 @@ public static class ImageTranslation
         var height = Math.Max(prev.Height, next.Height);
         var ratio = prev.Height / next.Height;
         var gap = next.Top - prev.Bottom;
-        return ratio is > 0.75 and < 1.33
+        // 段落最后一行常只剩几个字和标点（"口。"），识别框比整行矮，高度放宽些
+        var shortLast = next.Width < prev.Width * 0.3;
+        return (shortLast ? ratio is > 0.6 and < 1.8 : ratio is > 0.75 and < 1.33)
                && gap > -height * 0.3 && gap < height * 0.8
                && Math.Abs(next.Left - prev.Left) < height * 1.5
                && prev.Width >= height * WrappedLineMinWidth

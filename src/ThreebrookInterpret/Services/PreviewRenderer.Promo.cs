@@ -45,7 +45,7 @@ internal static partial class PreviewRenderer
 
             var translate = TranslateScene(zh, mode);
             translateShots[(lang, mode)] = translate.Items[^1].Shot;
-            foreach (var scene in new[] { translate, PinScene(zh), AnnotateScene(zh), HistoryScene(zh), EnginesScene(zh) })
+            foreach (var scene in new[] { translate, PinScene(zh), InPlaceScene(zh), AnnotateScene(zh), HistoryScene(zh), EnginesScene(zh) })
                 SavePromo(scene, lang, mode, outputDirectory);
         }
 
@@ -146,6 +146,58 @@ internal static partial class PreviewRenderer
             [new Placed(pinShot, 0, 0), new Placed(bar, barX, barY), new Placed(window, pinShot.Width - 150, pinShot.Height - 40)]);
     }
 
+    /// <summary>
+    /// 原位翻译：同一张截图钉两次，后面是原文、前面是译文。中文界面演示英译中，英文界面演示中译英。
+    /// 译文按原文开头匹配示例译文（不联网）。
+    /// </summary>
+    private static Scene InPlaceScene(bool zh)
+    {
+        var image = PromoReleaseNotes(english: zh);
+        var lines = OcrService.RecognizeLinesAsync(image).GetAwaiter().GetResult();
+        (string Source, string Target)[] samples = zh
+            ?
+            [
+                ("Release", "版本说明 0.7.3"),
+                ("Translate in place", "原位翻译：截图钉在桌面，直接在原文的位置看译文，不用来回切换窗口。"),
+                ("Engine", "引擎"), ("Price", "价格"), ("Speed", "速度"),
+                ("Bing", "必应翻译"), ("Free", "免费"), ("Fast", "快"), ("Local model", "本地大模型"), ("Offline", "不联网"),
+            ]
+            :
+            [
+                ("版本说明", "Release notes 0.7.3"),
+                ("原位翻译", "Translate in place: pin a screenshot and read the translation right where the original text was."),
+                ("引擎", "Engine"), ("价格", "Price"), ("速度", "Speed"),
+                ("必应", "Bing"), ("免费", "Free"), ("快", "Fast"), ("本地大模型", "Local model"), ("不联网", "Offline"),
+            ];
+        string? Translate(TextRegion region) =>
+            samples.Where(s => region.Text.StartsWith(s.Source, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(s => s.Source.Length).Select(s => s.Target).FirstOrDefault();
+
+        Shot Pin(bool translated)
+        {
+            var pin = new PinWindow(image, -30000, -30000, zoom: 1 / PromoScale) { PreviewMode = true };
+            pin.Show();
+            DoEvents();
+            if (translated)
+            {
+                pin.ShowPreviewTranslation(lines, Translate);
+                pin.PreviewShowToggle();
+                DoEvents();
+            }
+            var shot = CaptureElement(Framed(CaptureWindow(pin), 2));
+            pin.Close();
+            return shot;
+        }
+
+        var original = Pin(false);
+        var translated = Pin(true);
+        return new Scene("inplace",
+            zh ? "截图翻译，原位显示" : "Translated right on the screenshot",
+            zh ? "截图后点“原位翻译”（I），译文直接盖在原文的位置，保留排版和颜色。按 T 随时切回原文，复制、保存都带译文。"
+               : "Choose In place (I) after capturing: the translation replaces the original text where it stands, keeping layout and colors. Press T to flip back; copy and save include the translation.",
+            [new Placed(original, 0, 0), new Placed(translated, original.Width * 0.42, original.Height * 0.5)]);
+    }
+
     private static Scene AnnotateScene(bool zh)
     {
         var overlay = new ScreenshotOverlay(SyntheticScreen(760, 470, PromoScale), new System.Drawing.Rectangle(-30000, -30000, 760, 470))
@@ -228,6 +280,54 @@ internal static partial class PreviewRenderer
             for (var i = 0; i < lines.Length; i++)
                 dc.DrawText(new FormattedText(lines[i], System.Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight, i == 0 ? bold : face, i == 0 ? 17 : 15,
                     new SolidColorBrush(Color.FromRgb(0x1F, 0x23, 0x28)), PromoScale), new Point(24, 22 + i * 38));
+        }
+        var bitmap = new RenderTargetBitmap((int)(width * PromoScale), (int)(height * PromoScale), 96 * PromoScale, 96 * PromoScale, PixelFormats.Pbgra32);
+        bitmap.Render(visual);
+        bitmap.Freeze();
+        return bitmap;
+    }
+
+    /// <summary>原位翻译用的"版本说明"截图（标题、一段正文、带表头底色的小表格），2 倍分辨率。</summary>
+    private static BitmapSource PromoReleaseNotes(bool english)
+    {
+        const double width = 500, height = 286;
+        var title = english ? "Release notes 0.7.3" : "版本说明 0.7.3";
+        var paragraph = english
+            ? "Translate in place: pin a screenshot and read the translation right where the original text was."
+            : "原位翻译：截图钉在桌面，直接在原文的位置看译文，不用来回切换窗口。";
+        var rows = english
+            ? new[] { new[] { "Engine", "Price", "Speed" }, ["Bing", "Free", "Fast"], ["Local model", "Free", "Offline"] }
+            : new[] { new[] { "引擎", "价格", "速度" }, ["必应", "免费", "快"], ["本地大模型", "免费", "不联网"] };
+        SolidColorBrush Brush(string hex) => new((Color)ColorConverter.ConvertFromString(hex));
+        var family = new FontFamily("Segoe UI, Microsoft YaHei UI");
+        var face = new Typeface(family, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
+        var bold = new Typeface(family, FontStyles.Normal, FontWeights.Bold, FontStretches.Normal);
+        FormattedText Text(string text, Typeface typeface, double size, string color) =>
+            new(text, System.Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, size, Brush(color), PromoScale);
+
+        var visual = new DrawingVisual();
+        using (var dc = visual.RenderOpen())
+        {
+            dc.DrawRectangle(Brushes.White, null, new Rect(0, 0, width, height));
+            dc.DrawText(Text(title, bold, 19, "#1C8780"), new Point(24, 18));
+            var body = Text(paragraph, face, 14.5, "#1F2328");
+            body.MaxTextWidth = width - 48;
+            body.LineHeight = 23;
+            dc.DrawText(body, new Point(24, 58));
+            double top = 128, rowHeight = 40;
+            var columns = new[] { 24.0, 200, 330 };
+            dc.DrawRoundedRectangle(Brush("#EEF2F1"), null, new Rect(14, top, width - 28, rowHeight), 6, 6);
+            for (var r = 0; r < rows.Length; r++)
+            {
+                var y = top + r * rowHeight;
+                if (r > 0)
+                    dc.DrawRectangle(Brush("#E3E7E6"), null, new Rect(14, y, width - 28, 1));
+                for (var c = 0; c < rows[r].Length; c++)
+                {
+                    var cell = Text(rows[r][c], r == 0 ? bold : face, 14.5, r == 0 ? "#3D4450" : "#1F2328");
+                    dc.DrawText(cell, new Point(columns[c], y + (rowHeight - cell.Height) / 2));
+                }
+            }
         }
         var bitmap = new RenderTargetBitmap((int)(width * PromoScale), (int)(height * PromoScale), 96 * PromoScale, 96 * PromoScale, PixelFormats.Pbgra32);
         bitmap.Render(visual);

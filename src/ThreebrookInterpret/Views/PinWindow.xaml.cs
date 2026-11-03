@@ -606,6 +606,9 @@ public partial class PinWindow : Window
     }
 
     internal BitmapSource PreviewCurrentImage() => CurrentImage();
+
+    /// <summary>预览：右上角的原文 / 译文切换平时鼠标移上去才显示，宣传图里直接显示出来。</summary>
+    internal void PreviewShowToggle() => TogglePanel.Opacity = 0.94;
     internal string PreviewTranslatedText => TranslatedText;
 
     internal int PreviewWordAt(Point imagePoint) => WordAt(imagePoint);
